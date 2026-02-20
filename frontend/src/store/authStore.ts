@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'sams-auth-v2',
-            storage: createJSONStorage(() => localStorage),
+            storage: createJSONStorage(() => (typeof window !== 'undefined' ? localStorage : undefined)),
             partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
         }
     )
