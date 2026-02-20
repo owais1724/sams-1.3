@@ -19,7 +19,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private usersService: UsersService,
-  ) {}
+  ) { }
 
   @UseGuards(AuthGuard('local'))
   @Post('login')
@@ -41,7 +41,7 @@ export class AuthController {
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: '/',
     });
@@ -64,7 +64,7 @@ export class AuthController {
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
+      sameSite: isProd ? 'none' : 'lax', // Use 'none' for cross-domain logout in prod
       path: '/',
     });
     return { message: 'Logged out successfully' };
