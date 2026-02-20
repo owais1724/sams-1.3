@@ -70,10 +70,10 @@ async function bootstrap() {
     : isProd
       ? [] // Force configuration in production
       : [
-          'http://localhost:3000',
-          'http://localhost:3001',
-          'http://localhost:5173',
-        ];
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:5173',
+      ];
 
   if (isProd && allowedOrigins.length === 0) {
     logger.warn(
@@ -100,33 +100,22 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT || 3000;
-  if (process.env.NODE_ENV !== 'production') {
-    await app.listen(port);
-    logger.log(`Application is running on: http://localhost:${port}`);
-  }
 
-  await app.init();
-  return app.getHttpAdapter().getInstance();
+  // ALWAYS listen on the port, binding to 0.0.0.0
+  await app.listen(port, '0.0.0.0');
+  logger.log(`Application is running on: http://0.0.0.0:${port}`);
+
+  return app;
 }
 
-let cachedHandler: any;
-
-export default async (req: any, res: any) => {
-  if (!cachedHandler) {
-    cachedHandler = await bootstrap();
-  }
-  return cachedHandler(req, res);
-};
-
-if (process.env.NODE_ENV !== 'production') {
-  try {
-    validateEnv();
-    bootstrap();
-  } catch (err) {
-    console.error(err.message);
-    process.exit(1);
-  }
-} else {
-  // Always validate env in production
+// Direct execution (Standard Node.js entry point)
+if (require.main === module) {
   validateEnv();
+  bootstrap().catch(err => {
+    console.error('Bootstrap Error:', err);
+    process.exit(1);
+  });
 }
+
+// Export for serverless environments (if needed)
+export default bootstrap;
