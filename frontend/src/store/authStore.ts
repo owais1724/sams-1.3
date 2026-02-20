@@ -32,7 +32,21 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'sams-auth-v2',
-            storage: createJSONStorage(() => (typeof window !== 'undefined' ? localStorage : undefined)),
+            storage: createJSONStorage(() => {
+                const dummyStorage = {
+                    getItem: () => null,
+                    setItem: () => { },
+                    removeItem: () => { },
+                };
+                try {
+                    if (typeof window !== 'undefined') {
+                        return localStorage;
+                    }
+                } catch (e) {
+                    console.warn('LocalStorage access blocked or unavailable:', e);
+                }
+                return dummyStorage;
+            }),
             partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
         }
     )
