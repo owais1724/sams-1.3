@@ -79,8 +79,8 @@ export default function AdminDashboard() {
                         </Button>
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-[540px] border-none shadow-2xl p-0">
-                        <div className="p-8 md:p-12 overflow-y-auto h-full">
-                            <SheetHeader className="mb-8">
+                        <div className="p-6 md:p-8 overflow-y-auto h-full">
+                            <SheetHeader className="mb-6">
                                 <SheetTitle className="text-2xl font-black">Create New Agency</SheetTitle>
                                 <SheetDescription className="text-slate-500 font-medium">
                                     Initialize a new agency node and its primary administrative credentials.
