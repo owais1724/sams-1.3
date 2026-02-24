@@ -64,10 +64,10 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                     name="name"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Project / Site Name</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Name</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="Downtown Mall Security"
+                                    placeholder="Name"
                                     className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
                                     {...field}
                                 />
@@ -82,7 +82,7 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                     render={({ field }) => (
                         <FormItem className="space-y-2">
                             <div className="flex items-center justify-between pl-1">
-                                <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target Client</FormLabel>
+                                <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client</FormLabel>
                                 <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
                                     <DialogTrigger asChild>
                                         <Button
@@ -92,15 +92,15 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                                             className="h-6 px-2 text-[9px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 rounded-lg"
                                         >
                                             <Plus className="h-3 w-3 mr-1" />
-                                            Quick Register
+                                            Quick Add
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden">
                                         <div className="p-10">
                                             <DialogHeader>
-                                                <DialogTitle className="text-2xl font-bold">New Client Protocol</DialogTitle>
+                                                <DialogTitle className="text-2xl font-bold">Add Client</DialogTitle>
                                                 <DialogDescription className="font-medium text-slate-500">
-                                                    Initialize a new institutional partner before site deployment.
+                                                    Add a new client
                                                 </DialogDescription>
                                             </DialogHeader>
                                             <div className="mt-6">
@@ -108,7 +108,7 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                                                     onSuccess={() => {
                                                         setIsClientDialogOpen(false)
                                                         onRefreshClients()
-                                                        toast.success("Client synchronized with project deck")
+                                                        toast.success("Client added")
                                                     }}
                                                 />
                                             </div>
@@ -134,10 +134,10 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                     name="location"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Site Location</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Location</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="456 Commerce Ave, Block B"
+                                    placeholder="Location"
                                     className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
                                     {...field}
                                 />
@@ -147,10 +147,10 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                     )}
                 />
                 <Button type="submit" className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black shadow-lg transition-all active:scale-[0.98] uppercase tracking-widest mt-4" disabled={loading || clients.length === 0}>
-                    {loading ? "Launching..." : "Establish Project"}
+                    {loading ? "Processing..." : "Create Project"}
                 </Button>
                 {clients.length === 0 && (
-                    <p className="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-widest text-center">Protocol Violation: Client registration required first.</p>
+                    <p className="text-[10px] text-red-500 mt-2 font-bold uppercase tracking-widest text-center">Client required first.</p>
                 )}
             </form>
         </Form>

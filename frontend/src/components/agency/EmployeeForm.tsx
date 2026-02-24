@@ -212,17 +212,14 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                     name="fullName"
                     render={({ field }) => (
                         <FormItem className="space-y-1">
-                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Target Employee Full Name</FormLabel>
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Name</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="Enter officer's legal name"
+                                    placeholder="Name"
                                     className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic"
                                     {...field}
                                 />
                             </FormControl>
-                            <FormDescription className="text-[9px] font-bold text-slate-400 uppercase tracking-tight pl-2">
-                                Staff ID will be auto-generated upon registration.
-                            </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
@@ -236,7 +233,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                             <FormItem className="space-y-1">
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="flex flex-col">
-                                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Professional Designation</FormLabel>
+                                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Designation</FormLabel>
                                         {designations.length === 0 && (
                                             <span className="text-[9px] font-bold text-amber-600 uppercase mt-0.5">⚠️ No designations available. Create one below.</span>
                                         )}
@@ -296,7 +293,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
 
                 <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-1">
-                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Operational Region</FormLabel>
+                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Country</FormLabel>
                         <FormField
                             control={form.control}
                             name="countryIndex"
@@ -321,14 +318,14 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                             const country = countries[parseInt(form.watch("countryIndex")) || 0]
                             return (
                                 <FormItem className="space-y-1">
-                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Phone Number</FormLabel>
+                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Phone</FormLabel>
                                     <FormControl>
                                         <div className="relative">
                                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
                                                 {country?.code}
                                             </div>
                                             <Input
-                                                placeholder={`${country?.length} digits`}
+                                                placeholder="Phone"
                                                 className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-black pl-14"
                                                 {...field}
                                             />
@@ -367,7 +364,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                         name="basicSalary"
                         render={({ field }) => (
                             <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Baseline Remuneration</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Salary</FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
@@ -375,7 +372,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                         </div>
                                         <Input
                                             type="number"
-                                            placeholder="0.00"
+                                            placeholder="Salary"
                                             className="h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-black pl-12"
                                             {...field}
                                         />
@@ -388,15 +385,14 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                 </div>
 
                 <div className="space-y-4 rounded-2xl border border-slate-100 p-6 bg-slate-50/50">
-                    <h3 className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Security Credentials</h3>
                     <FormField
                         control={form.control}
                         name="email"
                         render={({ field }) => (
                             <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Portal Email</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Email</FormLabel>
                                 <FormControl>
-                                    <Input type="email" placeholder="staff@agency.com" {...field} className="h-12 rounded-xl bg-white border-slate-200" />
+                                    <Input type="email" placeholder="Email" {...field} className="h-12 rounded-xl bg-white border-slate-200" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -407,12 +403,12 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                         name="password"
                         render={({ field }) => (
                             <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Access Secret</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Password</FormLabel>
                                 <FormControl>
                                     <div className="relative group">
                                         <Input
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="••••••••"
+                                            placeholder="Password"
                                             {...field}
                                             className="h-12 rounded-xl bg-white border-slate-200 pr-10"
                                         />
@@ -429,31 +425,6 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                         </button>
                                     </div>
                                 </FormControl>
-                                <div className="mt-2 space-y-1.5">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Security Standards:</p>
-                                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
-                                        <li className={`text-[9px] flex items-center ${(field.value?.length || 0) >= 8 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${(field.value?.length || 0) >= 8 ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            8+ Characters
-                                        </li>
-                                        <li className={`text-[9px] flex items-center ${/[A-Z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[A-Z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Uppercase Letter
-                                        </li>
-                                        <li className={`text-[9px] flex items-center ${/[a-z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[a-z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Lowercase Letter
-                                        </li>
-                                        <li className={`text-[9px] flex items-center ${/[0-9]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[0-9]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Number Included
-                                        </li>
-                                        <li className={`text-[9px] flex items-center ${/[!@#$%^&*]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[!@#$%^&*]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Special Symbol
-                                        </li>
-                                    </ul>
-                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}

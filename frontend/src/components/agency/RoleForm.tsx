@@ -116,17 +116,18 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Role Title</FormLabel>
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Name</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="e.g. Site Supervisor"
+                                    placeholder="Name"
+                                    className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic"
                                     {...field}
                                     disabled={initialData?.isSystem}
                                 />
                             </FormControl>
                             {initialData?.isSystem && (
                                 <FormDescription className="text-xs text-amber-600">
-                                    System role names cannot be changed. You can only modify permissions.
+                                    System names cannot be changed.
                                 </FormDescription>
                             )}
                             <FormMessage />
@@ -139,10 +140,11 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Description</FormLabel>
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Description</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="Briefly explain what this role manages"
+                                    placeholder="Description"
+                                    className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic"
                                     {...field}
                                     disabled={initialData?.isSystem}
                                 />
@@ -154,8 +156,8 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
 
                 <div className="space-y-4">
                     <div className="flex flex-col gap-1">
-                        <FormLabel className="text-sm font-black text-slate-900 uppercase tracking-widest">Authorization Matrix</FormLabel>
-                        <FormDescription className="text-[11px] font-bold text-slate-400">Expand categories to define granular access grants for this security role.</FormDescription>
+                        <FormLabel className="text-sm font-black text-slate-900 uppercase tracking-widest">Permissions</FormLabel>
+                        <FormDescription className="text-[11px] font-bold text-slate-400">Select permissions for this role</FormDescription>
                     </div>
 
                     <div className="space-y-3">

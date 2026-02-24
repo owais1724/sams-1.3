@@ -68,10 +68,10 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="name"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Company / Client Name</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Name</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="Global Corp"
+                                    placeholder="Name"
                                     className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
                                     {...field}
                                 />
@@ -85,10 +85,10 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="contact"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Contact Person</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Contact</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="John Doe"
+                                    placeholder="Contact"
                                     className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
                                     {...field}
                                 />
@@ -102,11 +102,11 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="email"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Email Address</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Email</FormLabel>
                             <FormControl>
                                 <Input
                                     type="email"
-                                    placeholder="john@client.com"
+                                    placeholder="Email"
                                     className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
                                     {...field}
                                 />
@@ -120,10 +120,10 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="address"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Office Address</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Address</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="123 Street, City"
+                                    placeholder="Address"
                                     className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
                                     {...field}
                                 />

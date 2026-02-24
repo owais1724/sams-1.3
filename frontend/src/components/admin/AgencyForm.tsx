@@ -90,10 +90,10 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="name"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Agency Legal Name</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Name</FormLabel>
                                 <FormControl>
                                     <Input
-                                        placeholder="Enter agency name"
+                                        placeholder="Name"
                                         className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
                                         {...field}
                                     />
@@ -107,18 +107,17 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="slug"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Unique Instance Identifier (Slug)</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Slug</FormLabel>
                                 <FormControl>
                                     <div className="relative group">
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-sm group-focus-within:text-primary transition-colors">/</div>
                                         <Input
-                                            placeholder="identifier-code"
+                                            placeholder="Slug"
                                             className="h-14 pl-8 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 font-mono font-bold focus:bg-white focus:border-primary/20 transition-all px-4"
                                             {...field}
                                         />
                                     </div>
                                 </FormControl>
-                                <FormDescription className="text-[9px] font-bold text-slate-400 uppercase tracking-tight pl-2">This defines the private access URL for this agency instance.</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -136,10 +135,10 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="adminName"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Principal Officer Full Name</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Name</FormLabel>
                                 <FormControl>
                                     <Input
-                                        placeholder="Full legal name"
+                                        placeholder="Name"
                                         className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
                                         {...field}
                                     />
@@ -153,11 +152,11 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="adminEmail"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">System Access Email</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Email</FormLabel>
                                 <FormControl>
                                     <Input
                                         type="email"
-                                        placeholder="admin@instance.com"
+                                        placeholder="Email"
                                         className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold px-4"
                                         {...field}
                                     />
@@ -172,13 +171,13 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
                                 <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">
-                                    {initialData ? "Rotate Access Secret" : "Primary Access Secret"}
+                                    {initialData ? "Password" : "Password"}
                                 </FormLabel>
                                 <FormControl>
                                     <div className="relative group">
                                         <Input
                                             type={showPassword ? "text" : "password"}
-                                            placeholder={initialData ? "Leave blank to maintain current" : "••••••••"}
+                                            placeholder={initialData ? "Password" : "Password"}
                                             className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-black px-4 pr-12"
                                             {...field}
                                         />
@@ -195,27 +194,6 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         </button>
                                     </div>
                                 </FormControl>
-                                <div className="mt-4 p-4 rounded-xl bg-slate-50/50 border border-slate-100">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Security Requirements:</p>
-                                    <ul className="grid grid-cols-2 gap-x-6 gap-y-2">
-                                        <li className={`text-[9px] font-extrabold flex items-center ${((field.value?.length || 0)) >= 8 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1.5 w-1.5 rounded-full mr-2 ${((field.value?.length || 0)) >= 8 ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            8+ Characters
-                                        </li>
-                                        <li className={`text-[9px] font-extrabold flex items-center ${/[A-Z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1.5 w-1.5 rounded-full mr-2 ${/[A-Z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Uppercase
-                                        </li>
-                                        <li className={`text-[9px] font-extrabold flex items-center ${/[a-z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1.5 w-1.5 rounded-full mr-2 ${/[a-z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Lowercase
-                                        </li>
-                                        <li className={`text-[9px] font-extrabold flex items-center ${/[0-9]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1.5 w-1.5 rounded-full mr-2 ${/[0-9]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Number
-                                        </li>
-                                    </ul>
-                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -223,7 +201,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                 </div>
 
                 <Button type="submit" className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl shadow-xl shadow-slate-200 transition-all active:scale-[0.98]" disabled={loading}>
-                    {loading ? "PROCESSING..." : (initialData ? "SAVE AGENCY CONFIGURATION" : "FINALIZE AGENCY DEPLOYMENT")}
+                    {loading ? "PROCESSING..." : (initialData ? "Update Agency" : "Create Agency")}
                 </Button>
             </form>
         </Form>
