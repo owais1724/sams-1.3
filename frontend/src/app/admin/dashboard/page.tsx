@@ -89,7 +89,7 @@ export default function AdminDashboard() {
                             INITIALIZE AGENCY
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[540px] border-l-0 shadow-2xl p-0">
+                    <SheetContent className="sm:max-w-[540px] border-l-0 shadow-2xl p-0 rounded-l-[40px] overflow-hidden">
                         <div className="h-full bg-slate-50/50 flex flex-col">
                             <div className="p-8 pt-12 overflow-y-auto h-full">
                                 <SheetHeader className="mb-10">
