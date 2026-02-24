@@ -53,7 +53,7 @@ export default function StaffLogin() {
             const { user } = response.data
 
             if (user.role === 'Agency Admin' || user.role === 'Super Admin') {
-                toast.error("Administrative profiles must use the main portal.")
+                toast.error("Invalid credentials")
                 await api.post("/auth/logout")
                 logout()
                 setLoading(false)
@@ -61,7 +61,7 @@ export default function StaffLogin() {
             }
 
             if (!user.employeeId && user.role === 'No Role') {
-                toast.error("Account not verified for operational access.")
+                toast.error("Invalid credentials")
                 await api.post("/auth/logout")
                 logout()
                 setLoading(false)
@@ -73,8 +73,7 @@ export default function StaffLogin() {
             router.push(`/${agencySlug}/staff/dashboard`)
         } catch (error: any) {
             console.error('[Staff Login Error]', error)
-            const message = error.response?.data?.message || error.message || "Authentication failed"
-            toast.error(`Login Error: ${message}`)
+            toast.error("Invalid credentials")
             setLoading(false)
         }
     }

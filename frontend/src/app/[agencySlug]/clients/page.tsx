@@ -11,7 +11,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Plus, Building, Search, Filter, Mail, Briefcase, ChevronRight, Activity } from "lucide-react"
+import { Plus, Building, Search, Filter, Mail, Briefcase, ChevronRight, Activity, Edit3, Trash2 } from "lucide-react"
 import {
     Sheet,
     SheetContent,
@@ -24,12 +24,14 @@ import { ClientForm } from "@/components/agency/ClientForm"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
 
 export default function ClientsPage() {
     const [clients, setClients] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
+    const [editingClient, setEditingClient] = useState<any | null>(null)
 
     const fetchClients = async () => {
         try {
@@ -46,6 +48,18 @@ export default function ClientsPage() {
         fetchClients()
     }, [])
 
+    const handleDelete = async (id: string, name: string) => {
+        if (!confirm(`Are you sure you want to delete ${name}? This will remove all associated project links.`)) return
+
+        try {
+            await api.delete(`/clients/${id}`)
+            toast.success("Client record purged from system")
+            fetchClients()
+        } catch (error) {
+            toast.error("Failed to delete client")
+        }
+    }
+
     const filteredClients = clients.filter(client =>
         client.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         client.email?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -59,27 +73,34 @@ export default function ClientsPage() {
                     <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Client <span className="text-primary">Portfolio</span></h1>
                     <p className="text-slate-500 font-medium mt-1">Manage institutional partners and project owners.</p>
                 </div>
-                <Sheet open={open} onOpenChange={setOpen}>
+                <Sheet open={open} onOpenChange={(v) => {
+                    setOpen(v)
+                    if (!v) setEditingClient(null)
+                }}>
                     <SheetTrigger asChild>
                         <Button className="bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-8 py-6 rounded-2xl">
                             <Plus className="mr-2 h-5 w-5" />
                             Create Client
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[500px] rounded-l-[40px] border-none shadow-2xl">
-                        <SheetHeader>
-                            <SheetTitle className="text-2xl font-bold">Create Client Record</SheetTitle>
-                            <SheetDescription className="font-medium text-slate-500">
-                                Register a new institutional client to initialize security operations.
-                            </SheetDescription>
-                        </SheetHeader>
-                        <div className="mt-10">
-                            <ClientForm
-                                onSuccess={() => {
-                                    setOpen(false)
-                                    fetchClients()
-                                }}
-                            />
+                    <SheetContent className="sm:max-w-[500px] rounded-l-[40px] border-none shadow-2xl p-0">
+                        <div className="p-10 overflow-y-auto h-full">
+                            <SheetHeader>
+                                <SheetTitle className="text-2xl font-bold">{editingClient ? "Modify Client Record" : "Create Client Record"}</SheetTitle>
+                                <SheetDescription className="font-medium text-slate-500">
+                                    {editingClient ? "Update existing partner credentials and operational details." : "Register a new institutional client to initialize security operations."}
+                                </SheetDescription>
+                            </SheetHeader>
+                            <div className="mt-10">
+                                <ClientForm
+                                    initialData={editingClient}
+                                    onSuccess={() => {
+                                        setOpen(false)
+                                        setEditingClient(null)
+                                        fetchClients()
+                                    }}
+                                />
+                            </div>
                         </div>
                     </SheetContent>
                 </Sheet>
@@ -181,14 +202,27 @@ export default function ClientsPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right px-8">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-10 px-6 rounded-xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all group/btn"
-                                                >
-                                                    View Details
-                                                    <ChevronRight className="h-4 w-4 ml-1 transform group-hover/btn:translate-x-1 transition-transform" />
-                                                </Button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => {
+                                                            setEditingClient(client)
+                                                            setOpen(true)
+                                                        }}
+                                                        className="h-10 w-10 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
+                                                    >
+                                                        <Edit3 className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDelete(client.id, client.name)}
+                                                        className="h-10 w-10 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                             </TableCell>
                                         </motion.tr>
                                     ))}

@@ -31,12 +31,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 
-export default function PersonnelPage() {
+export default function EmployeesPage() {
     const [employees, setEmployees] = useState<any[]>([])
     const [designations, setDesignations] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
-    const [openEnroll, setOpenEnroll] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
+    const [editingEmployee, setEditingEmployee] = useState<any | null>(null)
+    const [openEnroll, setOpenEnroll] = useState(false)
 
     // Profile State
     const [profileDialog, setProfileDialog] = useState<{ open: boolean, employee: any | null }>({
@@ -86,11 +87,11 @@ export default function PersonnelPage() {
         setDeleting(true)
         try {
             await api.delete(`/employees/${profileDialog.employee.id}`)
-            toast.success("Personnel record deleted successfully.")
+            toast.success("Employee record deleted successfully.")
             setProfileDialog({ open: false, employee: null })
             fetchData()
         } catch (error) {
-            toast.error("Failed to delete personnel. They might have active assignments.")
+            toast.error("Failed to delete employee. They might have active assignments.")
         } finally {
             setDeleting(false)
         }
@@ -119,7 +120,7 @@ export default function PersonnelPage() {
     )
 
     const stats = [
-        { label: "Active Personnel", value: employees.length, icon: Users, color: "text-teal-600", bg: "bg-teal-50" },
+        { label: "Active Employees", value: employees.length, icon: Users, color: "text-teal-600", bg: "bg-teal-50" },
         { label: "On Station", value: "0", icon: UserCheck, color: "text-emerald-600", bg: "bg-emerald-50" },
         { label: "Designations", value: designations.length, icon: Shield, color: "text-teal-700", bg: "bg-teal-50" },
     ]
@@ -129,31 +130,43 @@ export default function PersonnelPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Personnel Directory</h1>
-                    <p className="text-slate-500 font-medium mt-1">Lifecycle management and deployment of security enforcement personnel.</p>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Employee Directory</h1>
+                    <p className="text-slate-500 font-medium mt-1">Lifecycle management and deployment of security enforcement staff.</p>
                 </div>
 
                 <div className="flex gap-4">
                     <Sheet open={openEnroll} onOpenChange={setOpenEnroll}>
                         <SheetTrigger asChild>
-                            <Button className="h-12 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-8 rounded-xl transition-all active:scale-[0.98]">
+                            <Button
+                                onClick={() => {
+                                    setEditingEmployee(null)
+                                    setOpenEnroll(true)
+                                }}
+                                className="h-12 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-8 rounded-xl transition-all active:scale-[0.98]"
+                            >
                                 <Plus className="mr-2 h-5 w-5" />
-                                Create Personnel
+                                Create Employee
                             </Button>
                         </SheetTrigger>
-                        <SheetContent className="sm:max-w-[540px] rounded-l-[2rem] border-none shadow-2xl p-0">
-                            <div className="p-8 md:p-12 overflow-y-auto h-full">
+                        <SheetContent className="sm:max-w-[540px] rounded-l-[40px] border-none shadow-2xl p-0">
+                            <div className="p-10 overflow-y-auto h-full">
                                 <SheetHeader className="mb-8">
-                                    <SheetTitle className="text-2xl font-black">Establish Personnel Record</SheetTitle>
+                                    <SheetTitle className="text-2xl font-black">
+                                        {editingEmployee ? `Modify Record: ${editingEmployee.fullName}` : "Establish Employee Record"}
+                                    </SheetTitle>
                                     <SheetDescription className="font-medium text-slate-500">
-                                        Initialize a new officer record. Administrative credentials and operational profiles will be generated.
+                                        {editingEmployee
+                                            ? "Update professional credentials and operational profiles for this staff member."
+                                            : "Initialize a new staff record. Administrative credentials and operational profiles will be generated."}
                                     </SheetDescription>
                                 </SheetHeader>
                                 <EmployeeForm
                                     designations={designations}
                                     refetchDesignations={fetchData}
+                                    initialData={editingEmployee}
                                     onSuccess={() => {
                                         setOpenEnroll(false)
+                                        setEditingEmployee(null)
                                         fetchData()
                                     }}
                                 />
@@ -214,7 +227,7 @@ export default function PersonnelPage() {
                         <Table>
                             <TableHeader className="bg-slate-50/50 border-b border-slate-100">
                                 <TableRow className="h-14">
-                                    <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Personnel Profile</TableHead>
+                                    <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Employee Profile</TableHead>
                                     <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Professional Rank</TableHead>
                                     <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Base Compensation</TableHead>
                                     <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Current Status</TableHead>
@@ -224,7 +237,7 @@ export default function PersonnelPage() {
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-20 italic text-slate-400 animate-pulse font-bold tracking-widest text-xs uppercase">Synchronizing Personnel Data...</TableCell>
+                                        <TableCell colSpan={5} className="text-center py-20 italic text-slate-400 animate-pulse font-bold tracking-widest text-xs uppercase">Synchronizing Employee Data...</TableCell>
                                     </TableRow>
                                 ) : filteredEmployees.length === 0 ? (
                                     <TableRow>
@@ -233,19 +246,20 @@ export default function PersonnelPage() {
                                                 <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                                                     <Users className="h-8 w-8 text-slate-200" />
                                                 </div>
-                                                <h4 className="text-lg font-bold text-slate-800 tracking-tight">No Personnel Found</h4>
-                                                <p className="text-slate-400 text-sm mt-1 font-medium">No personnel found matching your current filters.</p>
+                                                <h4 className="text-lg font-bold text-slate-800 tracking-tight">No Employees Found</h4>
+                                                <p className="text-slate-400 text-sm mt-1 font-medium">No employees found matching your current filters.</p>
                                             </div>
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    <AnimatePresence mode="popLayout">
+                                    <AnimatePresence>
                                         {filteredEmployees.map((emp, idx) => (
                                             <motion.tr
                                                 key={emp.id}
-                                                initial={{ opacity: 0, scale: 0.98 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                transition={{ delay: idx * 0.03 }}
+                                                initial={{ opacity: 0, y: 4 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.2, delay: idx * 0.02 }}
                                                 className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
                                             >
                                                 <TableCell className="px-8 py-6">
@@ -272,7 +286,13 @@ export default function PersonnelPage() {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="font-black text-slate-800">
-                                                    ${emp.basicSalary?.toLocaleString() || 0}
+                                                    {(() => {
+                                                        const symbols: Record<string, string> = {
+                                                            USD: "$", INR: "₹", GBP: "£", EUR: "€", KES: "KSh", NGN: "₦", ZAR: "R"
+                                                        };
+                                                        const symbol = symbols[emp.salaryCurrency] || "$";
+                                                        return `${symbol}${emp.basicSalary?.toLocaleString() || 0}`;
+                                                    })()}
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge className={cn(
@@ -283,7 +303,7 @@ export default function PersonnelPage() {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right px-8">
-                                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
+                                                    <div className="flex justify-end gap-2">
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
@@ -292,6 +312,17 @@ export default function PersonnelPage() {
                                                         >
                                                             <Wallet className="h-3.5 w-3.5 mr-2" />
                                                             Payroll
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-10 px-4 rounded-xl font-bold border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-sm"
+                                                            onClick={() => {
+                                                                setEditingEmployee(emp)
+                                                                setOpenEnroll(true)
+                                                            }}
+                                                        >
+                                                            Edit
                                                         </Button>
                                                         <Button
                                                             variant="outline"
@@ -377,8 +408,8 @@ export default function PersonnelPage() {
             <Dialog open={profileDialog.open} onOpenChange={(v) => !v && setProfileDialog({ open: false, employee: null })}>
                 <DialogContent className="sm:max-w-[500px] border-none rounded-[32px] p-0 overflow-hidden shadow-2xl bg-white">
                     <DialogHeader className="sr-only">
-                        <DialogTitle>Personnel Profile - {profileDialog.employee?.fullName}</DialogTitle>
-                        <DialogDescription>Professional credentials and administrative actions for enforcement personnel.</DialogDescription>
+                        <DialogTitle>Employee Profile - {profileDialog.employee?.fullName}</DialogTitle>
+                        <DialogDescription>Professional credentials and administrative actions for enforcement staff.</DialogDescription>
                     </DialogHeader>
                     <div className="bg-slate-900 p-8 text-white relative">
                         <div className="flex items-center gap-6">

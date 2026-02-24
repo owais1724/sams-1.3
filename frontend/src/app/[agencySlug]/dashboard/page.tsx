@@ -17,7 +17,7 @@ export default function AgencyDashboard() {
     const [stats, setStats] = useState({
         clients: 0,
         projects: 0,
-        personnel: 0,
+        employees: 0,
         pendingLeaves: 0
     })
     const [recentProjects, setRecentProjects] = useState<any[]>([])
@@ -45,7 +45,7 @@ export default function AgencyDashboard() {
                 setStats({
                     clients: clients.length,
                     projects: projects.length,
-                    personnel: employees.length,
+                    employees: employees.length,
                     pendingLeaves: pending.length
                 })
                 setRecentProjects(projects.slice(0, 5))
@@ -81,14 +81,14 @@ export default function AgencyDashboard() {
             href: `/${agencySlug}/projects`
         },
         {
-            title: "Security Personnel",
-            value: stats.personnel,
+            title: "Security Employees",
+            value: stats.employees,
             icon: Users,
             color: "text-teal-700",
             bg: "bg-teal-50/50",
             border: "border-teal-100",
             trend: "3 in training",
-            href: `/${agencySlug}/personnel`
+            href: `/${agencySlug}/employees`
         },
         {
             title: "Pending Leaves",
@@ -102,12 +102,7 @@ export default function AgencyDashboard() {
         },
     ]
 
-    const quickActions = [
-        { name: "Onboard Personnel", icon: Plus, href: `/${agencySlug}/personnel`, color: "bg-primary" },
-        { name: "Register Client", icon: Building2, href: `/${agencySlug}/clients`, color: "bg-[#0d5c56]" },
-        { name: "Create Project", icon: Briefcase, href: `/${agencySlug}/projects`, color: "bg-[#0d5c56]" },
-        { name: "Leave Portal", icon: CalendarDays, href: `/${agencySlug}/leaves`, color: "bg-[#0d5c56]" },
-    ]
+
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -157,27 +152,7 @@ export default function AgencyDashboard() {
                 </motion.div>
             </div>
 
-            {/* Quick Actions */}
-            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {quickActions.map((action) => (
-                    <Link key={action.name} href={action.href}>
-                        <div className={cn(
-                            "group p-1 rounded-2xl transition-all duration-300 hover:scale-[1.02]",
-                            action.color
-                        )}>
-                            <div className="bg-white rounded-[14px] p-4 flex items-center justify-between group-hover:bg-transparent transition-colors">
-                                <div className="flex items-center gap-3">
-                                    <div className={cn("p-2 rounded-xl text-white", action.color)}>
-                                        <action.icon className="h-4 w-4" />
-                                    </div>
-                                    <span className="text-sm font-bold text-slate-700 group-hover:text-white transition-colors">{action.name}</span>
-                                </div>
-                                <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-white transition-all transform translate-x-0 group-hover:translate-x-1" />
-                            </div>
-                        </div>
-                    </Link>
-                ))}
-            </motion.div>
+
 
             {/* Stats Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -225,7 +200,7 @@ export default function AgencyDashboard() {
                                     <Briefcase className="h-8 w-8 text-slate-300" />
                                 </div>
                                 <h4 className="text-lg font-bold text-slate-800">Intelligence Stream Offline</h4>
-                                <p className="text-slate-500 text-sm max-w-xs mt-2 font-medium">Connect your first project and personnel to see live deployment heatmaps and performance metrics.</p>
+                                <p className="text-slate-500 text-sm max-w-xs mt-2 font-medium">Connect your first project and employee to see live deployment heatmaps and performance metrics.</p>
                                 <Link href={`/${agencySlug}/projects`}>
                                     <Button className="mt-8 bg-slate-800 rounded-xl px-8 py-6 font-bold hover:scale-105 transition-all">Launch Monitoring</Button>
                                 </Link>
@@ -292,8 +267,8 @@ export default function AgencyDashboard() {
                                     <Users className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold">Personnel Sync Completed</p>
-                                    <span className="text-[10px] text-slate-400 font-medium tracking-wide">3 new guards assigned</span>
+                                    <p className="text-sm font-bold">Employee Sync Completed</p>
+                                    <span className="text-[10px] text-slate-400 font-medium tracking-wide">3 new staff assigned</span>
                                 </div>
                             </div>
                         </div>

@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
-import { Lock, Mail, ChevronRight, Loader2, ShieldCheck, Cpu } from "lucide-react"
+import { Lock, Mail, ChevronRight, Loader2, ShieldCheck, Cpu, Eye, EyeOff } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
 
@@ -31,6 +31,7 @@ const formSchema = z.object({
 export default function LoginPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
     const login = useAuthStore(state => state.login)
     const logout = useAuthStore(state => state.logout)
 
@@ -52,7 +53,7 @@ export default function LoginPage() {
             const { user } = response.data
 
             if (user.role !== 'Super Admin') {
-                toast.error("Access denied. Restricted to Super Administrators.")
+                toast.error("Invalid credentials")
                 await api.post("/auth/logout")
                 logout()
                 setLoading(false)
@@ -64,8 +65,7 @@ export default function LoginPage() {
             router.push("/admin/dashboard")
         } catch (error: any) {
             console.error('[Admin Login Error]', error)
-            const message = error.response?.data?.message || error.message || "Authentication failed"
-            toast.error(`Access Denied: ${message}`)
+            toast.error("Invalid credentials")
             setLoading(false)
         }
     }
@@ -133,11 +133,22 @@ export default function LoginPage() {
                                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
-                                                        type="password"
+                                                        type={showPassword ? "text" : "password"}
                                                         placeholder="••••••••"
-                                                        className="pl-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold"
+                                                        className="pl-12 pr-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold"
                                                         {...field}
                                                     />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors"
+                                                    >
+                                                        {showPassword ? (
+                                                            <EyeOff className="w-4 h-4" />
+                                                        ) : (
+                                                            <Eye className="w-4 h-4" />
+                                                        )}
+                                                    </button>
                                                 </div>
                                             </FormControl>
                                             <FormMessage className="text-[10px] text-red-500 font-bold" />

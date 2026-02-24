@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Shield, LogOut, LayoutDashboard } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
 
 const navItems = [
@@ -12,6 +13,7 @@ const navItems = [
 
 export function AdminSidebar() {
     const pathname = usePathname()
+    const logout = useAuthStore(state => state.logout)
 
     return (
         <div className="flex h-screen w-64 flex-col bg-[#0f172a] text-slate-300 border-r border-slate-800">
@@ -40,7 +42,12 @@ export function AdminSidebar() {
             <div className="border-t border-slate-800 p-4">
                 <button
                     onClick={async () => {
-                        await api.post("/auth/logout")
+                        try {
+                            await api.post("/auth/logout")
+                        } catch (e) {
+                            console.error("Server logout failed", e)
+                        }
+                        logout()
                         window.location.href = '/'
                     }}
                     className="flex w-full items-center rounded-lg px-4 py-3 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all active:scale-[0.98]"

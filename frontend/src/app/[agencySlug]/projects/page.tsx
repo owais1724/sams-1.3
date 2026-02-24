@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sheet"
 import { ProjectForm } from "@/components/agency/ProjectForm"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
 export default function ProjectsPage() {
     const [projects, setProjects] = useState<any[]>([])
@@ -62,35 +63,38 @@ export default function ProjectsPage() {
                             Create Project
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[450px]">
-                        <SheetHeader>
-                            <SheetTitle>Initialize New Project</SheetTitle>
-                            <SheetDescription>
-                                Register a security site to a client and prepare for operational deployment.
-                            </SheetDescription>
-                        </SheetHeader>
-                        <div className="mt-6">
-                            <ProjectForm
-                                clients={clients}
-                                onSuccess={() => {
-                                    setOpen(false)
-                                    fetchData()
-                                }}
-                            />
+                    <SheetContent className="sm:max-w-[500px] rounded-l-[40px] border-none shadow-2xl p-0">
+                        <div className="p-10 overflow-y-auto h-full">
+                            <SheetHeader>
+                                <SheetTitle className="text-2xl font-bold">Initialize New Project</SheetTitle>
+                                <SheetDescription className="font-medium text-slate-500">
+                                    Register a security site to a client and prepare for operational deployment.
+                                </SheetDescription>
+                            </SheetHeader>
+                            <div className="mt-10">
+                                <ProjectForm
+                                    clients={clients}
+                                    onSuccess={() => {
+                                        setOpen(false)
+                                        fetchData()
+                                    }}
+                                    onRefreshClients={fetchData}
+                                />
+                            </div>
                         </div>
                     </SheetContent>
                 </Sheet>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-slate-50">
-                        <TableRow>
-                            <TableHead>Project / Site Name</TableHead>
-                            <TableHead>Client</TableHead>
-                            <TableHead>Location</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                    <TableHeader className="bg-slate-50/50 border-b border-slate-100">
+                        <TableRow className="h-14">
+                            <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Project / Site Name</TableHead>
+                            <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Client</TableHead>
+                            <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Location</TableHead>
+                            <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</TableHead>
+                            <TableHead className="text-right px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -108,25 +112,34 @@ export default function ProjectsPage() {
                             </TableRow>
                         ) : (
                             projects.map((project) => (
-                                <TableRow key={project.id}>
-                                    <TableCell>
-                                        <div className="font-semibold text-slate-900">{project.name}</div>
-                                        <div className="text-xs text-slate-400">ID: {project.id.slice(-6)}</div>
+                                <TableRow key={project.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                    <TableCell className="px-8 py-6">
+                                        <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors">{project.name}</div>
+                                        <div className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">ID: {project.id.slice(-6).toUpperCase()}</div>
                                     </TableCell>
-                                    <TableCell className="font-medium">{project.client?.name}</TableCell>
+                                    <TableCell className="font-bold text-slate-700">{project.client?.name}</TableCell>
                                     <TableCell>
-                                        <div className="flex items-center text-slate-600 text-sm">
-                                            <MapPin className="h-3 w-3 mr-1" />
+                                        <div className="flex items-center text-slate-500 font-medium text-sm">
+                                            <MapPin className="h-3.5 w-3.5 mr-2 text-slate-400" />
                                             {project.location || "On-site"}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant={project.isActive ? "default" : "secondary"}>
-                                            {project.isActive ? "Active" : "Inactive"}
+                                        <Badge className={cn(
+                                            "shadow-none px-3 py-1 rounded-full text-[10px] font-black",
+                                            project.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-slate-100 text-slate-500"
+                                        )}>
+                                            {project.isActive ? "ACTIVE" : "INACTIVE"}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="outline" size="sm">View Details</Button>
+                                    <TableCell className="text-right px-8">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-10 px-6 rounded-xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
+                                        >
+                                            View Details
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))

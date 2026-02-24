@@ -158,14 +158,14 @@ export default function RBACPage() {
                 <div className="bg-slate-50 p-4 border-b border-slate-200">
                     <h2 className="text-lg font-bold text-slate-800 flex items-center">
                         <Users className="h-5 w-5 mr-2 text-blue-600" />
-                        Personnel & Access Control
+                        Employee & Access Control
                     </h2>
-                    <p className="text-xs text-slate-500">Each personnel's designation (Guard, HR, Supervisor, etc.) determines their system access. Click &quot;Permissions&quot; to configure what each designation can do.</p>
+                    <p className="text-xs text-slate-500">Each employee&apos;s designation (Guard, HR, Supervisor, etc.) determines their system access. Click &quot;Permissions&quot; to configure what each designation can do.</p>
                 </div>
                 <Table>
                     <TableHeader className="bg-slate-50/50">
                         <TableRow className="h-14 border-slate-100">
-                            <TableHead className="w-[300px] pl-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Personnel Profile</TableHead>
+                            <TableHead className="w-[300px] pl-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Profile</TableHead>
                             <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auth Group</TableHead>
                             <TableHead className="text-right pr-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</TableHead>
                         </TableRow>
@@ -177,7 +177,7 @@ export default function RBACPage() {
                             </TableRow>
                         ) : employees.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={3} className="text-center py-12 text-slate-400 italic">No personnels onboarded yet.</TableCell>
+                                <TableCell colSpan={3} className="text-center py-12 text-slate-400 italic">No employees onboarded yet.</TableCell>
                             </TableRow>
                         ) : (
                             employees.map((emp) => (

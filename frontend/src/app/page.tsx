@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/lib/api"
 import { toast } from "sonner"
-import { ShieldCheck, Lock, Mail, ChevronRight, Loader2, Globe } from "lucide-react"
+import { ShieldCheck, Lock, Mail, ChevronRight, Loader2, Globe, Eye, EyeOff } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuthStore } from "@/store/authStore"
 import { useEffect } from "react"
@@ -31,6 +31,7 @@ const formSchema = z.object({
 export default function RootLoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const { login, logout } = useAuthStore()
 
   useEffect(() => {
@@ -51,7 +52,7 @@ export default function RootLoginPage() {
 
       // RESTRICTION: Root login is EXCLUSIVELY for Super Admins
       if (user.role !== 'Super Admin') {
-        toast.error("Restricted Access: Agency personnel must use their dedicated organization portals.")
+        toast.error("Invalid credentials")
         await api.post("/auth/logout")
         setLoading(false)
         return
@@ -63,8 +64,7 @@ export default function RootLoginPage() {
 
     } catch (error: any) {
       console.error(error)
-      const message = error.response?.data?.message || error.message || "Access Denied"
-      toast.error(`Verification Failed: ${message}`)
+      toast.error("Invalid credentials")
     } finally {
       setLoading(false)
     }
@@ -131,11 +131,23 @@ export default function RootLoginPage() {
                         <div className="relative group">
                           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
                           <Input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
-                            className="pl-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold"
+                            className="pl-12 pr-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold"
                             {...field}
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors flex items-center justify-center w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-100"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                          </button>
                         </div>
                       </FormControl>
                       <FormMessage className="text-[10px] text-red-500 font-bold" />

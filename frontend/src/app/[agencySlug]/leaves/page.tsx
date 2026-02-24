@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CalendarDays, Plus, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import api from "@/lib/api"
+import { cn } from "@/lib/utils"
 
 interface LeaveRequest {
   id: string
@@ -238,7 +239,7 @@ export default function LeavesPage() {
                 Request Leave
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] border-none rounded-[2rem] shadow-2xl p-8">
+            <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-8">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black text-slate-900">Request Leave</DialogTitle>
               </DialogHeader>
@@ -308,22 +309,23 @@ export default function LeavesPage() {
         {leaveRequests.map((leave) => {
           const StatusIcon = statusIcons[leave.status as keyof typeof statusIcons]
           return (
-            <Card key={leave.id}>
-              <CardHeader>
+            <Card key={leave.id} className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+              <CardHeader className="bg-slate-50/50 border-b border-slate-100 px-8 py-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">{leave.employee.name}</CardTitle>
-                    <p className="text-sm text-gray-600">{leave.employee.role} - {leave.employee.designation.name}</p>
+                    <CardTitle className="text-xl font-black text-slate-900 tracking-tight">{leave.employee.name}</CardTitle>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{leave.employee.role} • {leave.employee.designation.name}</p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <Badge className={
+                    <Badge className={cn(
+                      "rounded-full px-4 py-1 font-black text-[10px] uppercase border-none shadow-none",
                       leave.status === 'AGENCY_APPROVED' && leave.leaveType === 'EMERGENCY' && leave.agencyApprovedBy === 'SYSTEM_AUTO_EMERGENCY'
-                        ? "bg-blue-100 text-blue-800 border-blue-200"
+                        ? "bg-blue-100 text-blue-800"
                         : statusColors[leave.status as keyof typeof statusColors]
-                    }>
-                      {StatusIcon && <StatusIcon className="h-3 w-3 mr-1" />}
+                    )}>
+                      {StatusIcon && <StatusIcon className="h-3 w-3 mr-1.5" />}
                       {leave.status === 'AGENCY_APPROVED' && leave.leaveType === 'EMERGENCY' && leave.agencyApprovedBy === 'SYSTEM_AUTO_EMERGENCY'
-                        ? "Authorized (System)"
+                        ? "Protocol Bypass (System)"
                         : leave.status.replace('_', ' ')}
                     </Badge>
                     {(leave.status !== 'AGENCY_APPROVED' || (leave.leaveType === 'EMERGENCY' && leave.agencyApprovedBy === 'SYSTEM_AUTO_EMERGENCY')) &&
@@ -335,26 +337,26 @@ export default function LeavesPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <CardContent className="p-8">
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-3 gap-6 text-sm">
                     <div className="flex flex-col">
-                      <span className="text-slate-400 font-bold uppercase text-[10px]">Leave Type</span>
-                      <span className="font-bold">{leave.leaveType}</span>
+                      <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-1">Leave Type</span>
+                      <span className="font-bold text-slate-900">{leave.leaveType}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-slate-400 font-bold uppercase text-[10px]">Duration</span>
-                      <span className="font-bold">{new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}</span>
+                      <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-1">Timeframe</span>
+                      <span className="font-bold text-slate-900">{new Date(leave.startDate).toLocaleDateString()} — {new Date(leave.endDate).toLocaleDateString()}</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-slate-400 font-bold uppercase text-[10px]">Applied On</span>
-                      <span className="font-bold">{new Date(leave.appliedAt).toLocaleDateString()}</span>
+                      <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-1">Submission Log</span>
+                      <span className="font-bold text-slate-900">{new Date(leave.appliedAt).toLocaleDateString()}</span>
                     </div>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 font-bold uppercase text-[10px]">Reason</span>
-                    <p className="text-sm mt-1">{leave.reason}</p>
+                    <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest block mb-2">Statement of Reason</span>
+                    <p className="text-sm font-medium text-slate-700 leading-relaxed bg-slate-50/50 p-4 rounded-2xl border border-slate-100 italic">"{leave.reason}"</p>
                   </div>
 
                   {leave.rejectionReason && (

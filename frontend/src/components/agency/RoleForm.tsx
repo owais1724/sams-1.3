@@ -18,6 +18,9 @@ import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
+import { motion, AnimatePresence } from "framer-motion"
+import { ChevronDown, Shield, Users, Wallet, Activity, ClipboardList } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const formSchema = z.object({
     name: z.string().min(2, "Role name is required"),
@@ -57,11 +60,12 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
         }
     }, [initialData, form])
 
-    // Group permissions by category (optional enhancement)
+    // Group permissions by category
     const categories = [
-        { label: "Agency & Operations", keywords: ["agency", "client", "project", "visitor"] },
-        { label: "Personnel & HR", keywords: ["personnel", "employee", "leave", "attendance", "staff"] },
-        { label: "Finance & Security", keywords: ["payroll", "role", "permissions", "backup"] }
+        { label: "Agency", keywords: ["agency", "client", "project", "visitor"], icon: Shield },
+        { label: "Employee", keywords: ["personnel", "employee", "staff"], icon: Users },
+        { label: "Leaves", keywords: ["leave", "attendance"], icon: ClipboardList },
+        { label: "Finance", keywords: ["payroll", "role", "permissions", "backup"], icon: Wallet }
     ]
 
     const getCategory = (action: string) => {
@@ -77,6 +81,14 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
         acc[cat].push(p)
         return acc
     }, {})
+
+    const [expandedCats, setExpandedCats] = useState<string[]>([categories[1].label, categories[2].label])
+
+    const toggleCat = (cat: string) => {
+        setExpandedCats(prev =>
+            prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+        )
+    }
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
@@ -141,46 +153,90 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
                 />
 
                 <div className="space-y-4">
-                    <FormLabel className="text-base font-bold text-slate-900 underline underline-offset-4 decoration-blue-500">Access Grants</FormLabel>
-                    <FormDescription>Assign specific authorization grants to this security role. Staff assigned this role will only be able to perform these actions.</FormDescription>
+                    <div className="flex flex-col gap-1">
+                        <FormLabel className="text-sm font-black text-slate-900 uppercase tracking-widest">Authorization Matrix</FormLabel>
+                        <FormDescription className="text-[11px] font-bold text-slate-400">Expand categories to define granular access grants for this security role.</FormDescription>
+                    </div>
 
-                    {Object.entries(groupedPermissions).map(([category, items]: [string, any]) => (
-                        <div key={category} className="space-y-3 rounded-lg border border-slate-100 p-4 bg-slate-50/50">
-                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{category}</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {items.map((perm: any) => (
-                                    <FormField
-                                        key={perm.id}
-                                        control={form.control}
-                                        name="permissionIds"
-                                        render={({ field }) => {
-                                            return (
-                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                                    <FormControl>
-                                                        <Checkbox
-                                                            checked={field.value?.includes(perm.id)}
-                                                            onCheckedChange={(checked: boolean) => {
-                                                                return checked
-                                                                    ? field.onChange([...field.value, perm.id])
-                                                                    : field.onChange(
-                                                                        field.value?.filter(
-                                                                            (value: string) => value !== perm.id
-                                                                        )
-                                                                    )
+                    <div className="space-y-3">
+                        {Object.entries(groupedPermissions).map(([category, items]: [string, any]) => {
+                            const isExpanded = expandedCats.includes(category)
+                            const Icon = categories.find(c => c.label === category)?.icon || Activity
+
+                            return (
+                                <div key={category} className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300">
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleCat(category)}
+                                        className="w-full flex items-center justify-between p-5 bg-slate-50/50 hover:bg-slate-50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-primary shadow-sm">
+                                                <Icon className="h-5 w-5" />
+                                            </div>
+                                            <div className="text-left">
+                                                <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest">{category}</h3>
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{items.length} Authorization Points</p>
+                                            </div>
+                                        </div>
+                                        <ChevronDown className={cn("h-5 w-5 text-slate-400 transition-transform duration-300", isExpanded && "rotate-180")} />
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isExpanded && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                            >
+                                                <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 bg-white">
+                                                    {items.map((perm: any) => (
+                                                        <FormField
+                                                            key={perm.id}
+                                                            control={form.control}
+                                                            name="permissionIds"
+                                                            render={({ field }) => {
+                                                                const label = perm.action
+                                                                    .replace('personnel', 'employee')
+                                                                    .replace('personnels', 'employees')
+                                                                    .split('_')
+                                                                    .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+                                                                    .join(' ')
+
+                                                                return (
+                                                                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-3 rounded-xl border border-transparent hover:border-slate-100 hover:bg-slate-50/50 transition-all cursor-pointer group">
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={field.value?.includes(perm.id)}
+                                                                                onCheckedChange={(checked: boolean) => {
+                                                                                    return checked
+                                                                                        ? field.onChange([...field.value, perm.id])
+                                                                                        : field.onChange(
+                                                                                            field.value?.filter(
+                                                                                                (value: string) => value !== perm.id
+                                                                                            )
+                                                                                        )
+                                                                                }}
+                                                                                className="h-5 w-5 rounded-md border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                                            />
+                                                                        </FormControl>
+                                                                        <FormLabel className="flex-1 text-xs font-bold text-slate-600 cursor-pointer group-hover:text-slate-900 transition-colors">
+                                                                            {label}
+                                                                        </FormLabel>
+                                                                    </FormItem>
+                                                                )
                                                             }}
                                                         />
-                                                    </FormControl>
-                                                    <FormLabel className="text-sm font-medium leading-none cursor-pointer">
-                                                        {perm.action.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                                                    </FormLabel>
-                                                </FormItem>
-                                            )
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            )
+                        })}
+                    </div>
                     <FormMessage />
                 </div>
 

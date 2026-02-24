@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsNumber,
   MinLength,
+  Matches,
 } from 'class-validator';
 
 export class CreateEmployeeDto {
@@ -18,12 +19,15 @@ export class CreateEmployeeDto {
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(6)
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  @Matches(/((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]))/, {
+    message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+  })
   password: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  employeeCode: string;
+  employeeCode?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -36,4 +40,8 @@ export class CreateEmployeeDto {
   @IsOptional()
   @IsNumber()
   basicSalary?: number;
+
+  @IsOptional()
+  @IsString()
+  salaryCurrency?: string;
 }

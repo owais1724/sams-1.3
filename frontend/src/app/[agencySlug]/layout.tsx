@@ -1,8 +1,11 @@
 "use client"
 
 import { AgencySidebar } from "@/components/agency/AgencySidebar"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter, useParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuthStore } from "@/store/authStore"
+import { useEffect, useState } from "react"
+import api from "@/lib/api"
 
 export default function AgencyLayout({
     children,
@@ -10,7 +13,57 @@ export default function AgencyLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname()
+    const router = useRouter()
+    const { agencySlug } = useParams()
+    const { user, isAuthenticated, logout, login } = useAuthStore()
+    const [verifying, setVerifying] = useState(true)
+
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login') || pathname?.includes('staff-login')
+
+    useEffect(() => {
+        const verifySession = async () => {
+            try {
+                if (isAuthenticated) {
+                    const response = await api.get('/auth/me');
+                    login(response.data);
+                }
+            } catch (error) {
+                console.error("Agency session verification failed", error);
+                logout();
+                if (!isLoginPage) {
+                    // Determine which login page to send to
+                    if (pathname.includes('/staff')) {
+                        router.push(`/${agencySlug}/staff-login`);
+                    } else {
+                        router.push(`/${agencySlug}/login`);
+                    }
+                }
+            } finally {
+                setVerifying(false);
+            }
+        };
+
+        if (isLoginPage) {
+            setVerifying(false);
+        } else if (!isAuthenticated) {
+            if (pathname.includes('/staff')) {
+                router.push(`/${agencySlug}/staff-login`);
+            } else {
+                router.push(`/${agencySlug}/login`);
+            }
+            setVerifying(false);
+        } else {
+            verifySession();
+        }
+    }, [isAuthenticated, isLoginPage, router, logout, login, agencySlug, pathname]);
+
+    if (verifying) {
+        return (
+            <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d5c56]"></div>
+            </div>
+        )
+    }
 
     if (isLoginPage) {
         return <>{children}</>

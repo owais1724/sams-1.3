@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   UseGuards,
   Request,
@@ -12,6 +13,7 @@ import { EmployeesService } from './employees.service';
 import { MigrationService } from './migration.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 @Controller('employees')
 @UseGuards(AuthGuard('jwt'))
@@ -19,7 +21,7 @@ export class EmployeesController {
   constructor(
     private readonly employeesService: EmployeesService,
     private readonly migrationService: MigrationService,
-  ) {}
+  ) { }
 
   @Get()
   findAll(@Request() req) {
@@ -29,6 +31,15 @@ export class EmployeesController {
   @Post()
   create(@Request() req, @Body() data: CreateEmployeeDto) {
     return this.employeesService.create(req.user.agencyId, data);
+  }
+
+  @Patch(':id')
+  update(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() data: UpdateEmployeeDto,
+  ) {
+    return this.employeesService.update(req.user.agencyId, id, data);
   }
 
   @Post('sync-roles')

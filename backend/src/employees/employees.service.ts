@@ -9,13 +9,14 @@ import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
+import { UpdateEmployeeDto } from './dto/update-employee.dto';
 
 @Injectable()
 export class EmployeesService {
   constructor(
     private prisma: PrismaService,
     private auditLogsService: AuditLogsService,
-  ) {}
+  ) { }
 
   private readonly logger = new Logger(EmployeesService.name);
 
@@ -87,15 +88,22 @@ export class EmployeesService {
         const normalizedEmail = data.email.toLowerCase().trim();
         const hashedPassword = await bcrypt.hash(data.password, 10);
 
+        // Auto-generate employee code if not provided
+        let employeeCode = data.employeeCode;
+        if (!employeeCode) {
+          employeeCode = await this.generateUniqueCode(agencyId);
+        }
+
         // Create Employee Record First
         const employee = await tx.employee.create({
           data: {
             fullName: data.fullName,
-            employeeCode: data.employeeCode,
+            employeeCode: employeeCode,
             email: normalizedEmail,
             phoneNumber: data.phoneNumber,
             status: 'ACTIVE',
             basicSalary: data.basicSalary || 0,
+            salaryCurrency: data.salaryCurrency || 'USD',
             agencyId: agencyId,
             designationId: data.designationId,
           },
@@ -136,6 +144,69 @@ export class EmployeesService {
 
       throw new InternalServerErrorException(
         `Failed to create personnel: ${error.message}`,
+      );
+    }
+  }
+
+  async update(agencyId: string, id: string, data: UpdateEmployeeDto) {
+    try {
+      const employee = await this.prisma.employee.findUnique({
+        where: { id, agencyId },
+        include: { user: true },
+      });
+
+      if (!employee) throw new ConflictException('Employee not found');
+
+      return await this.prisma.$transaction(async (tx) => {
+        // Prepare employee update data
+        const employeeUpdate: any = {
+          fullName: data.fullName,
+          phoneNumber: data.phoneNumber,
+          status: data.status,
+          basicSalary: data.basicSalary,
+          salaryCurrency: data.salaryCurrency,
+          designationId: data.designationId,
+        };
+
+        // If email is changing, check for conflicts
+        if (data.email && data.email.toLowerCase().trim() !== employee.email) {
+          const normalizedEmail = data.email.toLowerCase().trim();
+          const existingUser = await tx.user.findUnique({
+            where: { email: normalizedEmail },
+          });
+          if (existingUser)
+            throw new ConflictException('Email already registered');
+          employeeUpdate.email = normalizedEmail;
+        }
+
+        const updatedEmployee = await tx.employee.update({
+          where: { id },
+          data: employeeUpdate,
+        });
+
+        // Update User account if it exists and details changed
+        if (employee.user) {
+          const userUpdate: any = {
+            email: employeeUpdate.email,
+            fullName: employeeUpdate.fullName,
+          };
+
+          if (data.password) {
+            userUpdate.password = await bcrypt.hash(data.password, 10);
+          }
+
+          await tx.user.update({
+            where: { id: employee.user.id },
+            data: userUpdate,
+          });
+        }
+
+        return updatedEmployee;
+      });
+    } catch (error: any) {
+      if (error instanceof ConflictException) throw error;
+      throw new InternalServerErrorException(
+        `Failed to update employee: ${error.message}`,
       );
     }
   }
@@ -194,8 +265,44 @@ export class EmployeesService {
       this.logger.error('Remove Employee Error:', error);
       if (error instanceof ConflictException) throw error;
       throw new InternalServerErrorException(
-        'Failed to terminate personnel record. Please check for active assignments.',
+        `Failed to terminate personnel record. Please check for active assignments.`,
       );
     }
+  }
+
+  private async generateUniqueCode(agencyId: string): Promise<string> {
+    const year = new Date().getFullYear();
+    const prefix = 'SAMS';
+
+    // Get the count of employees in this agency to generate a sequence number
+    const count = await this.prisma.employee.count({
+      where: { agencyId },
+    });
+
+    let sequence = count + 1;
+    let isUnique = false;
+    let finalCode = '';
+
+    while (!isUnique) {
+      const paddedSequence = sequence.toString().padStart(4, '0');
+      finalCode = `${prefix}-${year}-${paddedSequence}`;
+
+      const existing = await this.prisma.employee.findUnique({
+        where: {
+          agencyId_employeeCode: {
+            agencyId,
+            employeeCode: finalCode
+          }
+        }
+      });
+
+      if (!existing) {
+        isUnique = true;
+      } else {
+        sequence++;
+      }
+    }
+
+    return finalCode;
   }
 }

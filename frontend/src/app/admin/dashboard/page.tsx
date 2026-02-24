@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Building2, Shield, Users } from "lucide-react"
+import { Plus, Trash2, Building2, Shield, Users, Edit } from "lucide-react"
 import {
     Sheet,
     SheetContent,
@@ -29,6 +29,7 @@ export default function AdminDashboard() {
     const [agencies, setAgencies] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
+    const [editingAgency, setEditingAgency] = useState<any>(null)
 
     const fetchAgencies = async () => {
         try {
@@ -71,9 +72,18 @@ export default function AdminDashboard() {
                     <p className="text-slate-500 font-medium">Global overview and lifecycle management of security agencies.</p>
                 </div>
 
-                <Sheet open={open} onOpenChange={setOpen}>
+                <Sheet open={open} onOpenChange={(val) => {
+                    setOpen(val)
+                    if (!val) setEditingAgency(null)
+                }}>
                     <SheetTrigger asChild>
-                        <Button className="h-12 px-6 bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 rounded-xl font-bold transition-all active:scale-[0.98]">
+                        <Button
+                            onClick={() => {
+                                setEditingAgency(null)
+                                setOpen(true)
+                            }}
+                            className="h-12 px-6 bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 rounded-xl font-bold transition-all active:scale-[0.98]"
+                        >
                             <Plus className="mr-2 h-5 w-5" />
                             Create Agency
                         </Button>
@@ -81,14 +91,20 @@ export default function AdminDashboard() {
                     <SheetContent className="sm:max-w-[540px] border-none shadow-2xl p-0">
                         <div className="p-6 md:p-8 overflow-y-auto h-full">
                             <SheetHeader className="mb-6">
-                                <SheetTitle className="text-2xl font-black">Create New Agency</SheetTitle>
+                                <SheetTitle className="text-2xl font-black">
+                                    {editingAgency ? "Modify Agency" : "Create New Agency"}
+                                </SheetTitle>
                                 <SheetDescription className="text-slate-500 font-medium">
-                                    Initialize a new agency node and its primary administrative credentials.
+                                    {editingAgency
+                                        ? "Update agency infrastructure and operational status."
+                                        : "Initialize a new agency node and its primary administrative credentials."}
                                 </SheetDescription>
                             </SheetHeader>
                             <AgencyForm
+                                initialData={editingAgency}
                                 onSuccess={() => {
                                     setOpen(false)
+                                    setEditingAgency(null)
                                     fetchAgencies()
                                 }}
                             />
@@ -157,15 +173,29 @@ export default function AdminDashboard() {
                                     </TableCell>
                                     <TableCell className="text-sm text-slate-500 font-bold">{new Date(agency.createdAt).toLocaleDateString()}</TableCell>
                                     <TableCell className="text-right pr-8">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-red-500 hover:text-red-600 hover:bg-red-50 font-bold rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                                            onClick={() => handleDelete(agency.id, agency.name)}
-                                        >
-                                            <Trash2 className="h-4 w-4 mr-2" />
-                                            Delete
-                                        </Button>
+                                        <div className="flex items-center justify-end space-x-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold rounded-xl transition-all"
+                                                onClick={() => {
+                                                    setEditingAgency(agency)
+                                                    setOpen(true)
+                                                }}
+                                            >
+                                                <Edit className="h-4 w-4 mr-2" />
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 font-bold rounded-xl transition-all"
+                                                onClick={() => handleDelete(agency.id, agency.name)}
+                                            >
+                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                Delete
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import api from "@/lib/api"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 interface Payroll {
   id: string
@@ -159,46 +160,34 @@ export default function PayrollPage() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Total Net Pay</p>
-                <h3 className="text-2xl font-bold text-slate-900">${stats.totalNet.toLocaleString()}</h3>
-              </div>
-              <div className="h-12 w-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
-                <Wallet className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
+        <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-6 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Net Disbursement</p>
+            <h3 className="text-3xl font-black text-slate-900 mt-1">${stats.totalNet.toLocaleString()}</h3>
+          </div>
+          <div className="h-14 w-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
+            <Wallet className="h-7 w-7" />
+          </div>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Paid</p>
-                <h3 className="text-2xl font-bold text-emerald-600">{stats.paidCount}</h3>
-              </div>
-              <div className="h-12 w-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
+        <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-6 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transfers Completed</p>
+            <h3 className="text-3xl font-black text-emerald-600 mt-1">{stats.paidCount}</h3>
+          </div>
+          <div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
+            <CheckCircle2 className="h-7 w-7" />
+          </div>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Pending</p>
-                <h3 className="text-2xl font-bold text-amber-600">{stats.pendingCount}</h3>
-              </div>
-              <div className="h-12 w-12 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
-                <AlertCircle className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
+        <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-6 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Awaiting Processing</p>
+            <h3 className="text-3xl font-black text-amber-600 mt-1">{stats.pendingCount}</h3>
+          </div>
+          <div className="h-14 w-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
+            <AlertCircle className="h-7 w-7" />
+          </div>
         </Card>
       </div>
 
@@ -249,105 +238,107 @@ export default function PayrollPage() {
 
       {/* Generation Dialog */}
       {isDialogOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md shadow-2xl border-none">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Calculator className="h-5 w-5 mr-2 text-primary" />
-                Generate Payroll
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md shadow-2xl border-none rounded-[40px] overflow-hidden">
+            <CardHeader className="bg-slate-50 p-8 border-b border-slate-100">
+              <CardTitle className="flex items-center text-xl font-black text-slate-900 uppercase tracking-tight">
+                <Calculator className="h-5 w-5 mr-3 text-primary" />
+                Initialize Payroll
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2 p-1 bg-slate-100 rounded-lg mb-2">
+            <CardContent className="space-y-6 p-8">
+              <div className="flex gap-2 p-1.5 bg-slate-100 rounded-2xl mb-2">
                 <Button
                   variant={generationMode === 'bulk' ? 'default' : 'ghost'}
-                  className="flex-1 text-xs h-8"
+                  className={`flex-1 text-[10px] font-black uppercase tracking-widest h-10 rounded-xl ${generationMode === 'bulk' ? 'bg-white text-primary shadow-sm hover:bg-white' : 'text-slate-500 hover:bg-slate-200/50'}`}
                   onClick={() => setGenerationMode('bulk')}
                 >
-                  Bulk Generation
+                  Bulk Ops
                 </Button>
                 <Button
                   variant={generationMode === 'individual' ? 'default' : 'ghost'}
-                  className="flex-1 text-xs h-8"
+                  className={`flex-1 text-[10px] font-black uppercase tracking-widest h-10 rounded-xl ${generationMode === 'individual' ? 'bg-white text-primary shadow-sm hover:bg-white' : 'text-slate-500 hover:bg-slate-200/50'}`}
                   onClick={() => setGenerationMode('individual')}
                 >
-                  Specific Personnel
+                  Unit Target
                 </Button>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 font-mono text-[10px] uppercase">Payroll Period</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Operational Period</label>
                 <Input
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-full"
+                  className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold transition-all px-6"
                 />
               </div>
 
               {generationMode === 'bulk' ? (
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 font-mono text-[10px] uppercase">Designation Filter</label>
-                  <Select value={generateDesignationId} onValueChange={setGenerateDesignationId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Designations" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Personnel</SelectItem>
-                      {designations.map(d => (
-                        <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <p className="text-[11px] text-blue-700">
-                      Generating records for <strong>{generateDesignationId === "all" ? "everyone" : designations.find(d => d.id === generateDesignationId)?.name}</strong> based on their base salary.
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Rank Filter</label>
+                    <Select value={generateDesignationId} onValueChange={setGenerateDesignationId}>
+                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all px-6">
+                        <SelectValue placeholder="All Designations" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-slate-200">
+                        <SelectItem value="all" className="font-bold">Entire Agency Roster</SelectItem>
+                        {designations.map(d => (
+                          <SelectItem key={d.id} value={d.id} className="font-bold">{d.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-relaxed">
+                      Auto-generating disbursement records for <span className="underline">{generateDesignationId === "all" ? "Entire Agency" : designations.find(d => d.id === generateDesignationId)?.name}</span>. Base salary tables will be applied.
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 font-mono text-[10px] uppercase">Select Employee</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Personnel Select</label>
                     <Select value={targetEmployeeId} onValueChange={(val) => {
                       setTargetEmployeeId(val);
                       const emp = employees.find(e => e.id === val);
                       if (emp) setCustomAmount(emp.basicSalary?.toString() || "");
                     }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pick an employee..." />
+                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all px-6">
+                        <SelectValue placeholder="Identify officer..." />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="rounded-2xl border-slate-200">
                         {employees.map(e => (
-                          <SelectItem key={e.id} value={e.id}>{e.fullName} ({e.designation?.name})</SelectItem>
+                          <SelectItem key={e.id} value={e.id} className="font-bold">{e.fullName} <span className="text-slate-400 text-[10px] ml-2">[{e.designation?.name}]</span></SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 font-mono text-[10px] uppercase">Enter Amount ($)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Manual Amount ($)</label>
                     <Input
                       type="number"
                       placeholder="0.00"
                       value={customAmount}
                       onChange={(e) => setCustomAmount(e.target.value)}
-                      className="text-lg font-bold"
+                      className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all px-6 text-lg font-black"
                     />
                   </div>
                 </div>
               )}
             </CardContent>
-            <CardFooter className="flex space-x-3">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
-                Cancel
+            <CardFooter className="flex space-x-4 p-8 bg-slate-50 border-t border-slate-100">
+              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="flex-1 h-14 rounded-2xl font-bold text-slate-500 hover:text-slate-900 transition-all">
+                ABORT
               </Button>
               <Button
                 onClick={handleGenerate}
-                className="flex-1 bg-primary text-white font-bold"
+                className="flex-1 h-14 rounded-2xl bg-primary text-white font-black shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 disabled={generating}
               >
-                {generating ? "Generating..." : "Generate Now"}
+                {generating ? "PROCESSING..." : "COMMIT PAYROLL"}
               </Button>
             </CardFooter>
           </Card>
@@ -359,55 +350,61 @@ export default function PayrollPage() {
 
 function PayrollCard({ payroll, onUpdateStatus }: { payroll: Payroll, onUpdateStatus: (id: string, s: string) => void }) {
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <div className={`h-1 w-full ${payroll.status === 'PAID' ? 'bg-emerald-500' :
-        payroll.status === 'PROCESSED' ? 'bg-blue-500' : 'bg-slate-300'
+    <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden hover:shadow-2xl transition-all duration-300 group">
+      <div className={`h-1.5 w-full ${payroll.status === 'PAID' ? 'bg-emerald-500' :
+        payroll.status === 'PROCESSED' ? 'bg-blue-500' : 'bg-slate-200'
         }`} />
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600">
+      <CardContent className="p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <div className="h-12 w-12 bg-slate-50 border-2 border-slate-100 rounded-2xl flex items-center justify-center font-black text-slate-400 uppercase text-xs group-hover:scale-110 transition-transform">
               {payroll.employee?.fullName?.charAt(0) || 'E'}
             </div>
             <div>
-              <p className="font-bold text-slate-900">{payroll.employee?.fullName}</p>
-              <p className="text-xs text-slate-500">{payroll.employee?.designation.name} • {payroll.month}</p>
+              <p className="font-extrabold text-slate-900 text-lg tracking-tight">{payroll.employee?.fullName}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{payroll.employee?.designation.name} • OPS-{payroll.id.slice(-4).toUpperCase()}</p>
             </div>
           </div>
-          <Badge className={statusColors[payroll.status as keyof typeof statusColors]}>
+          <Badge className={cn(
+            "rounded-full px-4 py-1 font-black text-[10px] uppercase border-none shadow-none",
+            statusColors[payroll.status as keyof typeof statusColors]
+          )}>
             {payroll.status}
           </Badge>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 py-3 border-y border-slate-50">
+        <div className="grid grid-cols-4 gap-6 py-6 border-y border-slate-50">
           <div className="text-center">
-            <p className="text-[10px] text-slate-400 font-bold uppercase">Basic</p>
-            <p className="text-sm font-semibold">${payroll.basicSalary}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Base</p>
+            <p className="text-base font-bold text-slate-900">${payroll.basicSalary.toLocaleString()}</p>
           </div>
           <div className="text-center">
-            <p className="text-[10px] text-slate-400 font-bold uppercase">Allowances</p>
-            <p className="text-sm font-semibold text-emerald-600">+${payroll.allowances}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Incentives</p>
+            <p className="text-base font-bold text-emerald-600">+${payroll.allowances.toLocaleString()}</p>
           </div>
           <div className="text-center">
-            <p className="text-[10px] text-slate-400 font-bold uppercase">Deductions</p>
-            <p className="text-sm font-semibold text-red-600">-${payroll.deductions}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tax/Ded.</p>
+            <p className="text-base font-bold text-red-600">-${payroll.deductions.toLocaleString()}</p>
           </div>
-          <div className="text-center bg-slate-50 rounded">
-            <p className="text-[10px] text-slate-400 font-bold uppercase">Net</p>
-            <p className="text-sm font-bold text-slate-900">${payroll.netPay}</p>
+          <div className="text-center bg-slate-50/50 rounded-2xl py-2">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Dist.</p>
+            <p className="text-base font-black text-slate-900 font-mono">${payroll.netPay.toLocaleString()}</p>
           </div>
         </div>
 
-        <div className="flex justify-between items-center mt-4">
-          <p className="text-[10px] text-slate-400">Generated: {new Date(payroll.generatedDate).toLocaleDateString()}</p>
-          <div className="flex space-x-2">
+        <div className="flex justify-between items-center mt-8">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Logged: {new Date(payroll.generatedDate).toLocaleDateString()}</p>
+          <div className="flex space-x-3">
             {payroll.status === 'DRAFT' && (
-              <Button size="sm" onClick={() => onUpdateStatus(payroll.id, 'PROCESSED')} className="h-8 text-xs">Process</Button>
+              <Button onClick={() => onUpdateStatus(payroll.id, 'PROCESSED')} className="h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20">Commit</Button>
             )}
             {payroll.status === 'PROCESSED' && (
-              <Button size="sm" onClick={() => onUpdateStatus(payroll.id, 'PAID')} className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Mark Paid</Button>
+              <Button onClick={() => onUpdateStatus(payroll.id, 'PAID')} className="h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100">Disburse</Button>
             )}
-            <Button size="sm" variant="outline" className="h-8 text-xs"><Download className="h-3 w-3 mr-1" /> Payslip</Button>
+            <Button variant="ghost" className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900">
+              <Download className="h-4 w-4 mr-2" />
+              Voucher
+            </Button>
           </div>
         </div>
       </CardContent>

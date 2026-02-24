@@ -8,7 +8,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AgenciesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async createAgency(data: {
     name: string;
@@ -84,7 +84,66 @@ export class AgenciesService {
   }
 
   async findAll() {
-    return this.prisma.agency.findMany();
+    return this.prisma.agency.findMany({
+      include: {
+        users: {
+          where: { role: { name: 'Agency Admin' } },
+        }
+      }
+    });
+  }
+
+  async update(id: string, data: any) {
+    const agency = await this.prisma.agency.findUnique({
+      where: { id },
+      include: { users: { where: { role: { name: 'Agency Admin' } }, take: 1 } },
+    });
+    if (!agency) throw new NotFoundException('Agency not found');
+
+    if (data.slug && data.slug !== agency.slug) {
+      const existing = await this.prisma.agency.findUnique({
+        where: { slug: data.slug },
+      });
+      if (existing) throw new ConflictException('Agency slug already exists');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Update Agency Core Details
+      const updatedAgency = await tx.agency.update({
+        where: { id },
+        data: {
+          name: data.name,
+          slug: data.slug,
+          isActive: data.isActive,
+        },
+      });
+
+      // 2. Update Agency Admin if provided
+      const adminUser = agency.users[0];
+      if (adminUser && (data.adminName || data.adminEmail || data.adminPassword)) {
+        if (data.adminEmail && data.adminEmail !== adminUser.email) {
+          const existingEmail = await tx.user.findUnique({
+            where: { email: data.adminEmail },
+          });
+          if (existingEmail)
+            throw new ConflictException('Admin email already in use');
+        }
+
+        const userUpdateData: any = {};
+        if (data.adminName) userUpdateData.fullName = data.adminName;
+        if (data.adminEmail) userUpdateData.email = data.adminEmail;
+        if (data.adminPassword) {
+          userUpdateData.password = await bcrypt.hash(data.adminPassword, 10);
+        }
+
+        await tx.user.update({
+          where: { id: adminUser.id },
+          data: userUpdateData,
+        });
+      }
+
+      return updatedAgency;
+    });
   }
 
   async remove(id: string) {

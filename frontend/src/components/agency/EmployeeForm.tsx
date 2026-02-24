@@ -3,9 +3,9 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { Plus, Eye, EyeOff } from "lucide-react"
 import {
     Form,
     FormControl,
@@ -18,21 +18,81 @@ import {
 import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
-const formSchema = z.object({
+const countries = [
+    { name: "India", code: "+91", iso: "IN", flag: "🇮🇳", length: 10 },
+    { name: "United Kingdom", code: "+44", iso: "GB", flag: "🇬🇧", length: 10 },
+    { name: "United States", code: "+1", iso: "US", flag: "🇺🇸", length: 10 },
+    { name: "Kenya", code: "+254", iso: "KE", flag: "🇰🇪", length: 9 },
+    { name: "Nigeria", code: "+234", iso: "NG", flag: "🇳🇬", length: 10 },
+    { name: "South Africa", code: "+27", iso: "ZA", flag: "🇿🇦", length: 9 },
+]
+
+const currencies = [
+    { label: "USD ($)", value: "USD", symbol: "$" },
+    { label: "INR (₹)", value: "INR", symbol: "₹" },
+    { label: "GBP (£)", value: "GBP", symbol: "£" },
+    { label: "EUR (€)", value: "EUR", symbol: "€" },
+    { label: "KES (KSh)", value: "KES", symbol: "KSh" },
+    { label: "NGN (₦)", value: "NGN", symbol: "₦" },
+    { label: "ZAR (R)", value: "ZAR", symbol: "R" },
+]
+
+const baseSchema = z.object({
     fullName: z.string().min(2, "Name is required"),
     email: z.string().email("Invalid email"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    employeeCode: z.string().min(3, "Staff ID is required"),
+    password: z
+        .string()
+        .min(8, "Password must be at least 8 characters")
+        .regex(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/,
+            "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+        ),
+    employeeCode: z.string().optional(),
     designationId: z.string().min(1, "Picking a designation is required"),
-    phoneNumber: z.string().optional(),
+    countryIndex: z.string().min(1, "Country selection is required"),
+    phoneNumber: z.string().min(5, "Invalid phone number"),
     basicSalary: z.string().min(1, "Basic salary is required"),
+    salaryCurrency: z.string().min(1, "Currency is required"),
+    status: z.string().optional(),
 })
 
-export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
+const phoneRefinement = (data: any) => {
+    const country = countries[parseInt(data.countryIndex)]
+    if (!country) return true
+    return data.phoneNumber.length === country.length
+}
+
+const phoneMsg = {
+    message: "Phone number length does not match country standards",
+    path: ["phoneNumber"]
+}
+
+const formSchema = baseSchema.refine(phoneRefinement, phoneMsg)
+
+const editFormSchema = baseSchema.extend({
+    password: z.string().optional()
+}).refine(phoneRefinement, phoneMsg)
+
+interface FormValues {
+    fullName: string;
+    email: string;
+    password?: string;
+    employeeCode?: string;
+    designationId: string;
+    countryIndex: string;
+    phoneNumber: string;
+    basicSalary: string;
+    salaryCurrency: string;
+    status?: string;
+}
+
+export function EmployeeForm({ designations, refetchDesignations, onSuccess, initialData }: {
     designations: any[],
     refetchDesignations: () => void,
-    onSuccess: () => void
+    onSuccess: () => void,
+    initialData?: any
 }) {
     const [loading, setLoading] = useState(false)
     const [showQuickAdd, setShowQuickAdd] = useState(false)
@@ -62,28 +122,81 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
         }
     }
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<FormValues>({
+        resolver: zodResolver(initialData ? editFormSchema : formSchema) as any,
         defaultValues: {
-            fullName: "",
-            email: "",
+            fullName: initialData?.fullName || "",
+            email: initialData?.email || "",
             password: "",
-            employeeCode: "SAMS-",
-            designationId: "",
+            employeeCode: initialData?.employeeCode || "",
+            designationId: initialData?.designationId || "",
+            countryIndex: "0",
             phoneNumber: "",
-            basicSalary: "0"
+            basicSalary: initialData?.basicSalary?.toString() || "0",
+            salaryCurrency: initialData?.salaryCurrency || "USD"
         },
     })
 
+    useEffect(() => {
+        if (initialData) {
+            // Try to match country code
+            const phone = initialData.phoneNumber || ""
+            let matchedIdx = 0
+            let cleanPhone = phone
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+            for (let i = 0; i < countries.length; i++) {
+                if (phone.startsWith(countries[i].code)) {
+                    matchedIdx = i
+                    cleanPhone = phone.slice(countries[i].code.length)
+                    break
+                }
+            }
+
+            form.reset({
+                fullName: initialData.fullName || "",
+                email: initialData.email || "",
+                password: "",
+                employeeCode: initialData.employeeCode || "",
+                designationId: initialData.designationId || "",
+                countryIndex: matchedIdx.toString(),
+                phoneNumber: cleanPhone,
+                basicSalary: initialData.basicSalary?.toString() || "0",
+                salaryCurrency: initialData.salaryCurrency || "USD",
+                status: initialData.status
+            })
+        }
+    }, [initialData, form])
+
+
+    const [showPassword, setShowPassword] = useState(false)
+
+    async function onSubmit(values: FormValues) {
         setLoading(true)
         try {
-            await api.post("/employees", values)
-            toast.success("Personnel created successfully")
+            const { countryIndex, employeeCode, ...apiValues } = values
+            const country = countries[parseInt(countryIndex || "0")]
+            const payload: any = {
+                ...apiValues,
+                phoneNumber: `${country.code}${values.phoneNumber}`,
+                basicSalary: parseFloat(values.basicSalary || "0")
+            }
+
+            if (initialData) {
+                // If password is empty, don't send it to the backend
+                if (!payload.password) {
+                    const { password, ...updatePayload } = payload
+                    await api.patch(`/employees/${initialData.id}`, updatePayload)
+                } else {
+                    await api.patch(`/employees/${initialData.id}`, payload)
+                }
+                toast.success("Employee updated successfully")
+            } else {
+                await api.post("/employees", payload)
+                toast.success("Employee created successfully")
+            }
             onSuccess()
         } catch (error: any) {
-            console.error("Employee Creation Error:", error)
+            console.error("Employee Save Error:", error)
             const message = error.response?.data?.message || error.message || "Unknown error occurred"
             toast.error(`Failed: ${message}`)
         } finally {
@@ -94,34 +207,26 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                    <FormField
-                        control={form.control}
-                        name="fullName"
-                        render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Full Name</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Officer Name" className="h-12 rounded-xl border-slate-200" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="employeeCode"
-                        render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Staff Code</FormLabel>
-                                <FormControl>
-                                    <Input className="h-12 rounded-xl border-slate-200 font-mono" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+                <FormField
+                    control={form.control}
+                    name="fullName"
+                    render={({ field }) => (
+                        <FormItem className="space-y-1">
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Target Employee Full Name</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Enter officer's legal name"
+                                    className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormDescription className="text-[9px] font-bold text-slate-400 uppercase tracking-tight pl-2">
+                                Staff ID will be auto-generated upon registration.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <div className="space-y-1">
                     <FormField
@@ -130,26 +235,19 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
                         render={({ field }) => (
                             <FormItem className="space-y-1">
                                 <div className="flex items-center justify-between mb-1">
-                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Professional Designation</FormLabel>
-                                    {!showQuickAdd && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setShowQuickAdd(true)}
-                                            className="h-7 text-[10px] font-black uppercase tracking-tight text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 rounded-lg"
-                                        >
-                                            <Plus className="h-3 w-3 mr-1" />
-                                            Create New
-                                        </Button>
-                                    )}
+                                    <div className="flex flex-col">
+                                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Professional Designation</FormLabel>
+                                        {designations.length === 0 && (
+                                            <span className="text-[9px] font-bold text-amber-600 uppercase mt-0.5">⚠️ No designations available. Create one below.</span>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {!showQuickAdd ? (
+                                {(!showQuickAdd && designations.length > 0) ? (
                                     <FormControl>
                                         <select
                                             {...field}
-                                            className="w-full h-12 rounded-xl border border-slate-200 bg-transparent px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-primary appearance-none outline-none font-medium text-slate-900"
+                                            className="w-full h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 appearance-none outline-none shadow-sm"
                                         >
                                             <option value="">Choose a designation...</option>
                                             {designations.map(d => (
@@ -158,29 +256,36 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
                                         </select>
                                     </FormControl>
                                 ) : (
-                                    <div className="flex space-x-2">
-                                        <Input
-                                            placeholder="e.g. Supervisor"
-                                            value={newDesignationName}
-                                            onChange={(e) => setNewDesignationName(e.target.value)}
-                                            className="flex-1 h-12 rounded-xl border-slate-200"
-                                        />
-                                        <Button
-                                            type="button"
-                                            onClick={handleQuickAddDesignation}
-                                            disabled={designationLoading || !newDesignationName}
-                                            className="h-12 rounded-xl bg-slate-900 text-white hover:bg-slate-800 px-6 font-bold"
-                                        >
-                                            {designationLoading ? "..." : "Create"}
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={() => setShowQuickAdd(false)}
-                                            className="h-12 rounded-xl border border-slate-200 font-bold"
-                                        >
-                                            Cancel
-                                        </Button>
+                                    <div className="flex flex-col gap-2 p-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/30">
+                                        <div className="flex space-x-2">
+                                            <Input
+                                                placeholder="e.g. Security Supervisor"
+                                                value={newDesignationName}
+                                                onChange={(e) => setNewDesignationName(e.target.value)}
+                                                className="flex-1 h-12 rounded-xl border-slate-200 bg-white"
+                                            />
+                                            <Button
+                                                type="button"
+                                                onClick={handleQuickAddDesignation}
+                                                disabled={designationLoading || !newDesignationName}
+                                                className="h-12 rounded-xl bg-primary text-white hover:bg-primary/90 px-6 font-bold shadow-lg shadow-primary/10"
+                                            >
+                                                {designationLoading ? "..." : "Create"}
+                                            </Button>
+                                            {designations.length > 0 && (
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={() => setShowQuickAdd(false)}
+                                                    className="h-12 rounded-xl border border-slate-200 font-bold"
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            )}
+                                        </div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight ml-1">
+                                            Creating a designation also auto-configures the corresponding security role.
+                                        </p>
                                     </div>
                                 )}
                                 <FormMessage />
@@ -190,14 +295,68 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Operational Region</FormLabel>
+                        <FormField
+                            control={form.control}
+                            name="countryIndex"
+                            render={({ field }) => (
+                                <FormControl>
+                                    <select
+                                        {...field}
+                                        className="w-full h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 appearance-none outline-none shadow-sm"
+                                    >
+                                        {countries.map((c, i) => (
+                                            <option key={c.iso} value={i.toString()}>{c.flag} {c.name} ({c.code})</option>
+                                        ))}
+                                    </select>
+                                </FormControl>
+                            )}
+                        />
+                    </div>
                     <FormField
                         control={form.control}
                         name="phoneNumber"
+                        render={({ field }) => {
+                            const country = countries[parseInt(form.watch("countryIndex")) || 0]
+                            return (
+                                <FormItem className="space-y-1">
+                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Phone Number</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                                                {country?.code}
+                                            </div>
+                                            <Input
+                                                placeholder={`${country?.length} digits`}
+                                                className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-black pl-14"
+                                                {...field}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )
+                        }}
+                    />
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="salaryCurrency"
                         render={({ field }) => (
                             <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Phone Number</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Currency</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="+1..." className="h-12 rounded-xl border-slate-200" {...field} />
+                                    <select
+                                        {...field}
+                                        className="w-full h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 appearance-none outline-none shadow-sm"
+                                    >
+                                        {currencies.map(c => (
+                                            <option key={c.value} value={c.value}>{c.label}</option>
+                                        ))}
+                                    </select>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -208,9 +367,19 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
                         name="basicSalary"
                         render={({ field }) => (
                             <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Basic Salary ($)</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Baseline Remuneration</FormLabel>
                                 <FormControl>
-                                    <Input type="number" placeholder="0.00" className="h-12 rounded-xl border-slate-200 font-bold" {...field} />
+                                    <div className="relative">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                                            {currencies.find(c => c.value === form.watch("salaryCurrency"))?.symbol}
+                                        </div>
+                                        <Input
+                                            type="number"
+                                            placeholder="0.00"
+                                            className="h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-black pl-12"
+                                            {...field}
+                                        />
+                                    </div>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -240,8 +409,51 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
                             <FormItem className="space-y-1">
                                 <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Access Secret</FormLabel>
                                 <FormControl>
-                                    <Input type="password" placeholder="••••••••" {...field} className="h-12 rounded-xl bg-white border-slate-200" />
+                                    <div className="relative group">
+                                        <Input
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••"
+                                            {...field}
+                                            className="h-12 rounded-xl bg-white border-slate-200 pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-4 w-4" />
+                                            ) : (
+                                                <Eye className="h-4 w-4" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </FormControl>
+                                <div className="mt-2 space-y-1.5">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Security Standards:</p>
+                                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
+                                        <li className={`text-[9px] flex items-center ${(field.value?.length || 0) >= 8 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${(field.value?.length || 0) >= 8 ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                            8+ Characters
+                                        </li>
+                                        <li className={`text-[9px] flex items-center ${/[A-Z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[A-Z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                            Uppercase Letter
+                                        </li>
+                                        <li className={`text-[9px] flex items-center ${/[a-z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[a-z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                            Lowercase Letter
+                                        </li>
+                                        <li className={`text-[9px] flex items-center ${/[0-9]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[0-9]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                            Number Included
+                                        </li>
+                                        <li className={`text-[9px] flex items-center ${/[!@#$%^&*]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[!@#$%^&*]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                            Special Symbol
+                                        </li>
+                                    </ul>
+                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -249,7 +461,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess }: {
                 </div>
 
                 <Button type="submit" className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl shadow-xl shadow-slate-200 transition-all active:scale-[0.98]" disabled={loading || designations.length === 0}>
-                    {loading ? "Processing..." : "Create Personnel"}
+                    {loading ? "Processing..." : initialData ? "Update Employee" : "Create Employee"}
                 </Button>
             </form>
         </Form>
