@@ -16,6 +16,7 @@ import {
     FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { PhoneInput, validatePhoneNumber } from "@/components/ui/phone-input"
 import api from "@/lib/api"
 import { toast } from "sonner"
 
@@ -33,6 +34,10 @@ const formSchema = z.object({
         )
         .optional()
         .or(z.literal('')),
+    adminPhone: z.object({
+        countryCode: z.string().min(1, "Country code is required"),
+        phoneNumber: z.string().min(1, "Phone number is required")
+    }).optional(),
 })
 
 export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, initialData?: any }) {
@@ -47,6 +52,10 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
             adminName: initialData?.users?.[0]?.fullName || "",
             adminEmail: initialData?.users?.[0]?.email || "",
             adminPassword: "",
+            adminPhone: initialData?.users?.[0]?.phone ? {
+                countryCode: initialData.users[0].phone.countryCode || "+91",
+                phoneNumber: initialData.users[0].phone.phoneNumber || ""
+            } : { countryCode: "+91", phoneNumber: "" },
         },
     })
 
@@ -61,10 +70,27 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                 if (values.adminName) updateData.adminName = values.adminName;
                 if (values.adminEmail) updateData.adminEmail = values.adminEmail;
                 if (values.adminPassword) updateData.adminPassword = values.adminPassword;
+                if (values.adminPhone?.phoneNumber) {
+                    const phoneError = validatePhoneNumber(values.adminPhone.phoneNumber, values.adminPhone.countryCode);
+                    if (phoneError) {
+                        toast.error(phoneError);
+                        setLoading(false);
+                        return;
+                    }
+                    updateData.adminPhone = values.adminPhone;
+                }
 
                 await api.patch(`/agencies/${initialData.id}`, updateData)
                 toast.success("Agency and administrator updated successfully")
             } else {
+                if (values.adminPhone?.phoneNumber) {
+                    const phoneError = validatePhoneNumber(values.adminPhone.phoneNumber, values.adminPhone.countryCode);
+                    if (phoneError) {
+                        toast.error(phoneError);
+                        setLoading(false);
+                        return;
+                    }
+                }
                 await api.post("/agencies", values)
                 toast.success("Agency and Admin created successfully")
             }
@@ -159,6 +185,23 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         placeholder="Email"
                                         className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold px-4"
                                         {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="adminPhone"
+                        render={({ field }) => (
+                            <FormItem className="space-y-1.5">
+                                <FormControl>
+                                    <PhoneInput
+                                        value={field.value || { countryCode: "+91", phoneNumber: "" }}
+                                        onChange={(value) => field.onChange(value)}
+                                        label="Phone Number"
+                                        placeholder="Enter phone number"
                                     />
                                 </FormControl>
                                 <FormMessage />

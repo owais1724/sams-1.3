@@ -14,6 +14,7 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { PhoneInput, validatePhoneNumber } from "@/components/ui/phone-input"
 import api from "@/lib/api"
 import { toast } from "sonner"
 
@@ -21,6 +22,10 @@ const formSchema = z.object({
     name: z.string().min(2, "Client name is required"),
     contact: z.string().min(2, "Contact person is required"),
     email: z.string().email("Invalid email address"),
+    phone: z.object({
+        countryCode: z.string().min(1, "Country code is required"),
+        phoneNumber: z.string().min(1, "Phone number is required")
+    }),
     address: z.string().optional(),
 })
 
@@ -38,6 +43,10 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
             name: initialData?.name || "",
             contact: initialData?.contact || "",
             email: initialData?.email || "",
+            phone: {
+                countryCode: "+91",
+                phoneNumber: ""
+            },
             address: initialData?.address || ""
         },
     })
@@ -45,11 +54,25 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
         try {
+            // Validate phone number
+            const phoneError = validatePhoneNumber(values.phone.phoneNumber, values.phone.countryCode);
+            if (phoneError) {
+                toast.error(phoneError);
+                setLoading(false);
+                return;
+            }
+
+            const { phone, ...apiValues } = values;
+            const payload = {
+                ...apiValues,
+                phone: `${phone.countryCode}${phone.phoneNumber}`
+            };
+
             if (initialData?.id) {
-                await api.post(`/clients/${initialData.id}`, values)
+                await api.post(`/clients/${initialData.id}`, payload)
                 toast.success("Client updated successfully")
             } else {
-                await api.post("/clients", values)
+                await api.post("/clients", payload)
                 toast.success("Client added successfully")
             }
             onSuccess()
@@ -85,12 +108,30 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="contact"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Contact</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Contact Person</FormLabel>
                             <FormControl>
                                 <Input
-                                    placeholder="Contact"
+                                    placeholder="Contact person name"
                                     className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
                                     {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                        <FormItem className="space-y-2">
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Phone</FormLabel>
+                            <FormControl>
+                                <PhoneInput
+                                    value={field.value || { countryCode: "+91", phoneNumber: "" }}
+                                    onChange={(value) => field.onChange(value)}
+                                    label="Phone Number"
+                                    placeholder="Enter phone number"
                                 />
                             </FormControl>
                             <FormMessage />

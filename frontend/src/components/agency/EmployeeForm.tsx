@@ -16,6 +16,7 @@ import {
     FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { PhoneInput, validatePhoneNumber } from "@/components/ui/phone-input"
 import api from "@/lib/api"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -51,29 +52,30 @@ const baseSchema = z.object({
         ),
     employeeCode: z.string().optional(),
     designationId: z.string().min(1, "Picking a designation is required"),
-    countryIndex: z.string().min(1, "Country selection is required"),
-    phoneNumber: z.string().min(5, "Invalid phone number"),
+    phone: z.object({
+        countryCode: z.string().min(1, "Country code is required"),
+        phoneNumber: z.string().min(1, "Phone number is required")
+    }),
     basicSalary: z.string().min(1, "Basic salary is required"),
     salaryCurrency: z.string().min(1, "Currency is required"),
     status: z.string().optional(),
 })
 
-const phoneRefinement = (data: any) => {
-    const country = countries[parseInt(data.countryIndex)]
-    if (!country) return true
-    return data.phoneNumber.length === country.length
-}
-
-const phoneMsg = {
-    message: "Phone number length does not match country standards",
-    path: ["phoneNumber"]
-}
-
-const formSchema = baseSchema.refine(phoneRefinement, phoneMsg)
+const formSchema = baseSchema.refine((data) => {
+    return !validatePhoneNumber(data.phone.phoneNumber, data.phone.countryCode)
+}, {
+    message: "Invalid phone number for selected country",
+    path: ["phone"]
+})
 
 const editFormSchema = baseSchema.extend({
     password: z.string().optional()
-}).refine(phoneRefinement, phoneMsg)
+}).refine((data) => {
+    return !validatePhoneNumber(data.phone.phoneNumber, data.phone.countryCode)
+}, {
+    message: "Invalid phone number for selected country",
+    path: ["phone"]
+})
 
 interface FormValues {
     fullName: string;
@@ -81,8 +83,10 @@ interface FormValues {
     password?: string;
     employeeCode?: string;
     designationId: string;
-    countryIndex: string;
-    phoneNumber: string;
+    phone: {
+        countryCode: string;
+        phoneNumber: string;
+    };
     basicSalary: string;
     salaryCurrency: string;
     status?: string;
@@ -130,8 +134,10 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
             password: "",
             employeeCode: initialData?.employeeCode || "",
             designationId: initialData?.designationId || "",
-            countryIndex: "0",
-            phoneNumber: "",
+            phone: {
+                countryCode: "+91",
+                phoneNumber: ""
+            },
             basicSalary: initialData?.basicSalary?.toString() || "0",
             salaryCurrency: initialData?.salaryCurrency || "USD"
         },
@@ -139,15 +145,16 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
 
     useEffect(() => {
         if (initialData) {
-            // Try to match country code
+            // Parse existing phone number
             const phone = initialData.phoneNumber || ""
-            let matchedIdx = 0
-            let cleanPhone = phone
+            let countryCode = "+91"
+            let phoneNumber = phone
 
-            for (let i = 0; i < countries.length; i++) {
-                if (phone.startsWith(countries[i].code)) {
-                    matchedIdx = i
-                    cleanPhone = phone.slice(countries[i].code.length)
+            // Try to extract country code from the phone number
+            for (const country of countries) {
+                if (phone.startsWith(country.code)) {
+                    countryCode = country.code
+                    phoneNumber = phone.slice(country.code.length)
                     break
                 }
             }
@@ -158,8 +165,10 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                 password: "",
                 employeeCode: initialData.employeeCode || "",
                 designationId: initialData.designationId || "",
-                countryIndex: matchedIdx.toString(),
-                phoneNumber: cleanPhone,
+                phone: {
+                    countryCode,
+                    phoneNumber
+                },
                 basicSalary: initialData.basicSalary?.toString() || "0",
                 salaryCurrency: initialData.salaryCurrency || "USD",
                 status: initialData.status
@@ -173,11 +182,18 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     async function onSubmit(values: FormValues) {
         setLoading(true)
         try {
-            const { countryIndex, employeeCode, ...apiValues } = values
-            const country = countries[parseInt(countryIndex || "0")]
+            // Validate phone number
+            const phoneError = validatePhoneNumber(values.phone.phoneNumber, values.phone.countryCode);
+            if (phoneError) {
+                toast.error(phoneError);
+                setLoading(false);
+                return;
+            }
+
+            const { phone, employeeCode, ...apiValues } = values
             const payload: any = {
                 ...apiValues,
-                phoneNumber: `${country.code}${values.phoneNumber}`,
+                phoneNumber: `${phone.countryCode}${phone.phoneNumber}`,
                 basicSalary: parseFloat(values.basicSalary || "0")
             }
 
@@ -291,52 +307,24 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                     />
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-1">
-                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Country</FormLabel>
-                        <FormField
-                            control={form.control}
-                            name="countryIndex"
-                            render={({ field }) => (
-                                <FormControl>
-                                    <select
-                                        {...field}
-                                        className="w-full h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 appearance-none outline-none shadow-sm"
-                                    >
-                                        {countries.map((c, i) => (
-                                            <option key={c.iso} value={i.toString()}>{c.flag} {c.name} ({c.code})</option>
-                                        ))}
-                                    </select>
-                                </FormControl>
-                            )}
-                        />
-                    </div>
-                    <FormField
-                        control={form.control}
-                        name="phoneNumber"
-                        render={({ field }) => {
-                            const country = countries[parseInt(form.watch("countryIndex")) || 0]
-                            return (
-                                <FormItem className="space-y-1">
-                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Phone</FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
-                                                {country?.code}
-                                            </div>
-                                            <Input
-                                                placeholder="Phone"
-                                                className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-black pl-14"
-                                                {...field}
-                                            />
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )
-                        }}
-                    />
-                </div>
+                <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                        <FormItem className="space-y-1">
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Phone</FormLabel>
+                            <FormControl>
+                                <PhoneInput
+                                    value={field.value || { countryCode: "+91", phoneNumber: "" }}
+                                    onChange={(value) => field.onChange(value)}
+                                    label="Phone Number"
+                                    placeholder="Enter phone number"
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <div className="grid grid-cols-2 gap-6">
                     <FormField
