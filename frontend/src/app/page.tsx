@@ -141,6 +141,7 @@ export default function RootLoginPage() {
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors flex items-center justify-center w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-100"
                             aria-label={showPassword ? "Hide password" : "Show password"}
+                            suppressHydrationWarning={true}
                           >
                             {showPassword ? (
                               <EyeOff className="w-4 h-4" />

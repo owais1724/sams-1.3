@@ -103,7 +103,7 @@ export function PhoneInput({
           </SelectTrigger>
           <SelectContent>
             {countries.map((country) => (
-              <SelectItem key={country.code} value={country.dialCode}>
+              <SelectItem key={`${country.code}-${country.dialCode}`} value={country.dialCode}>
                 <div className="flex items-center gap-2">
                   <span>{country.code}</span>
                   <span className="text-sm text-slate-500">{country.dialCode}</span>

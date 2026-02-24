@@ -15,24 +15,32 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { useAuthStore } from "@/store/authStore"
 
 export function DesignationManager({ designations, onUpdate }: { designations: any[], onUpdate: () => void }) {
     const [loading, setLoading] = useState(false)
     const [newName, setNewName] = useState("")
     const [newDesc, setNewDesc] = useState("")
+    const { user } = useAuthStore()
+    
+    console.log("DesignationManager - Current user:", user)
+    console.log("DesignationManager - Agency ID:", user?.agencyId)
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!newName) return
+        console.log("Creating designation:", { name: newName, description: newDesc })
         setLoading(true)
         try {
-            await api.post("/designations", { name: newName, description: newDesc })
+            const response = await api.post("/designations", { name: newName, description: newDesc })
+            console.log("Designation creation response:", response)
             toast.success("Designation created")
             setNewName("")
             setNewDesc("")
             onUpdate()
         } catch (error: any) {
-            toast.error(error.extractedMessage || "Failed to create designation")
+            console.error("Designation creation error:", error)
+            toast.error(error.response?.data?.message || error.message || "Failed to create designation")
         } finally {
             setLoading(false)
         }
@@ -50,6 +58,11 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
 
     return (
         <div className="grid gap-6 lg:grid-cols-3">
+            {!user?.agencyId && (
+                <div className="lg:col-span-3 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <p className="text-red-700 font-medium">⚠️ Authentication Issue: No agency context found. Please log out and log back in.</p>
+                </div>
+            )}
             <Card className="lg:col-span-1 shadow-sm border-slate-100">
                 <CardHeader>
                     <CardTitle className="text-lg">Create Designation</CardTitle>
@@ -73,7 +86,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                 onChange={(e) => setNewDesc(e.target.value)}
                             />
                         </div>
-                        <Button type="submit" className="w-full h-11 rounded-xl bg-slate-900 font-bold" disabled={loading}>
+                        <Button type="submit" className="w-full h-11 rounded-xl bg-slate-900 font-bold" disabled={loading || !user?.agencyId}>
                             {loading ? "Creating..." : "Create Designation"}
                         </Button>
                     </form>
