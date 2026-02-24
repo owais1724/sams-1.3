@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Building2, Shield, Users, Edit } from "lucide-react"
+import { cn } from "@/lib/utils"
 import {
     Sheet,
     SheetContent,
@@ -65,11 +66,11 @@ export default function AdminDashboard() {
     ]
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="space-y-10 max-w-7xl mx-auto px-4 py-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-900">System Administration</h1>
-                    <p className="text-slate-500 font-medium">Global overview and lifecycle management of security agencies.</p>
+                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">System Administration</h1>
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Global infrastructure command & control</p>
                 </div>
 
                 <Sheet open={open} onOpenChange={(val) => {
@@ -82,32 +83,34 @@ export default function AdminDashboard() {
                                 setEditingAgency(null)
                                 setOpen(true)
                             }}
-                            className="h-12 px-6 bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 rounded-xl font-bold transition-all active:scale-[0.98]"
+                            className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-200 transition-all active:scale-[0.98]"
                         >
-                            <Plus className="mr-2 h-5 w-5" />
-                            Create Agency
+                            <Plus className="mr-2 h-5 w-5 stroke-[3]" />
+                            INITIALIZE AGENCY
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[540px] border-none shadow-2xl p-0">
-                        <div className="p-6 md:p-8 overflow-y-auto h-full">
-                            <SheetHeader className="mb-6">
-                                <SheetTitle className="text-2xl font-black">
-                                    {editingAgency ? "Modify Agency" : "Create New Agency"}
-                                </SheetTitle>
-                                <SheetDescription className="text-slate-500 font-medium">
-                                    {editingAgency
-                                        ? "Update agency infrastructure and operational status."
-                                        : "Initialize a new agency node and its primary administrative credentials."}
-                                </SheetDescription>
-                            </SheetHeader>
-                            <AgencyForm
-                                initialData={editingAgency}
-                                onSuccess={() => {
-                                    setOpen(false)
-                                    setEditingAgency(null)
-                                    fetchAgencies()
-                                }}
-                            />
+                    <SheetContent className="sm:max-w-[540px] border-l-0 shadow-2xl p-0">
+                        <div className="h-full bg-slate-50/50 flex flex-col">
+                            <div className="p-8 pt-12 overflow-y-auto h-full">
+                                <SheetHeader className="mb-10">
+                                    <SheetTitle className="text-3xl font-black tracking-tight text-slate-900">
+                                        {editingAgency ? "Modify Agency" : "Entity Onboarding"}
+                                    </SheetTitle>
+                                    <SheetDescription className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-loose">
+                                        {editingAgency
+                                            ? "Update agency infrastructure and operational status"
+                                            : "Deploying new security infrastructure instance"}
+                                    </SheetDescription>
+                                </SheetHeader>
+                                <AgencyForm
+                                    initialData={editingAgency}
+                                    onSuccess={() => {
+                                        setOpen(false)
+                                        setEditingAgency(null)
+                                        fetchAgencies()
+                                    }}
+                                />
+                            </div>
                         </div>
                     </SheetContent>
                 </Sheet>
@@ -115,85 +118,114 @@ export default function AdminDashboard() {
 
             <div className="grid gap-6 md:grid-cols-3">
                 {stats.map((stat) => (
-                    <Card key={stat.title} className="border-slate-100 shadow-sm rounded-2xl p-2 transition-all hover:shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.title}</CardTitle>
-                            <div className={`p-2 rounded-lg bg-slate-50`}>
-                                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                    <Card key={stat.title} className="border-slate-100 shadow-xl shadow-slate-200/50 rounded-[32px] p-2 transition-all hover:scale-[1.02] duration-300">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 p-6">
+                            <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{stat.title}</CardTitle>
+                            <div className={`p-3 rounded-2xl bg-slate-50`}>
+                                <stat.icon className={`h-6 w-6 ${stat.color}`} />
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-black text-slate-900">{stat.value}</div>
+                        <CardContent className="p-6 pt-0">
+                            <div className="text-4xl font-black text-slate-900 tracking-tight">{stat.value}</div>
                         </CardContent>
                     </Card>
                 ))}
             </div>
 
-            <div className="rounded-[2rem] border border-slate-100 bg-white shadow-sm overflow-hidden">
-                <div className="px-8 py-6 border-b border-slate-50 bg-slate-50/30">
-                    <h3 className="font-bold text-slate-900">Agency Directory</h3>
+            <div className="rounded-[32px] border border-slate-100 bg-white shadow-2xl shadow-slate-200/60 overflow-hidden">
+                <div className="px-8 py-7 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-black text-slate-900">Agency Directory</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Active Network Nodes</p>
+                    </div>
+                    <Badge className="bg-blue-600/10 text-blue-600 border-none font-black text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-xl">
+                        {agencies.length} Total Entities
+                    </Badge>
                 </div>
                 <Table>
-                    <TableHeader className="bg-slate-50/50">
+                    <TableHeader className="bg-slate-50/30">
                         <TableRow className="hover:bg-transparent border-slate-100 h-14">
-                            <TableHead className="font-bold text-slate-500 uppercase text-[10px] tracking-widest pl-8">Agency Name</TableHead>
-                            <TableHead className="font-bold text-slate-500 uppercase text-[10px] tracking-widest">Login Slug</TableHead>
-                            <TableHead className="font-bold text-slate-500 uppercase text-[10px] tracking-widest">Status</TableHead>
-                            <TableHead className="font-bold text-slate-500 uppercase text-[10px] tracking-widest">Date Joined</TableHead>
-                            <TableHead className="text-right font-bold text-slate-500 uppercase text-[10px] tracking-widest pr-8">Actions</TableHead>
+                            <TableHead className="px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Entity</TableHead>
+                            <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Private Endpoint</TableHead>
+                            <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Status</TableHead>
+                            <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployed Since</TableHead>
+                            <TableHead className="text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pr-8">Operations</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                             <TableRow>
                                 <TableCell colSpan={5} className="text-center py-20">
-                                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent align-[-0.125em]" />
-                                    <p className="mt-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Synchronizing Agency Data...</p>
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning Network...</p>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ) : agencies.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={5} className="text-center py-32">
-                                    <Building2 className="mx-auto h-16 w-16 text-slate-100 mb-6" />
-                                    <h3 className="text-xl font-black text-slate-900">No Agencies Found</h3>
-                                    <p className="text-slate-400 font-medium max-w-xs mx-auto mt-2">Initialize your first security agency to begin platform management.</p>
+                                    <Building2 className="mx-auto h-16 w-16 text-slate-100 mb-6 animate-bounce" />
+                                    <h3 className="text-xl font-black text-slate-900">No Entities Found</h3>
+                                    <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-2">Initialize your first entity to begin management</p>
                                 </TableCell>
                             </TableRow>
                         ) : (
                             agencies.map((agency) => (
-                                <TableRow key={agency.id} className="group hover:bg-slate-50/50 transition-colors border-slate-50 h-20">
-                                    <TableCell className="font-black text-slate-900 text-base pl-8">{agency.name}</TableCell>
-                                    <TableCell>
-                                        <code className="text-[10px] bg-slate-100 px-3 py-1.5 rounded-lg text-slate-600 font-bold tracking-wider uppercase font-mono border border-slate-200">/{agency.slug}</code>
+                                <TableRow key={agency.id} className="group hover:bg-slate-50/50 transition-colors border-slate-50 h-24">
+                                    <TableCell className="pl-8">
+                                        <div className="flex flex-col">
+                                            <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors">{agency.name}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">ID: {agency.id.slice(-8).toUpperCase()}</span>
+                                        </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge className={`rounded-full px-4 py-1 border-none font-bold text-[10px] uppercase tracking-wider ${agency.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
-                                            {agency.isActive ? "Active" : "Inactive"}
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-1 w-1 rounded-full bg-blue-400" />
+                                            <code className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100/50 uppercase font-mono tracking-wider">
+                                                /{agency.slug}
+                                            </code>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge className={cn(
+                                            "rounded-xl px-4 py-1.5 border-none font-black text-[10px] uppercase tracking-widest shadow-sm",
+                                            agency.isActive
+                                                ? "bg-emerald-500 text-white shadow-emerald-200"
+                                                : "bg-slate-500 text-white shadow-slate-200"
+                                        )}>
+                                            {agency.isActive ? "Active" : "Locked"}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-sm text-slate-500 font-bold">{new Date(agency.createdAt).toLocaleDateString()}</TableCell>
-                                    <TableCell className="text-right pr-8">
-                                        <div className="flex items-center justify-end space-x-2">
+                                    <TableCell className="text-sm font-bold text-slate-500">
+                                        {new Date(agency.createdAt).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric'
+                                        })}
+                                    </TableCell>
+                                    <TableCell className="pr-8 text-right">
+                                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-bold rounded-xl transition-all"
+                                                className="h-11 px-5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-black rounded-xl transition-all active:scale-95 shadow-sm shadow-blue-100"
                                                 onClick={() => {
                                                     setEditingAgency(agency)
                                                     setOpen(true)
                                                 }}
                                             >
                                                 <Edit className="h-4 w-4 mr-2" />
-                                                Edit
+                                                EDIT
                                             </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="text-red-500 hover:text-red-600 hover:bg-red-50 font-bold rounded-xl transition-all"
+                                                className="h-11 px-5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white font-black rounded-xl transition-all active:scale-95 shadow-sm shadow-red-100"
                                                 onClick={() => handleDelete(agency.id, agency.name)}
                                             >
                                                 <Trash2 className="h-4 w-4 mr-2" />
-                                                Delete
+                                                REMOVE
                                             </Button>
                                         </div>
                                     </TableCell>
