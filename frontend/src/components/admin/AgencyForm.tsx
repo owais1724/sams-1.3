@@ -79,10 +79,10 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-4 rounded-2xl border border-slate-200/60 p-5 bg-white shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                        <div className="h-1 w-4 bg-blue-600 rounded-full" />
-                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Core Infrastructure</h3>
+                <div className="space-y-6 rounded-[32px] border border-slate-100 p-8 bg-white shadow-xl shadow-slate-200/50">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="h-2 w-2 bg-blue-600 rounded-full animate-pulse" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Core Infrastructure</h3>
                     </div>
 
                     <FormField
@@ -90,9 +90,13 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="name"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-sm font-semibold text-slate-800">Agency Name</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Agency Legal Name</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Stark Security" className="h-11 rounded-lg bg-slate-50/50 border-slate-200 focus:bg-white transition-colors" {...field} />
+                                    <Input
+                                        placeholder="Enter agency name"
+                                        className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
+                                        {...field}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -103,24 +107,28 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="slug"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-sm font-semibold text-slate-800">Unique Slug</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Unique Instance Identifier (Slug)</FormLabel>
                                 <FormControl>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400 font-mono">/</span>
-                                        <Input placeholder="stark-security" className="h-11 pl-7 rounded-lg bg-slate-50/50 border-slate-200 font-mono focus:bg-white transition-colors" {...field} />
+                                    <div className="relative group">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-sm group-focus-within:text-primary transition-colors">/</div>
+                                        <Input
+                                            placeholder="identifier-code"
+                                            className="h-14 pl-8 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 font-mono font-bold focus:bg-white focus:border-primary/20 transition-all px-4"
+                                            {...field}
+                                        />
                                     </div>
                                 </FormControl>
-                                <FormDescription className="text-[11px] font-medium text-slate-400">Used for your private instance URL.</FormDescription>
+                                <FormDescription className="text-[9px] font-bold text-slate-400 uppercase tracking-tight pl-2">This defines the private access URL for this agency instance.</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
                 </div>
 
-                <div className="space-y-4 rounded-2xl border border-slate-200/60 p-5 bg-white shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                        <div className="h-1 w-4 bg-emerald-600 rounded-full" />
-                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Master Credentials</h3>
+                <div className="space-y-6 rounded-[32px] border border-slate-100 p-8 bg-white shadow-xl shadow-slate-200/50">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse" />
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Master Credentials</h3>
                     </div>
 
                     <FormField
@@ -128,9 +136,13 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="adminName"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-sm font-semibold text-slate-800">Agent Full Name</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Principal Officer Full Name</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Tony Stark" className="h-11 rounded-lg bg-slate-50/50 border-slate-200 focus:bg-white transition-colors" {...field} />
+                                    <Input
+                                        placeholder="Full legal name"
+                                        className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
+                                        {...field}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -141,9 +153,14 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="adminEmail"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-sm font-semibold text-slate-800">Agent Email</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">System Access Email</FormLabel>
                                 <FormControl>
-                                    <Input type="email" placeholder="tony@stark.com" className="h-11 rounded-lg bg-slate-50/50 border-slate-200 focus:bg-white transition-colors" {...field} />
+                                    <Input
+                                        type="email"
+                                        placeholder="admin@instance.com"
+                                        className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold px-4"
+                                        {...field}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -154,52 +171,48 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="adminPassword"
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
-                                <FormLabel className="text-sm font-semibold text-slate-800">
-                                    {initialData ? "Update Agent Password" : "Agent Password"}
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">
+                                    {initialData ? "Rotate Access Secret" : "Primary Access Secret"}
                                 </FormLabel>
                                 <FormControl>
                                     <div className="relative group">
                                         <Input
                                             type={showPassword ? "text" : "password"}
-                                            placeholder={initialData ? "Leave blank to keep current" : "••••••••"}
-                                            className="h-11 rounded-lg bg-slate-50/50 border-slate-200 focus:bg-white transition-colors pr-10"
+                                            placeholder={initialData ? "Leave blank to maintain current" : "••••••••"}
+                                            className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-black px-4 pr-12"
                                             {...field}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                         >
                                             {showPassword ? (
-                                                <EyeOff className="h-4 w-4" />
+                                                <EyeOff className="h-5 w-5" />
                                             ) : (
-                                                <Eye className="h-4 w-4" />
+                                                <Eye className="h-5 w-5" />
                                             )}
                                         </button>
                                     </div>
                                 </FormControl>
-                                <div className="mt-2 space-y-1.5">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Security Standards:</p>
-                                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
-                                        <li className={`text-[9px] flex items-center ${(field.value?.length ?? 0) >= 8 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${(field.value?.length ?? 0) >= 8 ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                <div className="mt-4 p-4 rounded-xl bg-slate-50/50 border border-slate-100">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Security Requirements:</p>
+                                    <ul className="grid grid-cols-2 gap-x-6 gap-y-2">
+                                        <li className={`text-[9px] font-extrabold flex items-center ${((field.value?.length || 0)) >= 8 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1.5 w-1.5 rounded-full mr-2 ${((field.value?.length || 0)) >= 8 ? 'bg-emerald-600' : 'bg-slate-300'}`} />
                                             8+ Characters
                                         </li>
-                                        <li className={`text-[9px] flex items-center ${/[A-Z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[A-Z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Uppercase Letter
+                                        <li className={`text-[9px] font-extrabold flex items-center ${/[A-Z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1.5 w-1.5 rounded-full mr-2 ${/[A-Z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                            Uppercase
                                         </li>
-                                        <li className={`text-[9px] flex items-center ${/[a-z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[a-z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Lowercase Letter
+                                        <li className={`text-[9px] font-extrabold flex items-center ${/[a-z]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1.5 w-1.5 rounded-full mr-2 ${/[a-z]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                            Lowercase
                                         </li>
-                                        <li className={`text-[9px] flex items-center ${/[0-9]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[0-9]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Number Included
-                                        </li>
-                                        <li className={`text-[9px] flex items-center ${/[!@#$%^&*]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                            <div className={`h-1 w-1 rounded-full mr-1.5 ${/[!@#$%^&*]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
-                                            Special Symbol
+                                        <li className={`text-[9px] font-extrabold flex items-center ${/[0-9]/.test(field.value || '') ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                            <div className={`h-1.5 w-1.5 rounded-full mr-2 ${/[0-9]/.test(field.value || '') ? 'bg-emerald-600' : 'bg-slate-300'}`} />
+                                            Number
                                         </li>
                                     </ul>
                                 </div>
@@ -209,8 +222,8 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                     />
                 </div>
 
-                <Button type="submit" className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg shadow-slate-200 transition-all active:scale-[0.98]" disabled={loading}>
-                    {loading ? (initialData ? "SAVING..." : "INITIALIZING...") : (initialData ? "UPDATE AGENCY" : "CREATE AGENCY")}
+                <Button type="submit" className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl shadow-xl shadow-slate-200 transition-all active:scale-[0.98]" disabled={loading}>
+                    {loading ? "PROCESSING..." : (initialData ? "SAVE AGENCY CONFIGURATION" : "FINALIZE AGENCY DEPLOYMENT")}
                 </Button>
             </form>
         </Form>

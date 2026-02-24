@@ -43,6 +43,12 @@ export default function AgencyLayout({
             }
         };
 
+        const handlePageShow = (event: PageTransitionEvent) => {
+            if (event.persisted) {
+                verifySession();
+            }
+        };
+
         if (isLoginPage) {
             setVerifying(false);
         } else if (!isAuthenticated) {
@@ -55,6 +61,9 @@ export default function AgencyLayout({
         } else {
             verifySession();
         }
+
+        window.addEventListener('pageshow', handlePageShow);
+        return () => window.removeEventListener('pageshow', handlePageShow);
     }, [isAuthenticated, isLoginPage, router, logout, login, agencySlug, pathname]);
 
     if (verifying) {

@@ -40,6 +40,12 @@ export default function AdminLayout({
             }
         };
 
+        const handlePageShow = (event: PageTransitionEvent) => {
+            if (event.persisted) {
+                verifySession();
+            }
+        };
+
         if (isLoginPage) {
             setVerifying(false);
         } else if (!isAuthenticated) {
@@ -48,6 +54,9 @@ export default function AdminLayout({
         } else {
             verifySession();
         }
+
+        window.addEventListener('pageshow', handlePageShow);
+        return () => window.removeEventListener('pageshow', handlePageShow);
     }, [isAuthenticated, isLoginPage, router, logout, login]);
 
     if (verifying) {
