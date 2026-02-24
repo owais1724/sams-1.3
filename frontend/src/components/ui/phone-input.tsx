@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/form"
+import { FormLabel } from "@/components/ui/form"
 
 interface Country {
   code: string
@@ -89,9 +89,9 @@ export function PhoneInput({
 
   return (
     <div className="space-y-2">
-      <Label className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">
+      <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">
         {label}
-      </Label>
+      </FormLabel>
       <div className="flex gap-2">
         <Select
           value={selectedCountry.dialCode}
