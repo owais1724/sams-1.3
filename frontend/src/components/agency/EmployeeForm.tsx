@@ -98,6 +98,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     onSuccess: () => void,
     initialData?: any
 }) {
+    console.log("EmployeeForm designations prop:", designations) // Debug log
     const [loading, setLoading] = useState(false)
     const [showQuickAdd, setShowQuickAdd] = useState(false)
     const [newDesignationName, setNewDesignationName] = useState("")
@@ -109,18 +110,22 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
         setDesignationLoading(true)
         try {
             const response = await api.post("/designations", { name: newDesignationName })
-            toast.success("Designation created")
+            toast.success("Designation created successfully")
             const newId = response.data.id;
             setNewDesignationName("")
             setShowQuickAdd(false)
 
-            // Refresh parent list
-            refetchDesignations();
-
-            // Auto-select the newly created designation
-            form.setValue("designationId", newId);
-        } catch (error) {
-            toast.error("Failed to create designation")
+            // Refresh parent list immediately
+            await refetchDesignations();
+            
+            // Small delay to ensure state is updated before setting the value
+            setTimeout(() => {
+                form.setValue("designationId", newId);
+                form.trigger("designationId"); // Trigger validation
+            }, 100);
+        } catch (error: any) {
+            console.error("Designation creation error:", error)
+            toast.error(error.response?.data?.message || "Failed to create designation")
         } finally {
             setDesignationLoading(false)
         }
@@ -175,6 +180,14 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
             })
         }
     }, [initialData, form])
+
+    // Update form when designations change
+    useEffect(() => {
+        if (designations.length > 0 && !form.getValues("designationId")) {
+            // If no designation is selected and we have designations, don't auto-select
+            // Let the user choose explicitly
+        }
+    }, [designations, form])
 
 
     const [showPassword, setShowPassword] = useState(false)
