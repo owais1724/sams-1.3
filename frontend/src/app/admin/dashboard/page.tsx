@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <div className="h-1 w-1 rounded-full bg-blue-400" />
-                                            <code className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100/50 uppercase font-mono tracking-wider">
+                                            <code className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-2xl border border-blue-100/50 uppercase font-mono tracking-wider">
                                                 /{agency.slug}
                                             </code>
                                         </div>
@@ -205,11 +205,11 @@ export default function AdminDashboard() {
                                         })}
                                     </TableCell>
                                     <TableCell className="pr-8 text-right">
-                                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div className="flex items-center justify-end gap-3 transition-opacity duration-300">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-11 px-5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-black rounded-xl transition-all active:scale-95 shadow-sm shadow-blue-100"
+                                                className="h-11 px-5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-blue-100/50"
                                                 onClick={() => {
                                                     setEditingAgency(agency)
                                                     setOpen(true)
@@ -221,7 +221,7 @@ export default function AdminDashboard() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-11 px-5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white font-black rounded-xl transition-all active:scale-95 shadow-sm shadow-red-100"
+                                                className="h-11 px-5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-red-100/50"
                                                 onClick={() => handleDelete(agency.id, agency.name)}
                                             >
                                                 <Trash2 className="h-4 w-4 mr-2" />

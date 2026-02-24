@@ -138,14 +138,14 @@ export default function AgenciesPage() {
                                     <TableCell className="px-6 py-5">
                                         <div className="flex items-center gap-2">
                                             <div className="h-1 w-1 rounded-full bg-blue-400" />
-                                            <code className="text-xs font-black text-blue-600 bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100/50">
+                                            <code className="text-xs font-black text-blue-600 bg-blue-50/50 px-3 py-1.5 rounded-2xl border border-blue-100/50">
                                                 /{agency.slug}
                                             </code>
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-5">
                                         <Badge className={cn(
-                                            "rounded-xl px-4 py-1 border-none font-black text-[10px] uppercase tracking-widest shadow-sm",
+                                            "rounded-2xl px-4 py-1.5 border-none font-black text-[10px] uppercase tracking-widest shadow-sm",
                                             agency.isActive
                                                 ? "bg-emerald-500 text-white shadow-emerald-200"
                                                 : "bg-slate-500 text-white shadow-slate-200"
@@ -166,7 +166,7 @@ export default function AgenciesPage() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="h-10 px-4 text-red-600 hover:text-white hover:bg-red-500 font-bold rounded-xl transition-all active:scale-95"
+                                            className="h-10 px-5 text-red-600 hover:text-white hover:bg-red-500 font-bold rounded-2xl transition-all active:scale-95"
                                             onClick={() => handleDelete(agency.id, agency.name)}
                                         >
                                             <Trash2 className="h-4 w-4 mr-2" />
