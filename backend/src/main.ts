@@ -112,14 +112,12 @@ async function bootstrap() {
   return app;
 }
 
-// Direct execution (Standard Node.js entry point)
-if (require.main === module) {
-  validateEnv();
-  bootstrap().catch(err => {
-    console.error('Bootstrap Error:', err);
-    process.exit(1);
-  });
-}
+// Standard NestJS entry point
+validateEnv();
+bootstrap().catch(err => {
+  console.error('Bootstrap Error:', err);
+  process.exit(1);
+});
 
 // Export for serverless environments (if needed)
 export default bootstrap;
