@@ -20,6 +20,7 @@ import { PhoneInput, validatePhoneNumber } from "@/components/ui/phone-input"
 import api from "@/lib/api"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/store/authStore"
 
 const countries = [
     { name: "India", code: "+91", iso: "IN", flag: "🇮🇳", length: 10 },
@@ -103,13 +104,17 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     const [showQuickAdd, setShowQuickAdd] = useState(false)
     const [newDesignationName, setNewDesignationName] = useState("")
     const [designationLoading, setDesignationLoading] = useState(false)
+    const { user } = useAuthStore()
 
 
     const handleQuickAddDesignation = async () => {
         if (!newDesignationName) return
         setDesignationLoading(true)
         try {
-            const response = await api.post("/designations", { name: newDesignationName })
+            const response = await api.post("/designations", {
+                name: newDesignationName,
+                agencyId: user?.agencyId
+            })
             toast.success("Designation created successfully")
             const newId = response.data.id;
             setNewDesignationName("")
@@ -117,7 +122,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
 
             // Refresh parent list immediately
             await refetchDesignations();
-            
+
             // Small delay to ensure state is updated before setting the value
             setTimeout(() => {
                 form.setValue("designationId", newId);
@@ -220,7 +225,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                 }
                 toast.success("Employee updated successfully")
             } else {
-                await api.post("/employees", payload)
+                await api.post("/employees", { ...payload, agencyId: user?.agencyId })
                 toast.success("Employee created successfully")
             }
             onSuccess()

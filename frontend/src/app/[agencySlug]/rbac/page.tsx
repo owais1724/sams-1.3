@@ -25,8 +25,10 @@ import { RoleForm } from "@/components/agency/RoleForm"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
+import { useAuthStore } from "@/store/authStore"
 
 export default function RBACPage() {
+    const { user } = useAuthStore()
     const { agencySlug } = useParams()
     const [roles, setRoles] = useState<any[]>([])
     const [permissions, setPermissions] = useState<any[]>([])
@@ -36,25 +38,27 @@ export default function RBACPage() {
     const [selectedRole, setSelectedRole] = useState<any>(null)
 
     const fetchData = async () => {
+        if (!user) return
         try {
+            const params = user.agencyId ? { agencyId: user.agencyId } : {}
             // First, sync roles to designations automatically
             try {
-                await api.post("/employees/sync-roles", {})
+                await api.post("/employees/sync-roles", { agencyId: user.agencyId })
             } catch (syncError) {
                 console.error("Role sync error:", syncError)
             }
 
             // Then fetch all data
             console.log("Fetching roles...")
-            const rolesRes = await api.get("/roles")
+            const rolesRes = await api.get("/roles", { params })
             console.log("Roles fetched successfully")
 
             console.log("Fetching permissions...")
-            const permsRes = await api.get("/roles/permissions")
+            const permsRes = await api.get("/roles/permissions", { params })
             console.log("Permissions fetched successfully")
 
             console.log("Fetching employees...")
-            const empRes = await api.get("/employees")
+            const empRes = await api.get("/employees", { params })
             console.log("Employees fetched successfully")
 
             setRoles(rolesRes.data)
@@ -81,8 +85,8 @@ export default function RBACPage() {
     }
 
     useEffect(() => {
-        fetchData()
-    }, [])
+        if (user) fetchData()
+    }, [user])
 
     return (
         <div className="space-y-8 pb-20">

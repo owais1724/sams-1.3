@@ -25,7 +25,20 @@ export default function AgencyLayout({
             try {
                 if (isAuthenticated) {
                     const response = await api.get('/auth/me');
-                    login(response.data);
+                    const userData = response.data;
+
+                    // If Super Admin occupies this agency space, resolve the context agency ID
+                    if (userData.role === 'Super Admin' && !userData.agencyId && agencySlug) {
+                        try {
+                            const agencyRes = await api.get(`/agencies/slug/${agencySlug}`);
+                            userData.agencyId = agencyRes.data.id;
+                            userData.agencySlug = agencyRes.data.slug;
+                        } catch (agencyError) {
+                            console.error("Failed to resolve agency context for Super Admin", agencyError);
+                        }
+                    }
+
+                    login(userData);
                 }
             } catch (error) {
                 console.error("Agency session verification failed", error);

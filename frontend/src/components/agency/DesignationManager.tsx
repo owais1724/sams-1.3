@@ -22,7 +22,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
     const [newName, setNewName] = useState("")
     const [newDesc, setNewDesc] = useState("")
     const { user } = useAuthStore()
-    
+
     console.log("DesignationManager - Current user:", user)
     console.log("DesignationManager - Agency ID:", user?.agencyId)
 
@@ -32,7 +32,11 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
         console.log("Creating designation:", { name: newName, description: newDesc })
         setLoading(true)
         try {
-            const response = await api.post("/designations", { name: newName, description: newDesc })
+            const response = await api.post("/designations", {
+                name: newName,
+                description: newDesc,
+                agencyId: user?.agencyId // Include agencyId for Super Admin context
+            })
             console.log("Designation creation response:", response)
             toast.success("Designation created")
             setNewName("")

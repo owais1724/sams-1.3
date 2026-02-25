@@ -29,9 +29,11 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/store/authStore"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function EmployeesPage() {
+    const { user } = useAuthStore()
     const [employees, setEmployees] = useState<any[]>([])
     const [designations, setDesignations] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -56,10 +58,12 @@ export default function EmployeesPage() {
     const [deleting, setDeleting] = useState(false)
 
     const fetchData = async () => {
+        if (!user) return
         try {
+            const params = user.agencyId ? { agencyId: user.agencyId } : {}
             const [empRes, desRes] = await Promise.all([
-                api.get("/employees"),
-                api.get("/designations")
+                api.get("/employees", { params }),
+                api.get("/designations", { params })
             ])
             setEmployees(empRes.data)
             setDesignations(desRes.data)
@@ -71,8 +75,8 @@ export default function EmployeesPage() {
     }
 
     useEffect(() => {
-        fetchData()
-    }, [])
+        if (user) fetchData()
+    }, [user])
 
     const handleOpenPayroll = (emp: any) => {
         setPayrollDialog({ open: true, employee: emp })

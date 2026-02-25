@@ -20,6 +20,11 @@ import { UpdateAgencyDto } from './dto/update-agency.dto';
 export class AgenciesController {
   constructor(private readonly agenciesService: AgenciesService) { }
 
+  @Get('slug/:slug')
+  async getBySlug(@Param('slug') slug: string) {
+    return this.agenciesService.findBySlug(slug);
+  }
+
   @Post()
   async create(@Request() req, @Body() data: CreateAgencyDto) {
     if (req.user.role !== 'Super Admin') {

@@ -8,6 +8,7 @@ import {
   Request,
   Delete,
   Param,
+  Query,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { MigrationService } from './migration.service';
@@ -24,13 +25,18 @@ export class EmployeesController {
   ) { }
 
   @Get()
-  findAll(@Request() req) {
-    return this.employeesService.findAll(req.user.agencyId);
+  findAll(@Request() req, @Query('agencyId') agencyId?: string) {
+    const targetAgencyId = req.user.agencyId || agencyId;
+    return this.employeesService.findAll(targetAgencyId);
   }
 
   @Post()
-  create(@Request() req, @Body() data: CreateEmployeeDto) {
-    return this.employeesService.create(req.user.agencyId, data);
+  create(@Request() req, @Body() data: CreateEmployeeDto & { agencyId?: string }) {
+    const targetAgencyId = req.user.agencyId || data.agencyId;
+    if (!targetAgencyId) {
+      throw new Error('Agency context is required to create an employee');
+    }
+    return this.employeesService.create(targetAgencyId, data);
   }
 
   @Patch(':id')
@@ -43,9 +49,13 @@ export class EmployeesController {
   }
 
   @Post('sync-roles')
-  syncRoles(@Request() req) {
+  syncRoles(@Request() req, @Body() data: { agencyId?: string }) {
+    const targetAgencyId = req.user.agencyId || data.agencyId;
+    if (!targetAgencyId) {
+      throw new Error('Agency context is required to sync roles');
+    }
     return this.migrationService.syncEmployeeRolesToDesignations(
-      req.user.agencyId,
+      targetAgencyId,
     );
   }
 

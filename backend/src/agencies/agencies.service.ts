@@ -83,6 +83,14 @@ export class AgenciesService {
     });
   }
 
+  async findBySlug(slug: string) {
+    const agency = await this.prisma.agency.findUnique({
+      where: { slug },
+    });
+    if (!agency) throw new NotFoundException('Agency not found');
+    return agency;
+  }
+
   async findAll() {
     return this.prisma.agency.findMany({
       include: {
