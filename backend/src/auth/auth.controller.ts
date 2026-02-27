@@ -58,27 +58,44 @@ export class AuthController {
   async logout(@Res({ passthrough: true }) res: Response) {
     const isProd = process.env.NODE_ENV === 'production';
     if (!isProd) {
-      console.log('[AuthController] Logout called');
+      this.logger.log('[AuthController] Logout called');
     }
 
+    // Clear the cookie with identical options to how it was set
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax', // Use 'none' for cross-domain logout in prod
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
     });
+
+    // Also set it to an empty value and expired date for maximum compatibility
+    res.cookie('access_token', '', {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/',
+      expires: new Date(0),
+    });
+
     return { message: 'Logged out successfully' };
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
-  getProfile(@Request() req) {
+  getProfile(@Request() req, @Res({ passthrough: true }) res: Response) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     return req.user;
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
-  async getMe(@Request() req) {
+  async getMe(@Request() req, @Res({ passthrough: true }) res: Response) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     const user = await this.usersService.findOneWithPermissions(req.user.email);
     if (!user) {
       throw new Error('User not found');

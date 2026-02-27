@@ -48,7 +48,7 @@ export function AdminSidebar() {
                             console.error("Server logout failed", e)
                         }
                         logout()
-                        window.location.href = '/'
+                        window.location.replace('/')
                     }}
                     className="flex w-full items-center rounded-lg px-4 py-3 text-sm font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all active:scale-[0.98]"
                 >

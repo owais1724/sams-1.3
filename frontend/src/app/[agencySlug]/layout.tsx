@@ -22,30 +22,29 @@ export default function AgencyLayout({
 
     useEffect(() => {
         const verifySession = async () => {
+            setVerifying(true);
             try {
-                if (isAuthenticated) {
-                    const response = await api.get('/auth/me');
-                    const userData = response.data;
+                const response = await api.get('/auth/me');
+                const userData = response.data;
 
-                    // If Super Admin occupies this agency space, resolve the context agency ID
-                    if (userData.role === 'Super Admin' && !userData.agencyId && agencySlug) {
-                        try {
-                            const agencyRes = await api.get(`/agencies/slug/${agencySlug}`);
-                            userData.agencyId = agencyRes.data.id;
-                            userData.agencySlug = agencyRes.data.slug;
-                        } catch (agencyError) {
-                            console.error("Failed to resolve agency context for Super Admin", agencyError);
-                        }
+                // If Super Admin occupies this agency space, resolve the context agency ID
+                if (userData.role === 'Super Admin' && !userData.agencyId && agencySlug) {
+                    try {
+                        const agencyRes = await api.get(`/agencies/slug/${agencySlug}`);
+                        userData.agencyId = agencyRes.data.id;
+                        userData.agencySlug = agencyRes.data.slug;
+                    } catch (agencyError) {
+                        console.error("Failed to resolve agency context for Super Admin", agencyError);
                     }
-
-                    login(userData);
                 }
+
+                login(userData);
             } catch (error) {
                 console.error("Agency session verification failed", error);
                 logout();
                 if (!isLoginPage) {
                     // Determine which login page to send to
-                    if (pathname.includes('/staff')) {
+                    if (pathname?.includes('/staff')) {
                         router.push(`/${agencySlug}/staff-login`);
                     } else {
                         router.push(`/${agencySlug}/login`);
@@ -64,20 +63,13 @@ export default function AgencyLayout({
 
         if (isLoginPage) {
             setVerifying(false);
-        } else if (!isAuthenticated) {
-            if (pathname.includes('/staff')) {
-                router.push(`/${agencySlug}/staff-login`);
-            } else {
-                router.push(`/${agencySlug}/login`);
-            }
-            setVerifying(false);
         } else {
             verifySession();
         }
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [isAuthenticated, isLoginPage, router, logout, login, agencySlug, pathname]);
+    }, [isLoginPage, router, logout, login, agencySlug, pathname]);
 
     if (verifying) {
         return (

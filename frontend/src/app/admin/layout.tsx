@@ -20,15 +20,16 @@ export default function AdminLayout({
 
     useEffect(() => {
         const verifySession = async () => {
+            setVerifying(true);
             try {
-                // If we think we are authenticated, verify with the server
-                if (isAuthenticated) {
-                    const response = await api.get('/auth/me');
-                    if (response.data.role !== 'Super Admin') {
-                        throw new Error('Not a super admin');
-                    }
-                    login(response.data);
+                // Always check the server on mount or pageshow, even if we think we aren't authenticated locally
+                // this ensures that if a cookie is present but the store is empty, we sync up
+                // and if the store thinks we are authenticated but the cookie is gone, we logout.
+                const response = await api.get('/auth/me');
+                if (response.data.role !== 'Super Admin') {
+                    throw new Error('Not a super admin');
                 }
+                login(response.data);
             } catch (error) {
                 console.error("Session verification failed", error);
                 logout();
@@ -42,14 +43,12 @@ export default function AdminLayout({
 
         const handlePageShow = (event: PageTransitionEvent) => {
             if (event.persisted) {
+                // If the page was restored from bfcache, force a re-verification
                 verifySession();
             }
         };
 
         if (isLoginPage) {
-            setVerifying(false);
-        } else if (!isAuthenticated) {
-            router.push('/admin/login');
             setVerifying(false);
         } else {
             verifySession();
@@ -57,7 +56,7 @@ export default function AdminLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [isAuthenticated, isLoginPage, router, logout, login]);
+    }, [isLoginPage, router, logout, login]);
 
     if (verifying) {
         return (

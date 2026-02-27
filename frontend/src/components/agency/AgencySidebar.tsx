@@ -184,7 +184,7 @@ export function AgencySidebar() {
                     onClick={async () => {
                         await api.post("/auth/logout")
                         logout()
-                        window.location.href = isStaff ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`
+                        window.location.replace(isStaff ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`)
                     }}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 px-3 py-2.5 text-xs font-black text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 group"
                 >
