@@ -22,26 +22,34 @@ export default function AdminLayout({
     const isLoginPage = pathname === "/admin/login"
 
     useEffect(() => {
+        let isActive = true;
         const verifySession = async () => {
             setVerifying(true);
             try {
                 const response = await api.get('/auth/me');
                 if (response.data.role !== 'Super Admin') {
                     // Explicitly clear session if role mismatch
-                    await api.post('/auth/logout');
+                    isActive = false;
+                    await api.post('/auth/logout').catch(() => { });
                     logout();
-                    router.push('/admin/login');
+                    window.location.href = '/admin/login';
                     return;
                 }
-                login(response.data);
+
+                if (isActive) {
+                    login(response.data);
+                }
             } catch (error) {
                 console.error("Session verification failed", error);
+                isActive = false;
                 logout();
                 if (!isLoginPage) {
-                    router.push('/admin/login');
+                    window.location.href = '/admin/login';
                 }
             } finally {
-                setVerifying(false);
+                if (isActive) {
+                    setVerifying(false);
+                }
             }
         };
 

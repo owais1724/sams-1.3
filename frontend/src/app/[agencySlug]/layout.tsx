@@ -24,6 +24,7 @@ export default function AgencyLayout({
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login') || pathname?.includes('staff-login')
 
     useEffect(() => {
+        let isActive = true;
         const verifySession = async () => {
             setVerifying(true);
             try {
@@ -34,28 +35,34 @@ export default function AgencyLayout({
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
                 if (userData.role === 'Super Admin' || userData.agencySlug !== agencySlug) {
                     console.warn(`Access denied. Rule violation: User from ${userData.agencySlug || 'Super Admin'} tried to enter ${agencySlug}`);
-                    await api.post('/auth/logout');
+                    // Force hard redirect immediately and stop rendering
+                    isActive = false;
+                    await api.post('/auth/logout').catch(() => { });
                     logout();
                     if (!isLoginPage) {
-                        router.push(`/${agencySlug}/login`);
+                        window.location.href = `/${agencySlug}/login`;
                     }
                     return;
                 }
 
-                login(userData);
+                if (isActive) {
+                    login(userData);
+                }
             } catch (error) {
                 console.error("Agency session verification failed", error);
+                isActive = false;
                 logout();
                 if (!isLoginPage) {
-                    // Determine which login page to send to
                     if (pathname?.includes('/staff')) {
-                        router.push(`/${agencySlug}/staff-login`);
+                        window.location.href = `/${agencySlug}/staff-login`;
                     } else {
-                        router.push(`/${agencySlug}/login`);
+                        window.location.href = `/${agencySlug}/login`;
                     }
                 }
             } finally {
-                setVerifying(false);
+                if (isActive) {
+                    setVerifying(false);
+                }
             }
         };
 
