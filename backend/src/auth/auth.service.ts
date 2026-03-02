@@ -11,7 +11,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private auditLogsService: AuditLogsService,
-  ) {}
+  ) { }
 
   private readonly logger = new Logger(AuthService.name);
 
@@ -63,6 +63,7 @@ export class AuthService {
       email: userWithPermissions.email,
       sub: userWithPermissions.id,
       agencyId: userWithPermissions.agencyId,
+      agencySlug: userWithPermissions.agency?.slug || null,
       employeeId: userWithPermissions.employeeId,
       role: userWithPermissions.role?.name,
       permissions:
