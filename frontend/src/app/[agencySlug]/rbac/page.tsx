@@ -101,10 +101,10 @@ export default function RBACPage() {
 
     return (
         <div className="space-y-8 pb-20">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Access Control</h1>
-                    <p className="text-slate-500 font-medium mt-1">Define authorization matrix and security privileges for your agency infrastructure.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight truncate">Access Control</h1>
+                    <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-1 truncate">Define authorization matrix and security privileges.</p>
                 </div>
 
                 <Sheet open={open} onOpenChange={(val) => {
@@ -112,8 +112,8 @@ export default function RBACPage() {
                     if (!val) setSelectedRole(null)
                 }}>
                     <SheetTrigger asChild>
-                        <Button className="h-12 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-8 rounded-xl transition-all active:scale-[0.98]">
-                            <Plus className="mr-2 h-5 w-5" />
+                        <Button className="h-12 w-full md:w-auto bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-6 md:px-8 rounded-xl transition-all active:scale-[0.98] text-sm md:text-base">
+                            <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                             Create Role
                         </Button>
                     </SheetTrigger>

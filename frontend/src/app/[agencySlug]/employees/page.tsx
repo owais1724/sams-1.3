@@ -140,9 +140,9 @@ export default function EmployeesPage() {
         <div className="space-y-8 pb-20">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Employee Directory</h1>
-                    <p className="text-slate-500 font-medium mt-1">Lifecycle management and deployment of security enforcement staff.</p>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight truncate">Employee Directory</h1>
+                    <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-1 truncate">Lifecycle management and deployment of security staff.</p>
                 </div>
 
                 <div className="flex gap-4">
@@ -153,9 +153,9 @@ export default function EmployeesPage() {
                                     setEditingEmployee(null)
                                     setOpenEnroll(true)
                                 }}
-                                className="h-12 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-8 rounded-xl transition-all active:scale-[0.98]"
+                                className="h-12 w-full md:w-auto bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-6 md:px-8 rounded-xl transition-all active:scale-[0.98] text-sm md:text-base"
                             >
-                                <Plus className="mr-2 h-5 w-5" />
+                                <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                                 Create Employee
                             </Button>
                         </SheetTrigger>

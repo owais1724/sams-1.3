@@ -113,10 +113,10 @@ export default function AttendancePage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Attendance Management</h1>
-                    <p className="text-slate-500">Track and manage daily work hours.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight truncate">Attendance Management</h1>
+                    <p className="text-[10px] md:text-sm text-slate-500 truncate">Track and manage daily work hours.</p>
                 </div>
             </div>
 

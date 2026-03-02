@@ -51,14 +51,14 @@ export default function ProjectsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900">Projects</h1>
-                    <p className="text-slate-500">Security sites and operational projects</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 truncate">Projects</h1>
+                    <p className="text-xs md:text-sm text-slate-500 truncate">Security sites and operational projects</p>
                 </div>
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetTrigger asChild>
-                        <Button>
+                        <Button className="w-full md:w-auto h-12 md:h-10 px-6 md:px-4 rounded-xl font-bold">
                             <Plus className="mr-2 h-4 w-4" />
                             Create Project
                         </Button>

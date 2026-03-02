@@ -70,14 +70,14 @@ export default function AgenciesPage() {
     return (
         <div className="space-y-8 max-w-7xl mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-black tracking-tight text-slate-900 mb-2">Platform Agencies</h1>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Global infrastructure command & control</p>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-2 truncate">Platform Agencies</h1>
+                    <p className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-widest truncate">Global infrastructure command & control</p>
                 </div>
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetTrigger asChild>
-                        <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-200 transition-all active:scale-[0.98]">
-                            <Plus className="mr-2 h-5 w-5 stroke-[3]" />
+                        <Button className="h-12 md:h-14 w-full md:w-auto px-6 md:px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-200 transition-all active:scale-[0.98] text-xs md:text-base">
+                            <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5 stroke-[3]" />
                             REGISTER NEW ENTITY
                         </Button>
                     </SheetTrigger>

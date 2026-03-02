@@ -79,17 +79,17 @@ export default function ClientsPage() {
         <div className="space-y-10 pb-20">
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Client <span className="text-primary">Portfolio</span></h1>
-                    <p className="text-slate-500 font-medium mt-1">Manage institutional partners and project owners.</p>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight truncate">Client <span className="text-primary">Portfolio</span></h1>
+                    <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-1 truncate">Manage institutional partners and project owners.</p>
                 </div>
                 <Sheet open={open} onOpenChange={(v) => {
                     setOpen(v)
                     if (!v) setEditingClient(null)
                 }}>
                     <SheetTrigger asChild>
-                        <Button className="bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-8 py-6 rounded-2xl">
-                            <Plus className="mr-2 h-5 w-5" />
+                        <Button className="w-full md:w-auto bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-6 md:px-8 py-4 md:py-6 rounded-2xl text-sm md:text-base">
+                            <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                             Create Client
                         </Button>
                     </SheetTrigger>

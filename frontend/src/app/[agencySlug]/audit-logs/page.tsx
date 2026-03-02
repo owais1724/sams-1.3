@@ -181,16 +181,18 @@ export default function AuditLogsPage() {
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Security <span className="text-primary">Audit Trail</span></h1>
-                    <p className="text-slate-500 font-medium mt-1">Immutable ledger of all system activity and operational modifications.</p>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight truncate">Security <span className="text-primary">Audit Trail</span></h1>
+                    <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-1 truncate">Immutable ledger of all system activity.</p>
                 </div>
 
                 <div className="flex gap-3">
-                    <Button variant="outline" className="border-slate-200 font-bold px-6 py-6 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all">
-                        <Download className="mr-2 h-5 w-5" />
-                        Export Ledger
-                    </Button>
+                    <div className="w-full md:w-auto">
+                        <Button variant="outline" className="w-full h-12 md:h-auto border-slate-200 font-bold px-6 py-6 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all text-xs md:text-base">
+                            <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                            Export Ledger
+                        </Button>
+                    </div>
                 </div>
             </div>
 
