@@ -37,8 +37,17 @@ export default function AgencyAdminLogin() {
     const logout = useAuthStore(state => state.logout)
 
     useEffect(() => {
-        // Clear local state on mount
-        logout()
+        // Clear local and backend session on mount
+        const clearSession = async () => {
+            try {
+                await api.post("/auth/logout")
+            } catch (e) {
+                // Ignore errors during preemptive logout
+            } finally {
+                logout()
+            }
+        }
+        clearSession()
     }, [logout])
 
     const form = useForm<z.infer<typeof formSchema>>({

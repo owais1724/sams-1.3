@@ -35,7 +35,16 @@ export default function RootLoginPage() {
   const { login, logout } = useAuthStore()
 
   useEffect(() => {
-    logout()
+    const clearSession = async () => {
+      try {
+        await api.post("/auth/logout")
+      } catch (e) {
+        // Silently fail session clearing
+      } finally {
+        logout()
+      }
+    }
+    clearSession()
   }, [logout])
 
   const form = useForm<z.infer<typeof formSchema>>({

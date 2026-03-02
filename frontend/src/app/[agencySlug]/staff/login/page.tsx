@@ -37,7 +37,16 @@ export default function StaffLogin() {
     const logout = useAuthStore(state => state.logout)
 
     useEffect(() => {
-        logout()
+        const clearSession = async () => {
+            try {
+                await api.post("/auth/logout")
+            } catch (e) {
+                // Silently clear session
+            } finally {
+                logout()
+            }
+        }
+        clearSession()
     }, [logout])
 
     const form = useForm<z.infer<typeof formSchema>>({
