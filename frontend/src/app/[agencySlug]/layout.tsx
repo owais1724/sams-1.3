@@ -41,6 +41,17 @@ export default function AgencyLayout({
                     }
                 }
 
+                // Strict boundary check: If not Super Admin, users must belong to this specific agency
+                if (userData.role !== 'Super Admin' && userData.agencySlug !== agencySlug) {
+                    console.warn(`Access denied. User belongs to ${userData.agencySlug}, but tried to enter ${agencySlug}`);
+                    await api.post('/auth/logout');
+                    logout();
+                    if (!isLoginPage) {
+                        router.push(`/${agencySlug}/login`);
+                    }
+                    return;
+                }
+
                 login(userData);
             } catch (error) {
                 console.error("Agency session verification failed", error);

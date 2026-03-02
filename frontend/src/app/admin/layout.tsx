@@ -25,12 +25,13 @@ export default function AdminLayout({
         const verifySession = async () => {
             setVerifying(true);
             try {
-                // Always check the server on mount or pageshow, even if we think we aren't authenticated locally
-                // this ensures that if a cookie is present but the store is empty, we sync up
-                // and if the store thinks we are authenticated but the cookie is gone, we logout.
                 const response = await api.get('/auth/me');
                 if (response.data.role !== 'Super Admin') {
-                    throw new Error('Not a super admin');
+                    // Explicitly clear session if role mismatch
+                    await api.post('/auth/logout');
+                    logout();
+                    router.push('/admin/login');
+                    return;
                 }
                 login(response.data);
             } catch (error) {
