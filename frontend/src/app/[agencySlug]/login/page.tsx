@@ -67,7 +67,7 @@ export default function AgencyAdminLogin() {
             const { user } = response.data
 
             const currentSlug = Array.isArray(agencySlug) ? agencySlug[0] : agencySlug
-            if (user.agencySlug !== currentSlug && user.role !== 'Super Admin') {
+            if (user.agencySlug !== currentSlug) {
                 toast.error("Invalid credentials")
                 // Call logout to clear the cookie we just got
                 await api.post("/auth/logout")
@@ -76,7 +76,7 @@ export default function AgencyAdminLogin() {
                 return
             }
 
-            if (user.role !== 'Agency Admin' && user.role !== 'Super Admin') {
+            if (user.role !== 'Agency Admin') {
                 toast.error("Invalid credentials")
                 await api.post("/auth/logout")
                 logout()

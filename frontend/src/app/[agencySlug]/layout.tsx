@@ -30,20 +30,10 @@ export default function AgencyLayout({
                 const response = await api.get('/auth/me');
                 const userData = response.data;
 
-                // If Super Admin occupies this agency space, resolve the context agency ID
-                if (userData.role === 'Super Admin' && !userData.agencyId && agencySlug) {
-                    try {
-                        const agencyRes = await api.get(`/agencies/slug/${agencySlug}`);
-                        userData.agencyId = agencyRes.data.id;
-                        userData.agencySlug = agencyRes.data.slug;
-                    } catch (agencyError) {
-                        console.error("Failed to resolve agency context for Super Admin", agencyError);
-                    }
-                }
-
-                // Strict boundary check: If not Super Admin, users must belong to this specific agency
-                if (userData.role !== 'Super Admin' && userData.agencySlug !== agencySlug) {
-                    console.warn(`Access denied. User belongs to ${userData.agencySlug}, but tried to enter ${agencySlug}`);
+                // Strict boundary check: User must belong to this specific agency.
+                // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
+                if (userData.role === 'Super Admin' || userData.agencySlug !== agencySlug) {
+                    console.warn(`Access denied. Rule violation: User from ${userData.agencySlug || 'Super Admin'} tried to enter ${agencySlug}`);
                     await api.post('/auth/logout');
                     logout();
                     if (!isLoginPage) {
@@ -68,6 +58,7 @@ export default function AgencyLayout({
                 setVerifying(false);
             }
         };
+
 
         const handlePageShow = (event: PageTransitionEvent) => {
             if (event.persisted) {
