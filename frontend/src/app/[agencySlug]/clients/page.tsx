@@ -2,30 +2,16 @@
 
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+import { TableBody, TableCell, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Plus, Building, Search, Filter, Mail, Briefcase, ChevronRight, Activity, Edit3, Trash2 } from "lucide-react"
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
+import { Plus, Building, Search, Filter, Mail, Activity, Edit3, Trash2 } from "lucide-react"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ClientForm } from "@/components/agency/ClientForm"
 import { motion, AnimatePresence } from "framer-motion"
-import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { AlertModal } from "@/components/ui/alert-modal"
+import { PageHeader, CreateButton, DataTable, PageLoading, EmptyState } from "@/components/ui/design-system"
 
 export default function ClientsPage() {
     const [clients, setClients] = useState<any[]>([])
@@ -34,9 +20,7 @@ export default function ClientsPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [editingClient, setEditingClient] = useState<any | null>(null)
     const [deleteModal, setDeleteModal] = useState<{ open: boolean, id: string, name: string }>({
-        open: false,
-        id: "",
-        name: ""
+        open: false, id: "", name: ""
     })
     const [isDeleting, setIsDeleting] = useState(false)
 
@@ -51,9 +35,7 @@ export default function ClientsPage() {
         }
     }
 
-    useEffect(() => {
-        fetchClients()
-    }, [])
+    useEffect(() => { fetchClients() }, [])
 
     const handleDelete = async () => {
         if (!deleteModal.id) return
@@ -75,48 +57,46 @@ export default function ClientsPage() {
         client.email?.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
+    if (loading) return <PageLoading message="Synchronizing Client Data..." />
+
     return (
         <div className="space-y-10 pb-20">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex-1 min-w-0">
-                    <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight truncate">Client <span className="text-primary">Portfolio</span></h1>
-                    <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-1 truncate">Manage institutional partners and project owners.</p>
-                </div>
-                <Sheet open={open} onOpenChange={(v) => {
-                    setOpen(v)
-                    if (!v) setEditingClient(null)
-                }}>
-                    <SheetTrigger asChild>
-                        <Button className="w-full md:w-auto bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold px-6 md:px-8 py-4 md:py-6 rounded-2xl text-sm md:text-base">
-                            <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                            Create Client
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent className="sm:max-w-[500px] rounded-l-[40px] border-none shadow-2xl p-0">
-                        <div className="p-10 overflow-y-auto h-full">
-                            <SheetHeader>
-                                <SheetTitle className="text-2xl font-bold">{editingClient ? "Modify Client Record" : "Create Client Record"}</SheetTitle>
-                                <SheetDescription className="font-medium text-slate-500">
-                                    {editingClient ? "Update existing partner credentials and operational details." : "Register a new institutional client to initialize security operations."}
-                                </SheetDescription>
-                            </SheetHeader>
-                            <div className="mt-10">
-                                <ClientForm
-                                    initialData={editingClient}
-                                    onSuccess={() => {
-                                        setOpen(false)
-                                        setEditingClient(null)
-                                        fetchClients()
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </SheetContent>
-                </Sheet>
-            </div>
 
-            {/* Quick Stats & Controls */}
+            {/* ── Page Header ── */}
+            <Sheet open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingClient(null) }}>
+                <PageHeader
+                    title="Client"
+                    titleHighlight="Portfolio"
+                    subtitle="Manage institutional partners and project owners."
+                    action={
+                        <SheetTrigger asChild>
+                            <CreateButton label="Create Client" icon={<Plus className="h-4 w-4" />} />
+                        </SheetTrigger>
+                    }
+                />
+                <SheetContent className="sm:max-w-[500px] rounded-l-[40px] border-none shadow-2xl p-0">
+                    <div className="p-10 overflow-y-auto h-full">
+                        <SheetHeader>
+                            <SheetTitle className="text-2xl font-bold">
+                                {editingClient ? "Modify Client Record" : "Create Client Record"}
+                            </SheetTitle>
+                            <SheetDescription className="font-medium text-slate-500">
+                                {editingClient
+                                    ? "Update existing partner credentials and operational details."
+                                    : "Register a new institutional client to initialize security operations."}
+                            </SheetDescription>
+                        </SheetHeader>
+                        <div className="mt-10">
+                            <ClientForm
+                                initialData={editingClient}
+                                onSuccess={() => { setOpen(false); setEditingClient(null); fetchClients() }}
+                            />
+                        </div>
+                    </div>
+                </SheetContent>
+            </Sheet>
+
+            {/* ── Search Bar ── */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-4 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
                 <div className="flex items-center gap-6 px-4">
                     <div className="flex items-center gap-3">
@@ -126,7 +106,6 @@ export default function ClientsPage() {
                         <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Active Clients</span>
                     </div>
                 </div>
-
                 <div className="flex flex-1 gap-2">
                     <div className="relative group flex-1 md:flex-initial">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-hover:text-primary transition-colors" />
@@ -143,118 +122,79 @@ export default function ClientsPage() {
                 </div>
             </div>
 
-            {/* Content Area */}
-            <div className="grid gap-6">
-                <div className="bg-white rounded-[32px] md:rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <Table className="min-w-[800px] lg:min-w-full">
-                            <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                                <TableRow>
-                                    <TableHead className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Affiliated Client</TableHead>
-                                    <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Node</TableHead>
-                                    <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Projects</TableHead>
-                                    <TableHead className="text-right px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Intelligence</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="text-center py-20 italic text-slate-400 animate-pulse font-bold tracking-widest text-xs uppercase text-primary">Synchronizing Client Data...</TableCell>
-                                    </TableRow>
-                                ) : filteredClients.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="text-center py-24">
-                                            <div className="flex flex-col items-center">
-                                                <div className="h-20 w-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                                                    <Building className="h-10 w-10 text-slate-200" />
-                                                </div>
-                                                <h4 className="text-xl font-bold text-slate-800">No Clients Found</h4>
-                                                <p className="text-slate-500 font-medium mt-2">Create your first client record to begin project management.</p>
-                                                <Button onClick={() => setOpen(true)} variant="link" className="text-primary font-bold mt-4">Create Client <ChevronRight className="h-4 w-4 ml-1" /></Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    <AnimatePresence mode="popLayout">
-                                        {filteredClients.map((client, idx) => (
-                                            <motion.tr
-                                                key={client.id}
-                                                initial={{ opacity: 0, x: -10 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: idx * 0.05 }}
-                                                className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
-                                            >
-                                                <TableCell className="px-8 py-7">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-slate-100 to-white border border-slate-200 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all">
-                                                            <Building className="h-6 w-6 text-slate-400 group-hover:text-primary transition-colors" />
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-extrabold text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors">{client.name}</div>
-                                                            <div className="flex items-center gap-2 mt-0.5">
-                                                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Client</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2 text-slate-600 font-medium">
-                                                        <Mail className="h-3.5 w-3.5 text-slate-400" />
-                                                        {client.email || "N/A"}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black flex items-center gap-2">
-                                                            <Activity className="h-3 w-3 text-primary" />
-                                                            {client.projects?.length || 0} ACTIVE
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-right px-8">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => {
-                                                                setEditingClient(client)
-                                                                setOpen(true)
-                                                            }}
-                                                            className="h-10 w-10 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
-                                                        >
-                                                            <Edit3 className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => setDeleteModal({ open: true, id: client.id, name: client.name })}
-                                                            className="h-10 w-10 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                            </motion.tr>
-                                        ))}
-                                    </AnimatePresence>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </div>
-
-                <AlertModal
-                    isOpen={deleteModal.open}
-                    onClose={() => setDeleteModal({ ...deleteModal, open: false })}
-                    onConfirm={handleDelete}
-                    loading={isDeleting}
-                    title="PURGE CLIENT RECORD"
-                    variant="danger"
-                    description={`Are you sure you want to permanently delete ${deleteModal.name}? This will remove all associated project links and Operational history.`}
-                    confirmText="Confirm Purge"
+            {/* ── Content ── */}
+            {filteredClients.length === 0 ? (
+                <EmptyState
+                    icon={<Building className="h-10 w-10" />}
+                    title="No Clients Found"
+                    description="Create your first client record to begin project management."
+                    action={<CreateButton label="Create Client" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)} />}
                 />
-            </div>
+            ) : (
+                <DataTable columns={['Affiliated Client', 'Contact Node', 'Operational Projects', 'Actions']}>
+                    <AnimatePresence mode="popLayout">
+                        {filteredClients.map((client, idx) => (
+                            <motion.tr
+                                key={client.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                                className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
+                            >
+                                <TableCell className="px-8 py-7">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-slate-100 to-white border border-slate-200 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all">
+                                            <Building className="h-6 w-6 text-slate-400 group-hover:text-primary transition-colors" />
+                                        </div>
+                                        <div>
+                                            <div className="font-extrabold text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors">{client.name}</div>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Client</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2 text-slate-600 font-medium">
+                                        <Mail className="h-3.5 w-3.5 text-slate-400" />
+                                        {client.email || "N/A"}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <div className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black flex items-center gap-2">
+                                            <Activity className="h-3 w-3 text-primary" />
+                                            {client.projects?.length || 0} ACTIVE
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right px-8">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <Button variant="ghost" size="icon" onClick={() => { setEditingClient(client); setOpen(true) }} className="h-10 w-10 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 transition-all">
+                                            <Edit3 className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => setDeleteModal({ open: true, id: client.id, name: client.name })} className="h-10 w-10 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
+                            </motion.tr>
+                        ))}
+                    </AnimatePresence>
+                </DataTable>
+            )}
+
+            <AlertModal
+                isOpen={deleteModal.open}
+                onClose={() => setDeleteModal({ ...deleteModal, open: false })}
+                onConfirm={handleDelete}
+                loading={isDeleting}
+                title="PURGE CLIENT RECORD"
+                variant="danger"
+                description={`Are you sure you want to permanently delete ${deleteModal.name}? This will remove all associated project links and operational history.`}
+                confirmText="Confirm Purge"
+            />
         </div>
     )
 }
