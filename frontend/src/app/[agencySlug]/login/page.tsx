@@ -85,6 +85,7 @@ export default function AgencyAdminLogin() {
             }
 
             login(user)
+            sessionStorage.setItem('sams_portal_type', 'agency')
             toast.success("Identity verified. Welcome back.")
             router.push(`/${agencySlug}/dashboard`)
         } catch (error: any) {

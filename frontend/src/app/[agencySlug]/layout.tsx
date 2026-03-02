@@ -25,6 +25,16 @@ export default function AgencyLayout({
 
     useEffect(() => {
         let isActive = true;
+
+        // ── Synchronous per-tab portal check ──
+        // sessionStorage is per-tab, unlike cookies which are shared across tabs.
+        // If this tab was authenticated as Super Admin, immediately block access.
+        const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
+        if (tabPortalType === 'admin' && !isLoginPage) {
+            window.location.href = `/${agencySlug}/login`;
+            return;
+        }
+
         const verifySession = async () => {
             setVerifying(true);
             try {

@@ -23,6 +23,16 @@ export default function AdminLayout({
 
     useEffect(() => {
         let isActive = true;
+
+        // ── Synchronous per-tab portal check ──
+        // sessionStorage is per-tab, unlike cookies which are shared across tabs.
+        // If this tab was authenticated as an agency user, immediately block access.
+        const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
+        if (tabPortalType === 'agency' && !isLoginPage) {
+            window.location.href = '/admin/login';
+            return;
+        }
+
         const verifySession = async () => {
             setVerifying(true);
             try {

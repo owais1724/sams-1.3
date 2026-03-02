@@ -78,6 +78,7 @@ export default function StaffLogin() {
             }
 
             login(user)
+            sessionStorage.setItem('sams_portal_type', 'agency')
             toast.success("Ready for duty. Welcome back.")
             router.push(`/${agencySlug}/staff/dashboard`)
         } catch (error: any) {

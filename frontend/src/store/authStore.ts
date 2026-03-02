@@ -28,6 +28,11 @@ export const useAuthStore = create<AuthState>()(
             },
             logout: () => {
                 set({ user: null, isAuthenticated: false });
+                try {
+                    if (typeof window !== 'undefined') {
+                        sessionStorage.removeItem('sams_portal_type');
+                    }
+                } catch (e) { /* ignore */ }
             },
         }),
         {

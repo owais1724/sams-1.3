@@ -70,6 +70,7 @@ export default function LoginPage() {
             }
 
             login(user)
+            sessionStorage.setItem('sams_portal_type', 'admin')
             toast.success("Welcome, Administrator")
             router.push("/admin/dashboard")
         } catch (error: any) {

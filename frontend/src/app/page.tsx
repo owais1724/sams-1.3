@@ -68,6 +68,7 @@ export default function RootLoginPage() {
       }
 
       login(user)
+      sessionStorage.setItem('sams_portal_type', 'admin')
       toast.success(`Welcome, Administrator. Authorization successful.`)
       router.push("/admin/dashboard")
 
