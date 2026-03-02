@@ -114,7 +114,7 @@ export default function AdminLayout({
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-64 bg-[#0f172a]">
+                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0f172a]">
                             <AdminSidebar />
                         </SheetContent>
                     </Sheet>

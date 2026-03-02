@@ -63,8 +63,8 @@ export default function ProjectsPage() {
                             Create Project
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[500px] rounded-l-[40px] border-none shadow-2xl p-0">
-                        <div className="p-10 overflow-y-auto h-full">
+                    <SheetContent className="w-full sm:max-w-[500px] rounded-l-none sm:rounded-l-[40px] border-none shadow-2xl p-0">
+                        <div className="p-5 sm:p-10 overflow-y-auto h-full">
                             <SheetHeader>
                                 <SheetTitle className="text-2xl font-bold">Initialize New Project</SheetTitle>
                                 <SheetDescription className="font-medium text-slate-500">

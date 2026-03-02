@@ -133,45 +133,45 @@ export default function AgencyDashboard() {
 
     return (
         <motion.div
-            className="space-y-10 max-w-[1600px] mx-auto pb-20"
+            className="space-y-6 sm:space-y-10 max-w-[1600px] mx-auto pb-20"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
         >
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <motion.div variants={itemVariants}>
                     <div className="flex items-center gap-2 mb-2">
                         <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Agency Active</span>
                     </div>
-                    <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
                         Operations <span className="text-primary">Command</span>
                     </h1>
-                    <p className="text-slate-500 font-medium mt-1">Global overview for <span className="text-slate-900 font-bold uppercase underline decoration-primary/30 decoration-4 underline-offset-4">{agencySlug}</span> Enterprise</p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">Global overview for <span className="text-slate-900 font-bold uppercase underline decoration-primary/30 decoration-4 underline-offset-4">{agencySlug}</span></p>
                 </motion.div>
             </div>
 
 
 
-            {/* Stats Grid */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {/* Stats Grid — 2 cols on mobile, 4 on large screens */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
                 {cards.map((card, idx) => (
                     <motion.div key={card.title} variants={itemVariants}>
                         <Link href={card.href}>
-                            <Card className={cn("border-none shadow-xl shadow-slate-200/50 rounded-3xl overflow-hidden group hover:-translate-y-1 transition-all duration-300 cursor-pointer", card.bg)}>
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <div className={cn("p-3 rounded-2xl bg-white shadow-sm group-hover:scale-110 transition-transform duration-500", card.color)}>
-                                        <card.icon className="h-5 w-5" />
+                            <Card className={cn("border-none shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl overflow-hidden group hover:-translate-y-1 transition-all duration-300 cursor-pointer", card.bg)}>
+                                <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                                    <div className={cn("p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-white shadow-sm group-hover:scale-110 transition-transform duration-500", card.color)}>
+                                        <card.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                                     </div>
-                                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-white/50 px-3 py-1 rounded-full">
+                                    <div className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-white/50 px-3 py-1 rounded-full">
                                         <TrendingUp className="h-3 w-3" />
                                         {card.trend}
                                     </div>
                                 </CardHeader>
-                                <CardContent className="mt-2">
-                                    <div className="text-sm font-bold text-slate-500 tracking-wide uppercase">{card.title}</div>
-                                    <div className="text-4xl font-extrabold text-slate-900 mt-1">{card.value}</div>
+                                <CardContent className="mt-1 px-3 sm:px-6 pb-3 sm:pb-6">
+                                    <div className="text-[10px] sm:text-sm font-bold text-slate-500 tracking-wide uppercase truncate">{card.title}</div>
+                                    <div className="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-1">{card.value}</div>
                                 </CardContent>
                             </Card>
                         </Link>
@@ -180,61 +180,53 @@ export default function AgencyDashboard() {
             </div>
 
             {/* Main Content Area */}
-            <div className="grid gap-10 lg:grid-cols-3">
+            <div className="grid gap-6 sm:gap-10 lg:grid-cols-3">
                 <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
-                    <Card className="border-none shadow-xl shadow-slate-200/50 rounded-3xl p-6">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                <Activity className="h-5 w-5 text-primary" />
+                    <Card className="border-none shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-base sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                                 Deployment Analytics
                             </h3>
-                            <div className="flex gap-2">
-                                <div className="h-2 w-2 bg-primary rounded-full" />
-                                <div className="h-2 w-2 bg-slate-200 rounded-full" />
-                            </div>
                         </div>
 
                         {recentProjects.length === 0 ? (
-                            <div className="bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 p-20 flex flex-col items-center text-center">
-                                <div className="h-20 w-20 bg-white rounded-full flex items-center justify-center shadow-lg border border-slate-100 mb-6">
-                                    <Briefcase className="h-8 w-8 text-slate-300" />
+                            <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-8 sm:p-16 flex flex-col items-center text-center">
+                                <div className="h-14 w-14 sm:h-20 sm:w-20 bg-white rounded-full flex items-center justify-center shadow-lg border border-slate-100 mb-4">
+                                    <Briefcase className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
                                 </div>
-                                <h4 className="text-lg font-bold text-slate-800">Intelligence Stream Offline</h4>
-                                <p className="text-slate-500 text-sm max-w-xs mt-2 font-medium">Connect your first project and employee to see live deployment heatmaps and performance metrics.</p>
+                                <h4 className="text-base sm:text-lg font-bold text-slate-800">Intelligence Stream Offline</h4>
+                                <p className="text-slate-500 text-xs sm:text-sm max-w-xs mt-2 font-medium">Connect your first project and employee to see live deployment metrics.</p>
                                 <Link href={`/${agencySlug}/projects`}>
-                                    <Button className="mt-8 bg-slate-800 rounded-xl px-8 py-6 font-bold hover:scale-105 transition-all">Launch Monitoring</Button>
+                                    <Button className="mt-6 bg-slate-800 rounded-xl px-6 py-4 font-bold hover:scale-105 transition-all text-sm">Launch Monitoring</Button>
                                 </Link>
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {recentProjects.map((project, idx) => (
-                                    <div key={project.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/30 transition-all gap-4sm:gap-0">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 md:h-12 md:w-12 bg-white rounded-xl flex items-center justify-center shadow-sm font-black text-primary shrink-0">
+                                    <div key={project.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-100 group hover:border-primary/30 transition-all gap-2 sm:gap-0">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-9 w-9 sm:h-12 sm:w-12 bg-white rounded-xl flex items-center justify-center shadow-sm font-black text-primary shrink-0 text-sm">
                                                 0{idx + 1}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors truncate">{project.name}</h4>
+                                                <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors truncate text-sm sm:text-base">{project.name}</h4>
                                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">ID: {project.id.slice(0, 8).toUpperCase()}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-6 border-t sm:border-none pt-3 sm:pt-0">
-                                            <div className="hidden lg:block text-right">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client</p>
-                                                <p className="text-sm font-bold text-slate-700">{project.client?.name || "Independent"}</p>
-                                            </div>
+                                        <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-none pt-2 sm:pt-0">
                                             <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 shadow-none px-3 py-1 rounded-lg font-bold text-[10px] whitespace-nowrap">
                                                 {project.status || 'ACTIVE'}
                                             </Badge>
                                             <Link href={`/${agencySlug}/projects`}>
-                                                <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-white hover:shadow-md transition-all">
+                                                <Button variant="ghost" size="icon" className="rounded-xl h-8 w-8 sm:h-10 sm:w-10 hover:bg-white hover:shadow-md transition-all">
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Button>
                                             </Link>
                                         </div>
                                     </div>
                                 ))}
-                                <Button variant="ghost" className="w-full py-6 text-slate-400 font-bold hover:text-primary transition-colors" asChild>
+                                <Button variant="ghost" className="w-full py-4 sm:py-6 text-slate-400 font-bold hover:text-primary transition-colors text-sm" asChild>
                                     <Link href={`/${agencySlug}/projects`}>
                                         View All Operational Units <ArrowRight className="h-4 w-4 ml-2" />
                                     </Link>

@@ -127,7 +127,7 @@ export default function AgencyLayout({
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-72 bg-[#0d5c56]">
+                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0d5c56]">
                             <AgencySidebar />
                         </SheetContent>
                     </Sheet>

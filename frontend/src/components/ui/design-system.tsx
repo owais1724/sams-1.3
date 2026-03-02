@@ -191,13 +191,13 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, color = "teal", trend, className }: StatCardProps) {
     const colors = statCardColorMap[color]
     return (
-        <Card className={cn("rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-6 flex items-center justify-between", className)}>
+        <Card className={cn("rounded-2xl sm:rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-4 sm:p-6 flex items-center justify-between", className)}>
             <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</p>
-                <h3 className={cn("text-3xl font-black mt-1", colors.value)}>{value}</h3>
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</p>
+                <h3 className={cn("text-2xl sm:text-3xl font-black mt-1", colors.value)}>{value}</h3>
                 {trend && <p className="text-[10px] font-medium text-slate-400 mt-1">{trend}</p>}
             </div>
-            <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center", colors.icon)}>
+            <div className={cn("h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center", colors.icon)}>
                 {icon}
             </div>
         </Card>
@@ -219,14 +219,14 @@ interface DataTableProps {
 
 export function DataTable({ columns, children, loading = false, loadingRows = 5, className }: DataTableProps) {
     return (
-        <div className={cn("overflow-x-auto rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 bg-white", className)}>
+        <div className={cn("overflow-x-auto rounded-2xl sm:rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 bg-white", className)}>
             <Table>
                 <TableHeader>
                     <TableRow className="border-slate-100">
                         {columns.map((col) => (
                             <TableHead
                                 key={col}
-                                className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
+                                className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap py-3 sm:py-4"
                             >
                                 {col}
                             </TableHead>
@@ -268,20 +268,20 @@ export function EmptyState({ title, description, icon, action, className }: Empt
     return (
         <div className={cn(
             "flex flex-col items-center justify-center text-center",
-            "py-20 px-6 rounded-[32px]",
+            "py-12 sm:py-20 px-6 rounded-2xl sm:rounded-[32px]",
             "bg-slate-50 border-2 border-dashed border-slate-200",
             className
         )}>
             {icon && (
-                <div className="h-20 w-20 bg-white rounded-full flex items-center justify-center shadow-lg border border-slate-100 mb-6 text-slate-300">
+                <div className="h-14 w-14 sm:h-20 sm:w-20 bg-white rounded-full flex items-center justify-center shadow-lg border border-slate-100 mb-4 sm:mb-6 text-slate-300">
                     {icon}
                 </div>
             )}
-            <h4 className="text-lg font-bold text-slate-800">{title}</h4>
+            <h4 className="text-base sm:text-lg font-bold text-slate-800">{title}</h4>
             {description && (
-                <p className="text-sm text-slate-500 font-medium max-w-xs mt-2">{description}</p>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-xs mt-2">{description}</p>
             )}
-            {action && <div className="mt-8">{action}</div>}
+            {action && <div className="mt-6 sm:mt-8">{action}</div>}
         </div>
     )
 }
@@ -361,16 +361,16 @@ interface PageCardProps {
 
 export function PageCard({ children, className, title, titleIcon }: PageCardProps) {
     return (
-        <Card className={cn("border-none shadow-xl shadow-slate-200/50 rounded-[32px] overflow-hidden", className)}>
+        <Card className={cn("border-none shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-[32px] overflow-hidden", className)}>
             {title && (
-                <CardHeader className="bg-slate-50/80 px-8 py-5 border-b border-slate-100">
-                    <CardTitle className="flex items-center gap-3 text-slate-800 font-black uppercase text-xs tracking-[0.2em]">
+                <CardHeader className="bg-slate-50/80 px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100">
+                    <CardTitle className="flex items-center gap-3 text-slate-800 font-black uppercase text-[10px] sm:text-xs tracking-[0.2em]">
                         {titleIcon}
                         {title}
                     </CardTitle>
                 </CardHeader>
             )}
-            <CardContent className="p-6 md:p-8">
+            <CardContent className="p-4 sm:p-6 md:p-8">
                 {children}
             </CardContent>
         </Card>

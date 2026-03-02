@@ -159,8 +159,8 @@ export default function EmployeesPage() {
                                 Create Employee
                             </Button>
                         </SheetTrigger>
-                        <SheetContent className="sm:max-w-[540px] rounded-l-[40px] border-none shadow-2xl p-0">
-                            <div className="p-10 overflow-y-auto h-full">
+                        <SheetContent className="w-full sm:max-w-[540px] rounded-l-none sm:rounded-l-[40px] border-none shadow-2xl p-0">
+                            <div className="p-5 sm:p-10 overflow-y-auto h-full">
                                 <SheetHeader className="mb-8">
                                     <SheetTitle className="text-2xl font-black">
                                         {editingEmployee ? `Modify Record: ${editingEmployee.fullName}` : "Establish Employee Record"}
