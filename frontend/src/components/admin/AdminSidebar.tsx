@@ -16,7 +16,7 @@ export function AdminSidebar() {
     const logout = useAuthStore(state => state.logout)
 
     return (
-        <div className="flex h-screen w-64 flex-col bg-[#0f172a] text-slate-300 border-r border-slate-800">
+        <div className="flex h-full w-full flex-col bg-[#0f172a] text-slate-300 border-r border-slate-800 font-outfit">
             <div className="flex h-16 items-center px-6 border-b border-slate-800">
                 <h1 className="text-xl font-bold text-white tracking-widest uppercase">SAMS Admin</h1>
             </div>

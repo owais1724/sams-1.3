@@ -123,7 +123,7 @@ export function AgencySidebar() {
     }
 
     return (
-        <div className="flex h-screen w-72 flex-col bg-[#0d5c56] text-white border-r border-white/5 shadow-2xl relative z-20 font-outfit">
+        <div className="flex h-full w-full flex-col bg-[#0d5c56] text-white border-r border-white/5 relative z-20 font-outfit">
             {/* Logo Section */}
             <div className="flex h-20 items-center px-6 border-b border-white/5 gap-3">
                 <div className="h-10 w-10 bg-[#14B8A6] rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">

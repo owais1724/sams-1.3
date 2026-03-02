@@ -16,6 +16,7 @@ export class AgenciesService {
     adminEmail: string;
     adminPassword: string;
     adminName: string;
+    adminPhone?: any;
   }) {
     // 1. Check if agency exists
     const existingAgency = await this.prisma.agency.findUnique({
@@ -74,6 +75,7 @@ export class AgenciesService {
           email: data.adminEmail,
           password: hashedPassword,
           fullName: data.adminName,
+          phoneNumber: data.adminPhone ? `${data.adminPhone.countryCode}${data.adminPhone.phoneNumber}` : null,
           agencyId: agency.id,
           roleId: adminRole.id,
         },
@@ -139,6 +141,9 @@ export class AgenciesService {
 
         const userUpdateData: any = {};
         if (data.adminName) userUpdateData.fullName = data.adminName;
+        if (data.adminPhone) {
+          userUpdateData.phoneNumber = `${data.adminPhone.countryCode}${data.adminPhone.phoneNumber}`;
+        }
         if (data.adminEmail) userUpdateData.email = data.adminEmail;
         if (data.adminPassword) {
           userUpdateData.password = await bcrypt.hash(data.adminPassword, 10);

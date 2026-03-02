@@ -228,122 +228,124 @@ export default function EmployeesPage() {
 
                 <TabsContent value="staff" className="mt-0 outline-none">
                     <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
-                        <Table>
-                            <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                                <TableRow className="h-14">
-                                    <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Employee Profile</TableHead>
-                                    <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Professional Rank</TableHead>
-                                    <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Base Compensation</TableHead>
-                                    <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Current Status</TableHead>
-                                    <TableHead className="text-right px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-20 italic text-slate-400 animate-pulse font-bold tracking-widest text-xs uppercase">Synchronizing Employee Data...</TableCell>
+                        <div className="overflow-x-auto">
+                            <Table className="min-w-[1000px] lg:min-w-full">
+                                <TableHeader className="bg-slate-50/50 border-b border-slate-100">
+                                    <TableRow className="h-14">
+                                        <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Employee Profile</TableHead>
+                                        <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Professional Rank</TableHead>
+                                        <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Base Compensation</TableHead>
+                                        <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Current Status</TableHead>
+                                        <TableHead className="text-right px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Actions</TableHead>
                                     </TableRow>
-                                ) : filteredEmployees.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-24">
-                                            <div className="flex flex-col items-center">
-                                                <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                                                    <Users className="h-8 w-8 text-slate-200" />
+                                </TableHeader>
+                                <TableBody>
+                                    {loading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center py-20 italic text-slate-400 animate-pulse font-bold tracking-widest text-xs uppercase">Synchronizing Employee Data...</TableCell>
+                                        </TableRow>
+                                    ) : filteredEmployees.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center py-24">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                                        <Users className="h-8 w-8 text-slate-200" />
+                                                    </div>
+                                                    <h4 className="text-lg font-bold text-slate-800 tracking-tight">No Employees Found</h4>
+                                                    <p className="text-slate-400 text-sm mt-1 font-medium">No employees found matching your current filters.</p>
                                                 </div>
-                                                <h4 className="text-lg font-bold text-slate-800 tracking-tight">No Employees Found</h4>
-                                                <p className="text-slate-400 text-sm mt-1 font-medium">No employees found matching your current filters.</p>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    <AnimatePresence>
-                                        {filteredEmployees.map((emp, idx) => (
-                                            <motion.tr
-                                                key={emp.id}
-                                                initial={{ opacity: 0, y: 4 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0 }}
-                                                transition={{ duration: 0.2, delay: idx * 0.02 }}
-                                                className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
-                                            >
-                                                <TableCell className="px-8 py-6">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="relative">
-                                                            <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-                                                                <AvatarFallback className="bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-600 text-sm font-black uppercase">
-                                                                    {emp.fullName?.split(' ').map((n: string) => n[0]).join('') || "E"}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-white rounded-full flex items-center justify-center shadow-sm">
-                                                                <div className={cn("h-3 w-3 rounded-full", emp.status === 'ACTIVE' ? "bg-emerald-500" : "bg-slate-300")} />
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        <AnimatePresence>
+                                            {filteredEmployees.map((emp, idx) => (
+                                                <motion.tr
+                                                    key={emp.id}
+                                                    initial={{ opacity: 0, y: 4 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0 }}
+                                                    transition={{ duration: 0.2, delay: idx * 0.02 }}
+                                                    className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
+                                                >
+                                                    <TableCell className="px-8 py-6">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="relative">
+                                                                <Avatar className="h-12 w-12 border-2 border-white shadow-md">
+                                                                    <AvatarFallback className="bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-600 text-sm font-black uppercase">
+                                                                        {emp.fullName?.split(' ').map((n: string) => n[0]).join('') || "E"}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                                                    <div className={cn("h-3 w-3 rounded-full", emp.status === 'ACTIVE' ? "bg-emerald-500" : "bg-slate-300")} />
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors">{emp.fullName}</div>
+                                                                <div className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">{emp.employeeCode}</div>
                                                             </div>
                                                         </div>
-                                                        <div>
-                                                            <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors">{emp.fullName}</div>
-                                                            <div className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-0.5">{emp.employeeCode}</div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline" className="bg-blue-50/50 text-blue-700 border-blue-100/50 font-bold px-3 py-1 rounded-full text-[10px]">
+                                                            {emp.designation?.name || "Unassigned"}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="font-black text-slate-800">
+                                                        {(() => {
+                                                            const symbols: Record<string, string> = {
+                                                                USD: "$", INR: "₹", GBP: "£", EUR: "€", KES: "KSh", NGN: "₦", ZAR: "R"
+                                                            };
+                                                            const symbol = symbols[emp.salaryCurrency] || "$";
+                                                            return `${symbol}${emp.basicSalary?.toLocaleString() || 0}`;
+                                                        })()}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge className={cn(
+                                                            "shadow-none px-3 py-1 rounded-full text-[10px] font-black",
+                                                            emp.status === 'ACTIVE' ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-slate-100 text-slate-500"
+                                                        )}>
+                                                            {emp.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right px-8">
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleOpenPayroll(emp)}
+                                                                className="h-10 px-4 rounded-xl font-bold border-slate-200 shadow-sm hover:border-primary hover:text-primary transition-all"
+                                                            >
+                                                                <Wallet className="h-3.5 w-3.5 mr-2 text-primary" />
+                                                                Payroll
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-10 px-4 rounded-xl font-bold border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-sm"
+                                                                onClick={() => {
+                                                                    setEditingEmployee(emp)
+                                                                    setOpenEnroll(true)
+                                                                }}
+                                                            >
+                                                                Edit
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-10 px-4 rounded-xl font-bold text-slate-700 hover:bg-slate-100 shadow-sm"
+                                                                onClick={() => setProfileDialog({ open: true, employee: emp })}
+                                                            >
+                                                                View Profile
+                                                            </Button>
                                                         </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className="bg-blue-50/50 text-blue-700 border-blue-100/50 font-bold px-3 py-1 rounded-full text-[10px]">
-                                                        {emp.designation?.name || "Unassigned"}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="font-black text-slate-800">
-                                                    {(() => {
-                                                        const symbols: Record<string, string> = {
-                                                            USD: "$", INR: "₹", GBP: "£", EUR: "€", KES: "KSh", NGN: "₦", ZAR: "R"
-                                                        };
-                                                        const symbol = symbols[emp.salaryCurrency] || "$";
-                                                        return `${symbol}${emp.basicSalary?.toLocaleString() || 0}`;
-                                                    })()}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge className={cn(
-                                                        "shadow-none px-3 py-1 rounded-full text-[10px] font-black",
-                                                        emp.status === 'ACTIVE' ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-slate-100 text-slate-500"
-                                                    )}>
-                                                        {emp.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right px-8">
-                                                    <div className="flex justify-end gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => handleOpenPayroll(emp)}
-                                                            className="h-10 px-4 rounded-xl font-bold border-slate-200 shadow-sm hover:border-primary hover:text-primary transition-all"
-                                                        >
-                                                            <Wallet className="h-3.5 w-3.5 mr-2" />
-                                                            Payroll
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="h-10 px-4 rounded-xl font-bold border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-sm"
-                                                            onClick={() => {
-                                                                setEditingEmployee(emp)
-                                                                setOpenEnroll(true)
-                                                            }}
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="h-10 px-4 rounded-xl font-bold text-slate-700 hover:bg-slate-100 shadow-sm"
-                                                            onClick={() => setProfileDialog({ open: true, employee: emp })}
-                                                        >
-                                                            View Profile
-                                                        </Button>
-                                                    </div>
-                                                </TableCell>
-                                            </motion.tr>
-                                        ))}
-                                    </AnimatePresence>
-                                )}
-                            </TableBody>
-                        </Table>
+                                                    </TableCell>
+                                                </motion.tr>
+                                            ))}
+                                        </AnimatePresence>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </div>
                 </TabsContent>
 

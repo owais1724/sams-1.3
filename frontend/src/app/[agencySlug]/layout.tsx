@@ -6,6 +6,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useAuthStore } from "@/store/authStore"
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
+import { Menu, ShieldCheck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 export default function AgencyLayout({
     children,
@@ -84,22 +87,48 @@ export default function AgencyLayout({
     }
 
     return (
-        <div className="flex h-screen bg-slate-50 font-outfit">
-            <AgencySidebar />
-            <main className="flex-1 overflow-y-auto">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={pathname}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="p-10"
-                    >
-                        {children}
-                    </motion.div>
-                </AnimatePresence>
-            </main>
+        <div className="flex h-screen bg-slate-50 font-outfit overflow-hidden">
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:flex w-72 shrink-0 border-r border-white/5 shadow-2xl z-20">
+                <AgencySidebar />
+            </div>
+
+            <div className="flex-1 flex flex-col h-screen overflow-hidden">
+                {/* Mobile Header */}
+                <header className="lg:hidden flex items-center justify-between px-6 h-16 bg-[#0d5c56] text-white border-b border-white/5 shrink-0 z-30 shadow-md">
+                    <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 bg-[#14B8A6] rounded-lg flex items-center justify-center shadow-lg shadow-teal-500/20">
+                            <ShieldCheck className="h-4 w-4 text-white" />
+                        </div>
+                        <h1 className="text-sm font-black tracking-tight uppercase">Sentinel</h1>
+                    </div>
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-xl">
+                                <Menu className="h-6 w-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 border-none w-72 bg-[#0d5c56]">
+                            <AgencySidebar />
+                        </SheetContent>
+                    </Sheet>
+                </header>
+
+                <main className="flex-1 overflow-y-auto">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={pathname}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                            className="p-4 md:p-10"
+                        >
+                            {children}
+                        </motion.div>
+                    </AnimatePresence>
+                </main>
+            </div>
         </div>
     )
 }

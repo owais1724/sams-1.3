@@ -30,4 +30,7 @@ export class CreateAgencyDto {
     @IsNotEmpty()
     @IsString()
     adminName: string;
+
+    @IsNotEmpty()
+    adminPhone: any;
 }

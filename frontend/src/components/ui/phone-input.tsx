@@ -45,6 +45,7 @@ interface PhoneInputProps {
   placeholder?: string
   error?: string
   disabled?: boolean
+  required?: boolean
 }
 
 export function PhoneInput({
@@ -54,13 +55,14 @@ export function PhoneInput({
   placeholder = "Enter phone number",
   error,
   disabled = false,
+  required = false,
 }: PhoneInputProps) {
   const [selectedCountry, setSelectedCountry] = useState<Country>(
     countries.find(c => c.dialCode === value.countryCode) || countries[0]
   )
 
-  const handleCountryChange = (dialCode: string) => {
-    const country = countries.find(c => c.dialCode === dialCode)
+  const handleCountryChange = (countryCode: string) => {
+    const country = countries.find(c => c.code === countryCode)
     if (country) {
       setSelectedCountry(country)
       onChange({
@@ -74,7 +76,7 @@ export function PhoneInput({
     const input = e.target.value.replace(/\D/g, '')
     const maxLength = selectedCountry.maxLength
     const truncatedInput = input.slice(0, maxLength)
-    
+
     onChange({
       countryCode: selectedCountry.dialCode,
       phoneNumber: truncatedInput
@@ -90,11 +92,11 @@ export function PhoneInput({
   return (
     <div className="space-y-2">
       <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">
-        {label}
+        {label} {required && <span className="text-red-500">*</span>}
       </FormLabel>
       <div className="flex gap-2">
         <Select
-          value={selectedCountry.dialCode}
+          value={selectedCountry.code}
           onValueChange={handleCountryChange}
           disabled={disabled}
         >
@@ -103,7 +105,7 @@ export function PhoneInput({
           </SelectTrigger>
           <SelectContent>
             {countries.map((country) => (
-              <SelectItem key={`${country.code}-${country.dialCode}`} value={country.dialCode}>
+              <SelectItem key={country.code} value={country.code}>
                 <div className="flex items-center gap-2">
                   <span>{country.code}</span>
                   <span className="text-sm text-slate-500">{country.dialCode}</span>
@@ -112,7 +114,7 @@ export function PhoneInput({
             ))}
           </SelectContent>
         </Select>
-        
+
         <div className="relative flex-1">
           <Input
             type="tel"
@@ -121,9 +123,8 @@ export function PhoneInput({
             onBlur={handleBlur}
             placeholder={placeholder}
             disabled={disabled}
-            className={`h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 ${
-              error ? "border-red-500" : ""
-            }`}
+            className={`h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 ${error ? "border-red-500" : ""
+              }`}
           />
           <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
             {value.phoneNumber.length}/{selectedCountry.maxLength}
@@ -142,18 +143,18 @@ export function validatePhoneNumber(phoneNumber: string, countryCode: string): s
   if (!country) {
     return "Invalid country code"
   }
-  
+
   if (!phoneNumber) {
     return "Phone number is required"
   }
-  
+
   if (phoneNumber.length !== country.maxLength) {
     return `Phone number must be exactly ${country.maxLength} digits for ${country.name}`
   }
-  
+
   if (!/^\d+$/.test(phoneNumber)) {
     return "Phone number must contain only digits"
   }
-  
+
   return null
 }
