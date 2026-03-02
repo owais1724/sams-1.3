@@ -59,14 +59,9 @@ export function CreateButton({
             type={type}
             onClick={onClick}
             disabled={disabled || loading}
-            className={cn(
-                "h-12 w-full md:w-auto bg-primary hover:bg-primary/90",
-                "shadow-xl shadow-primary/20 font-bold",
-                "px-6 md:px-8 rounded-xl",
-                "transition-all active:scale-[0.98]",
-                "text-sm md:text-base",
-                className
-            )}
+            variant="primary"
+            size="cta"
+            className={className}
         >
             {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -101,14 +96,9 @@ export function AdminCreateButton({
             type={type}
             onClick={onClick}
             disabled={disabled || loading}
-            className={cn(
-                "h-12 md:h-14 w-full md:w-auto",
-                "bg-blue-600 hover:bg-blue-700 text-white font-black",
-                "rounded-2xl shadow-xl shadow-blue-200",
-                "transition-all active:scale-[0.98]",
-                "px-6 md:px-8 text-xs md:text-base",
-                className
-            )}
+            variant="admin"
+            size="cta"
+            className={className}
         >
             {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
