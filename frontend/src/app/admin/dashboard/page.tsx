@@ -23,14 +23,21 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { AgencyForm } from "@/components/admin/AgencyForm"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 export default function AdminDashboard() {
     const [agencies, setAgencies] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
     const [editingAgency, setEditingAgency] = useState<any>(null)
+    const [deleteModal, setDeleteModal] = useState<{ open: boolean, id: string, name: string }>({
+        open: false,
+        id: "",
+        name: ""
+    })
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const fetchAgencies = async () => {
         try {
@@ -43,15 +50,18 @@ export default function AdminDashboard() {
         }
     }
 
-    const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to delete ${name}? This will remove all agency data permanently.`)) return
-
+    const handleDelete = async () => {
+        if (!deleteModal.id) return
+        setIsDeleting(true)
         try {
-            await api.delete(`/agencies/${id}`)
+            await api.delete(`/agencies/${deleteModal.id}`)
             toast.success("Agency deleted successfully")
+            setDeleteModal({ open: false, id: "", name: "" })
             fetchAgencies()
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to delete agency")
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -222,7 +232,7 @@ export default function AdminDashboard() {
                                                 variant="ghost"
                                                 size="sm"
                                                 className="h-11 px-5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-red-100/50"
-                                                onClick={() => handleDelete(agency.id, agency.name)}
+                                                onClick={() => setDeleteModal({ open: true, id: agency.id, name: agency.name })}
                                             >
                                                 <Trash2 className="h-4 w-4 mr-2" />
                                                 REMOVE
@@ -235,6 +245,17 @@ export default function AdminDashboard() {
                     </TableBody>
                 </Table>
             </div>
+
+            <AlertModal
+                isOpen={deleteModal.open}
+                onClose={() => setDeleteModal({ ...deleteModal, open: false })}
+                onConfirm={handleDelete}
+                loading={isDeleting}
+                title="TERMINATE ENTITY"
+                variant="danger"
+                description={`This action will permanently delete ${deleteModal.name} and all associated data from the network. This cannot be undone.`}
+                confirmText="Confirm Termination"
+            />
         </div>
     )
 }

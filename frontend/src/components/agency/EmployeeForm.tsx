@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { PhoneInput, validatePhoneNumber } from "@/components/ui/phone-input"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 
@@ -246,7 +246,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                     name="fullName"
                     render={({ field }) => (
                         <FormItem className="space-y-1">
-                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Name</FormLabel>
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Name <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder="Name"
@@ -267,7 +267,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                             <FormItem className="space-y-1">
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="flex flex-col">
-                                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Designation</FormLabel>
+                                        <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Designation <span className="text-red-500">*</span></FormLabel>
                                         {designations.length === 0 && (
                                             <span className="text-[9px] font-bold text-amber-600 uppercase mt-0.5">⚠️ No designations available. Create one below.</span>
                                         )}
@@ -330,7 +330,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                     name="phone"
                     render={({ field }) => (
                         <FormItem className="space-y-1">
-                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Phone</FormLabel>
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Phone <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <PhoneInput
                                     value={field.value || { countryCode: "+91", phoneNumber: "" }}
@@ -409,7 +409,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                         name="password"
                         render={({ field }) => (
                             <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Password</FormLabel>
+                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Password {!initialData && <span className="text-red-500">*</span>}</FormLabel>
                                 <FormControl>
                                     <div className="relative group">
                                         <Input

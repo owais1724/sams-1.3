@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { useAuthStore } from "@/store/authStore"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 export default function RBACPage() {
     const { user } = useAuthStore()
@@ -36,6 +37,12 @@ export default function RBACPage() {
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
     const [selectedRole, setSelectedRole] = useState<any>(null)
+    const [deleteModal, setDeleteModal] = useState<{ open: boolean, id: string, name: string }>({
+        open: false,
+        id: "",
+        name: ""
+    })
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const fetchData = async () => {
         if (!user) return
@@ -73,14 +80,18 @@ export default function RBACPage() {
         }
     }
 
-    const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to delete the role "${name}"?`)) return
+    const handleDelete = async () => {
+        if (!deleteModal.id) return
+        setIsDeleting(true)
         try {
-            await api.delete(`/roles/${id}`)
-            toast.success("Role deleted successfully")
+            await api.delete(`/roles/${deleteModal.id}`)
+            toast.success("Security role deleted successfully")
+            setDeleteModal({ open: false, id: "", name: "" })
             fetchData()
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to delete role")
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -285,7 +296,7 @@ export default function RBACPage() {
                                                     variant="ghost"
                                                     size="sm"
                                                     className="text-red-500 hover:bg-red-50"
-                                                    onClick={() => handleDelete(role.id, role.name)}
+                                                    onClick={() => setDeleteModal({ open: true, id: role.id, name: role.name })}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -300,6 +311,17 @@ export default function RBACPage() {
                     </Table>
                 </div>
             </div>
+
+            <AlertModal
+                isOpen={deleteModal.open}
+                onClose={() => setDeleteModal({ ...deleteModal, open: false })}
+                onConfirm={handleDelete}
+                loading={isDeleting}
+                title="TERMINATE SECURITY ROLE"
+                variant="danger"
+                description={`This will erase the role "${deleteModal.name}" and revoke all associated privileges from linked employees. Are you sure?`}
+                confirmText="Confirm Deletion"
+            />
         </div>
     )
 }

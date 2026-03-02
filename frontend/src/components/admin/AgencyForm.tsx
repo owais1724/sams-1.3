@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { PhoneInput, validatePhoneNumber } from "@/components/ui/phone-input"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 
 const formSchema = z.object({
     name: z.string().min(2, "Agency name must be at least 2 characters"),

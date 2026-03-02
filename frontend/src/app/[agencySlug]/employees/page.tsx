@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
+import { AlertModal } from "@/components/ui/alert-modal"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 import { motion, AnimatePresence } from "framer-motion"
@@ -56,6 +57,7 @@ export default function EmployeesPage() {
     const [payrollMonth, setPayrollMonth] = useState<string>(new Date().toISOString().slice(0, 7))
     const [generating, setGenerating] = useState(false)
     const [deleting, setDeleting] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
 
     const fetchData = async () => {
         if (!user) return
@@ -85,8 +87,12 @@ export default function EmployeesPage() {
 
     const handleDeleteEmployee = async () => {
         if (!profileDialog.employee) return
-        const confirmDelete = window.confirm(`Confirm Record Deletion: Are you sure you want to permanently delete ${profileDialog.employee.fullName}? This action cannot be undone.`)
-        if (!confirmDelete) return
+
+        setShowDeleteModal(true)
+    }
+
+    const confirmDeleteEmployee = async () => {
+        if (!profileDialog.employee) return
 
         setDeleting(true)
         try {
@@ -98,6 +104,7 @@ export default function EmployeesPage() {
             toast.error("Failed to delete employee. They might have active assignments.")
         } finally {
             setDeleting(false)
+            setShowDeleteModal(false)
         }
     }
     const handleGeneratePayroll = async () => {
@@ -479,6 +486,17 @@ export default function EmployeesPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={confirmDeleteEmployee}
+                loading={deleting}
+                title="PURGE EMPLOYEE RECORD"
+                variant="danger"
+                description={`Are you sure you want to permanently delete ${profileDialog.employee?.fullName}? This will erase all deployment history and payroll data.`}
+                confirmText="Confirm Purge"
+            />
         </div>
     )
 }

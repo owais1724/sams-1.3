@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
 import { Lock, Mail, ChevronRight, Loader2, Contact, Fingerprint, Eye, EyeOff } from "lucide-react"

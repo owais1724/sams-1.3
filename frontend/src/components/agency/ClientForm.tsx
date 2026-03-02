@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 
 const formSchema = z.object({
     name: z.string().min(2, "Client name is required"),
@@ -68,7 +68,7 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="name"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Name</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Name <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder="Name"
@@ -85,7 +85,7 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="contact"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Contact Person</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Contact Person <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder="Contact person name"
@@ -102,7 +102,7 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="email"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Email</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Email <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input
                                     type="email"

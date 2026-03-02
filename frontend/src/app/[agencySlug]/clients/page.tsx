@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 export default function ClientsPage() {
     const [clients, setClients] = useState<any[]>([])
@@ -32,6 +33,12 @@ export default function ClientsPage() {
     const [open, setOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [editingClient, setEditingClient] = useState<any | null>(null)
+    const [deleteModal, setDeleteModal] = useState<{ open: boolean, id: string, name: string }>({
+        open: false,
+        id: "",
+        name: ""
+    })
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const fetchClients = async () => {
         try {
@@ -48,15 +55,18 @@ export default function ClientsPage() {
         fetchClients()
     }, [])
 
-    const handleDelete = async (id: string, name: string) => {
-        if (!confirm(`Are you sure you want to delete ${name}? This will remove all associated project links.`)) return
-
+    const handleDelete = async () => {
+        if (!deleteModal.id) return
+        setIsDeleting(true)
         try {
-            await api.delete(`/clients/${id}`)
+            await api.delete(`/clients/${deleteModal.id}`)
             toast.success("Client record purged from system")
+            setDeleteModal({ open: false, id: "", name: "" })
             fetchClients()
         } catch (error) {
             toast.error("Failed to delete client")
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -217,7 +227,7 @@ export default function ClientsPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        onClick={() => handleDelete(client.id, client.name)}
+                                                        onClick={() => setDeleteModal({ open: true, id: client.id, name: client.name })}
                                                         className="h-10 w-10 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
@@ -232,6 +242,17 @@ export default function ClientsPage() {
                     </Table>
                 </div>
             </div>
+
+            <AlertModal
+                isOpen={deleteModal.open}
+                onClose={() => setDeleteModal({ ...deleteModal, open: false })}
+                onConfirm={handleDelete}
+                loading={isDeleting}
+                title="PURGE CLIENT RECORD"
+                variant="danger"
+                description={`Are you sure you want to permanently delete ${deleteModal.name}? This will remove all associated project links and Operational history.`}
+                confirmText="Confirm Purge"
+            />
         </div>
     )
 }

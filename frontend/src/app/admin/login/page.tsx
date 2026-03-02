@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { Lock, Mail, ChevronRight, Loader2, ShieldCheck, Cpu, Eye, EyeOff } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"

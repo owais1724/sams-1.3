@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CalendarDays, Users, Clock, TrendingUp, Briefcase, Award } from "lucide-react"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 
 export default function StaffDashboard() {
   const router = useRouter()

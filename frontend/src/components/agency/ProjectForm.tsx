@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { Plus } from "lucide-react"
 import { ClientForm } from "./ClientForm"
 import {
@@ -64,7 +64,7 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                     name="name"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Name</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Name <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder="Name"
@@ -82,7 +82,7 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                     render={({ field }) => (
                         <FormItem className="space-y-2">
                             <div className="flex items-center justify-between pl-1">
-                                <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client</FormLabel>
+                                <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client <span className="text-red-500">*</span></FormLabel>
                                 <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
                                     <DialogTrigger asChild>
                                         <Button
@@ -134,7 +134,7 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients }: { clients:
                     name="location"
                     render={({ field }) => (
                         <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Location</FormLabel>
+                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Location <span className="text-red-500">*</span></FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder="Location"

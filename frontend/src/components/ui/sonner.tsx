@@ -1,40 +1,13 @@
-"use client"
+import { toast as customToast } from "@/store/toastStore"
 
-import {
-  CircleCheckIcon,
-  InfoIcon,
-  Loader2Icon,
-  OctagonXIcon,
-  TriangleAlertIcon,
-} from "lucide-react"
-import { useTheme } from "next-themes"
-import { Toaster as Sonner, type ToasterProps } from "sonner"
+export { ToastProvider as Toaster } from "./toast-provider"
 
-const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
-
-  return (
-    <Sonner
-      theme={theme as ToasterProps["theme"]}
-      className="toaster group"
-      icons={{
-        success: <CircleCheckIcon className="size-4" />,
-        info: <InfoIcon className="size-4" />,
-        warning: <TriangleAlertIcon className="size-4" />,
-        error: <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
-      }}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
-      {...props}
-    />
-  )
+// Export a proxy for toast to maintain compatibility with sonner
+export const toast = {
+  success: (message: string, options?: any) => customToast.success(message, options?.description),
+  error: (message: string, options?: any) => customToast.error(message, options?.description),
+  info: (message: string, options?: any) => customToast.info(message, options?.description),
+  warning: (message: string, options?: any) => customToast.warning(message, options?.description),
+  message: (message: string, options?: any) => customToast.info(message, options?.description),
+  dismiss: (id?: string) => customToast.dismiss(id),
 }
-
-export { Toaster }

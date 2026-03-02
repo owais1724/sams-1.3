@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 
 export default function AgencyDashboard() {
     const { agencySlug } = useParams()
