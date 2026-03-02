@@ -373,22 +373,22 @@ function PayrollCard({ payroll, onUpdateStatus }: { payroll: Payroll, onUpdateSt
           </Badge>
         </div>
 
-        <div className="grid grid-cols-4 gap-6 py-6 border-y border-slate-50">
-          <div className="text-center">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 py-6 border-y border-slate-50">
+          <div className="text-center p-2 bg-slate-50/30 rounded-2xl">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Base</p>
-            <p className="text-base font-bold text-slate-900">${payroll.basicSalary.toLocaleString()}</p>
+            <p className="text-sm md:text-base font-bold text-slate-900">${payroll.basicSalary.toLocaleString()}</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-2 bg-emerald-50/30 rounded-2xl">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Incentives</p>
-            <p className="text-base font-bold text-emerald-600">+${payroll.allowances.toLocaleString()}</p>
+            <p className="text-sm md:text-base font-bold text-emerald-600">+${payroll.allowances.toLocaleString()}</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-2 bg-red-50/30 rounded-2xl">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tax/Ded.</p>
-            <p className="text-base font-bold text-red-600">-${payroll.deductions.toLocaleString()}</p>
+            <p className="text-sm md:text-base font-bold text-red-600">-${payroll.deductions.toLocaleString()}</p>
           </div>
-          <div className="text-center bg-slate-50/50 rounded-2xl py-2">
+          <div className="text-center bg-slate-900/5 rounded-2xl py-3 px-2">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Dist.</p>
-            <p className="text-base font-black text-slate-900 font-mono">${payroll.netPay.toLocaleString()}</p>
+            <p className="text-sm md:text-base font-black text-slate-900 font-mono">${payroll.netPay.toLocaleString()}</p>
           </div>
         </div>
 

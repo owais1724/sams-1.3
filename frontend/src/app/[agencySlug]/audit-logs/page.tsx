@@ -119,7 +119,7 @@ export default function AuditLogsPage() {
                             </div>
 
                             <div className="p-10 space-y-10">
-                                <div className="grid grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                             <Lock className="h-3 w-3" /> Event ID
@@ -215,97 +215,99 @@ export default function AuditLogsPage() {
             </div>
 
             {/* Logs Table */}
-            <div className="bg-white rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden min-h-[400px]">
-                <Table>
-                    <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                        <TableRow>
-                            <TableHead className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Timestamp</TableHead>
-                            <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Security Event</TableHead>
-                            <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operator</TableHead>
-                            <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Severity</TableHead>
-                            <TableHead className="text-right px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
+            <div className="bg-white rounded-[32px] md:rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden min-h-[400px]">
+                <div className="overflow-x-auto">
+                    <Table className="min-w-[1000px] lg:min-w-full">
+                        <TableHeader className="bg-slate-50/50 border-b border-slate-100">
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-20">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Scanning Ledger...</p>
-                                    </div>
-                                </TableCell>
+                                <TableHead className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Timestamp</TableHead>
+                                <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Security Event</TableHead>
+                                <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operator</TableHead>
+                                <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Severity</TableHead>
+                                <TableHead className="text-right px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Action</TableHead>
                             </TableRow>
-                        ) : filteredLogs.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-32">
-                                    <div className="flex flex-col items-center opacity-30">
-                                        <Shield className="h-16 w-16 mb-4 text-slate-400" />
-                                        <h3 className="text-lg font-bold">No Audit Data Found</h3>
-                                        <p className="text-xs font-medium max-w-[200px]">Perform administrative actions or login to generate fresh security logs.</p>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            <AnimatePresence mode="popLayout">
-                                {filteredLogs.map((log, idx) => {
-                                    const LogIcon = getIcon(log.action)
-                                    return (
-                                        <motion.tr
-                                            key={log.id}
-                                            initial={{ opacity: 0, scale: 0.98 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
-                                        >
-                                            <TableCell className="px-8 py-6">
-                                                <div className="flex flex-col">
-                                                    <span className="font-extrabold text-slate-900">{new Date(log.createdAt).toLocaleTimeString('en-US', { hour12: false })}</span>
-                                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-4">
-                                                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shadow-inner", getBg(log.severity), getColor(log.severity))}>
-                                                        <LogIcon className="h-5 w-5" />
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-20">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Scanning Ledger...</p>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ) : filteredLogs.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-32">
+                                        <div className="flex flex-col items-center opacity-30">
+                                            <Shield className="h-16 w-16 mb-4 text-slate-400" />
+                                            <h3 className="text-lg font-bold">No Audit Data Found</h3>
+                                            <p className="text-xs font-medium max-w-[200px]">Perform administrative actions or login to generate fresh security logs.</p>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                <AnimatePresence mode="popLayout">
+                                    {filteredLogs.map((log, idx) => {
+                                        const LogIcon = getIcon(log.action)
+                                        return (
+                                            <motion.tr
+                                                key={log.id}
+                                                initial={{ opacity: 0, scale: 0.98 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: idx * 0.05 }}
+                                                className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
+                                            >
+                                                <TableCell className="px-8 py-6">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-extrabold text-slate-900">{new Date(log.createdAt).toLocaleTimeString('en-US', { hour12: false })}</span>
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                                     </div>
-                                                    <div>
-                                                        <div className="font-extrabold text-slate-900">{log.action.replace('_', ' ')}</div>
-                                                        <div className="text-[11px] text-slate-500 font-medium">{log.details}</div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shadow-inner", getBg(log.severity), getColor(log.severity))}>
+                                                            <LogIcon className="h-5 w-5" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-extrabold text-slate-900">{log.action.replace('_', ' ')}</div>
+                                                            <div className="text-[11px] text-slate-500 font-medium">{log.details}</div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline" className="bg-white text-slate-600 border-slate-200 font-bold px-3 py-1 rounded-full text-[10px]">
-                                                    {log.user?.fullName || "System"}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge className={cn(
-                                                    "shadow-none px-3 py-1 rounded-lg text-[9px] font-black",
-                                                    log.severity === 'CRITICAL' ? "bg-red-500 text-white" :
-                                                        log.severity === 'MEDIUM' ? "bg-amber-500 text-white" : "bg-emerald-500 text-white"
-                                                )}>
-                                                    {log.severity}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right px-8">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-10 w-10 rounded-xl hover:bg-white hover:shadow-md transition-all group-hover:text-primary"
-                                                    onClick={() => setSelectedLog(log)}
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                </Button>
-                                            </TableCell>
-                                        </motion.tr>
-                                    )
-                                })}
-                            </AnimatePresence>
-                        )}
-                    </TableBody>
-                </Table>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline" className="bg-white text-slate-600 border-slate-200 font-bold px-3 py-1 rounded-full text-[10px]">
+                                                        {log.user?.fullName || "System"}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge className={cn(
+                                                        "shadow-none px-3 py-1 rounded-lg text-[9px] font-black",
+                                                        log.severity === 'CRITICAL' ? "bg-red-500 text-white" :
+                                                            log.severity === 'MEDIUM' ? "bg-amber-500 text-white" : "bg-emerald-500 text-white"
+                                                    )}>
+                                                        {log.severity}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right px-8">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-10 w-10 rounded-xl hover:bg-white hover:shadow-md transition-all group-hover:text-primary"
+                                                        onClick={() => setSelectedLog(log)}
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </motion.tr>
+                                        )
+                                    })}
+                                </AnimatePresence>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
 
             {/* Footer */}

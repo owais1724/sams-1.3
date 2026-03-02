@@ -147,7 +147,7 @@ export function AgencySidebar() {
                                     key={item.name}
                                     href={item.href}
                                     className={cn(
-                                        "group flex items-center rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 relative overflow-hidden",
+                                        "group flex items-center rounded-xl px-4 py-4 text-sm font-bold transition-all duration-300 relative overflow-hidden",
                                         isActive
                                             ? "bg-[#14B8A6] text-white shadow-xl shadow-teal-500/20"
                                             : "text-teal-100/60 hover:text-white hover:bg-white/5"

@@ -217,12 +217,12 @@ export default function EmployeesPage() {
                         </TabsTrigger>
                     </TabsList>
 
-                    <div className="flex gap-2">
-                        <div className="relative group">
+                    <div className="flex flex-1 gap-2">
+                        <div className="relative group flex-1 md:flex-initial">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-hover:text-primary transition-colors" />
                             <Input
                                 placeholder="Search officers..."
-                                className="pl-11 pr-4 py-6 bg-white border-slate-200 rounded-2xl w-[300px] focus:ring-primary shadow-sm hover:shadow-md transition-all font-medium"
+                                className="pl-11 pr-4 py-6 bg-white border-slate-200 rounded-2xl w-full md:w-[300px] focus:ring-primary shadow-sm hover:shadow-md transition-all font-medium"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />

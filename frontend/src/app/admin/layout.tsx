@@ -101,7 +101,7 @@ export default function AdminLayout({
                     </Sheet>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-4 md:p-8">
+                <main className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8">
                     {children}
                 </main>
             </div>

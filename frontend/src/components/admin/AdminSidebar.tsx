@@ -27,7 +27,7 @@ export function AdminSidebar() {
                             key={item.name}
                             href={item.href}
                             className={cn(
-                                "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                                "flex items-center rounded-lg px-3 py-3.5 text-sm font-medium transition-all",
                                 pathname === item.href
                                     ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
                                     : "hover:bg-slate-800 hover:text-white"

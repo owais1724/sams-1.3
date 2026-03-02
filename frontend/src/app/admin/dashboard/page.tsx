@@ -152,98 +152,100 @@ export default function AdminDashboard() {
                         {agencies.length} Total Entities
                     </Badge>
                 </div>
-                <Table>
-                    <TableHeader className="bg-slate-50/30">
-                        <TableRow className="hover:bg-transparent border-slate-100 h-14">
-                            <TableHead className="px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Entity</TableHead>
-                            <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Private Endpoint</TableHead>
-                            <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Status</TableHead>
-                            <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployed Since</TableHead>
-                            <TableHead className="text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pr-8">Operations</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-20">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning Network...</p>
-                                    </div>
-                                </TableCell>
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200">
+                    <Table className="min-w-[900px]">
+                        <TableHeader className="bg-slate-50/30">
+                            <TableRow className="hover:bg-transparent border-slate-100 h-14">
+                                <TableHead className="px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Entity</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Private Endpoint</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Status</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployed Since</TableHead>
+                                <TableHead className="text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pr-8">Operations</TableHead>
                             </TableRow>
-                        ) : agencies.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-32">
-                                    <Building2 className="mx-auto h-16 w-16 text-slate-100 mb-6 animate-bounce" />
-                                    <h3 className="text-xl font-black text-slate-900">No Entities Found</h3>
-                                    <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-2">Initialize your first entity to begin management</p>
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            agencies.map((agency) => (
-                                <TableRow key={agency.id} className="group hover:bg-slate-50/50 transition-colors border-slate-50 h-24">
-                                    <TableCell className="pl-8">
-                                        <div className="flex flex-col">
-                                            <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors">{agency.name}</span>
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">ID: {agency.id.slice(-8).toUpperCase()}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-1 w-1 rounded-full bg-blue-400" />
-                                            <code className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-2xl border border-blue-100/50 uppercase font-mono tracking-wider">
-                                                /{agency.slug}
-                                            </code>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge className={cn(
-                                            "rounded-xl px-4 py-1.5 border-none font-black text-[10px] uppercase tracking-widest shadow-sm",
-                                            agency.isActive
-                                                ? "bg-emerald-500 text-white shadow-emerald-200"
-                                                : "bg-slate-500 text-white shadow-slate-200"
-                                        )}>
-                                            {agency.isActive ? "Active" : "Locked"}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-sm font-bold text-slate-500">
-                                        {new Date(agency.createdAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        })}
-                                    </TableCell>
-                                    <TableCell className="pr-8 text-right">
-                                        <div className="flex items-center justify-end gap-3 transition-opacity duration-300">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-11 px-5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-blue-100/50"
-                                                onClick={() => {
-                                                    setEditingAgency(agency)
-                                                    setOpen(true)
-                                                }}
-                                            >
-                                                <Edit className="h-4 w-4 mr-2" />
-                                                EDIT
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-11 px-5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-red-100/50"
-                                                onClick={() => setDeleteModal({ open: true, id: agency.id, name: agency.name })}
-                                            >
-                                                <Trash2 className="h-4 w-4 mr-2" />
-                                                REMOVE
-                                            </Button>
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-20">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning Network...</p>
                                         </div>
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : agencies.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-32">
+                                        <Building2 className="mx-auto h-16 w-16 text-slate-100 mb-6 animate-bounce" />
+                                        <h3 className="text-xl font-black text-slate-900">No Entities Found</h3>
+                                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-2">Initialize your first entity to begin management</p>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                agencies.map((agency) => (
+                                    <TableRow key={agency.id} className="group hover:bg-slate-50/50 transition-colors border-slate-50 h-24">
+                                        <TableCell className="pl-8">
+                                            <div className="flex flex-col">
+                                                <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors">{agency.name}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">ID: {agency.id.slice(-8).toUpperCase()}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-1 w-1 rounded-full bg-blue-400" />
+                                                <code className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-2xl border border-blue-100/50 uppercase font-mono tracking-wider">
+                                                    /{agency.slug}
+                                                </code>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={cn(
+                                                "rounded-xl px-4 py-1.5 border-none font-black text-[10px] uppercase tracking-widest shadow-sm",
+                                                agency.isActive
+                                                    ? "bg-emerald-500 text-white shadow-emerald-200"
+                                                    : "bg-slate-500 text-white shadow-slate-200"
+                                            )}>
+                                                {agency.isActive ? "Active" : "Locked"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-sm font-bold text-slate-500">
+                                            {new Date(agency.createdAt).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                            })}
+                                        </TableCell>
+                                        <TableCell className="pr-8 text-right">
+                                            <div className="flex items-center justify-end gap-3 translate-x-4 md:translate-x-0 group-hover:translate-x-0 transition-transform">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-11 px-5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-blue-100/50"
+                                                    onClick={() => {
+                                                        setEditingAgency(agency)
+                                                        setOpen(true)
+                                                    }}
+                                                >
+                                                    <Edit className="h-4 w-4 mr-2" />
+                                                    EDIT
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-11 px-5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-red-100/50"
+                                                    onClick={() => setDeleteModal({ open: true, id: agency.id, name: agency.name })}
+                                                >
+                                                    <Trash2 className="h-4 w-4 mr-2" />
+                                                    REMOVE
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
 
             <AlertModal

@@ -51,7 +51,7 @@ export function ToastProvider() {
     const { toasts, removeToast } = useToastStore()
 
     return (
-        <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-4 pointer-events-none w-full max-w-sm">
+        <div className="fixed top-4 left-4 right-4 sm:top-6 sm:right-6 sm:left-auto z-[9999] flex flex-col gap-4 pointer-events-none w-auto sm:w-full sm:max-w-sm">
             <AnimatePresence mode="popLayout">
                 {toasts.map((t) => {
                     const style = variantStyles[t.variant]

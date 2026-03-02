@@ -169,7 +169,7 @@ export default function RBACPage() {
                 </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden mt-6">
+            <div className="rounded-[32px] border border-slate-200 bg-white shadow-sm overflow-hidden mt-6">
                 <div className="bg-slate-50 p-4 border-b border-slate-200">
                     <h2 className="text-lg font-bold text-slate-800 flex items-center">
                         <Users className="h-5 w-5 mr-2 text-blue-600" />
@@ -177,64 +177,66 @@ export default function RBACPage() {
                     </h2>
                     <p className="text-xs text-slate-500">Each employee&apos;s designation (Guard, HR, Supervisor, etc.) determines their system access. Click &quot;Permissions&quot; to configure what each designation can do.</p>
                 </div>
-                <Table>
-                    <TableHeader className="bg-slate-50/50">
-                        <TableRow className="h-14 border-slate-100">
-                            <TableHead className="w-[300px] pl-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Profile</TableHead>
-                            <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auth Group</TableHead>
-                            <TableHead className="text-right pr-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={3} className="text-center py-8">Loading staff access data...</TableCell>
+                <div className="overflow-x-auto">
+                    <Table className="min-w-[800px] lg:min-w-full">
+                        <TableHeader className="bg-slate-50/50">
+                            <TableRow className="h-14 border-slate-100">
+                                <TableHead className="w-[300px] pl-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Profile</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auth Group</TableHead>
+                                <TableHead className="text-right pr-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</TableHead>
                             </TableRow>
-                        ) : employees.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={3} className="text-center py-12 text-slate-400 italic">No employees onboarded yet.</TableCell>
-                            </TableRow>
-                        ) : (
-                            employees.map((emp) => (
-                                <TableRow key={emp.id} className="hover:bg-slate-50/50">
-                                    <TableCell>
-                                        <div className="flex items-center">
-                                            <Avatar className="h-8 w-8 mr-3">
-                                                <AvatarFallback className="text-[10px] font-bold">
-                                                    {emp.fullName?.split(' ').map((n: string) => n[0]).join('')}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="font-semibold text-slate-900">{emp.fullName}</div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-100 px-3 py-1 font-bold">
-                                            {emp.user?.role?.name || emp.designation?.name || "Staff"}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="border-primary text-primary hover:bg-primary/5 font-bold"
-                                            onClick={() => {
-                                                const role = roles.find(r => r.id === emp.user?.role?.id);
-                                                if (role) {
-                                                    setSelectedRole(role);
-                                                    setOpen(true);
-                                                } else {
-                                                    toast.error("Role details not found. System roles cannot be modified.");
-                                                }
-                                            }}
-                                        >
-                                            Permissions
-                                        </Button>
-                                    </TableCell>
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center py-8">Loading staff access data...</TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : employees.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center py-12 text-slate-400 italic">No employees onboarded yet.</TableCell>
+                                </TableRow>
+                            ) : (
+                                employees.map((emp) => (
+                                    <TableRow key={emp.id} className="hover:bg-slate-50/50">
+                                        <TableCell>
+                                            <div className="flex items-center">
+                                                <Avatar className="h-8 w-8 mr-3">
+                                                    <AvatarFallback className="text-[10px] font-bold">
+                                                        {emp.fullName?.split(' ').map((n: string) => n[0]).join('')}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="font-semibold text-slate-900">{emp.fullName}</div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-100 px-3 py-1 font-bold">
+                                                {emp.user?.role?.name || emp.designation?.name || "Staff"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="border-primary text-primary hover:bg-primary/5 font-bold"
+                                                onClick={() => {
+                                                    const role = roles.find(r => r.id === emp.user?.role?.id);
+                                                    if (role) {
+                                                        setSelectedRole(role);
+                                                        setOpen(true);
+                                                    } else {
+                                                        toast.error("Role details not found. System roles cannot be modified.");
+                                                    }
+                                                }}
+                                            >
+                                                Permissions
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
 
             <div className="mt-12">
@@ -242,86 +244,88 @@ export default function RBACPage() {
                     <Key className="h-5 w-5 mr-2" />
                     System Roles Matrix
                 </h2>
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                    <Table>
-                        <TableHeader className="bg-slate-50">
-                            <TableRow className="h-14 border-slate-100">
-                                <TableHead className="pl-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role Identifier</TableHead>
-                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Purpose / Scope</TableHead>
-                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grant Count</TableHead>
-                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Linked Users</TableHead>
-                                <TableHead className="text-right pr-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8 text-slate-500 italic">Syncing security matrix...</TableCell>
+                <div className="rounded-[32px] border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <Table className="min-w-[800px] lg:min-w-full">
+                            <TableHeader className="bg-slate-50">
+                                <TableRow className="h-14 border-slate-100">
+                                    <TableHead className="pl-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role Identifier</TableHead>
+                                    <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Purpose / Scope</TableHead>
+                                    <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grant Count</TableHead>
+                                    <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Linked Users</TableHead>
+                                    <TableHead className="text-right pr-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</TableHead>
                                 </TableRow>
-                            ) : roles.map((role) => (
-                                <TableRow key={role.id} className="hover:bg-slate-50/50">
-                                    <TableCell className="font-bold text-slate-900">
-                                        <div className="flex items-center">
-                                            {role.isSystem && <Shield className="h-3 w-3 mr-2 text-blue-500" />}
-                                            {role.name}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-slate-500">{role.description || "No description provided"}</TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary" className="bg-slate-100 text-slate-600">
-                                            {role.permissions?.length || 0} Grants
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center text-sm font-medium text-slate-700">
-                                            <Users className="h-4 w-4 mr-2 text-slate-400" />
-                                            {role._count?.users || 0}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {!role.isSystem ? (
-                                            <div className="flex justify-end space-x-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-primary hover:bg-primary/5"
-                                                    onClick={() => {
-                                                        setSelectedRole(role)
-                                                        setOpen(true)
-                                                    }}
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-red-500 hover:bg-red-50"
-                                                    onClick={() => setDeleteModal({ open: true, id: role.id, name: role.name })}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="text-center py-8 text-slate-500 italic">Syncing security matrix...</TableCell>
+                                    </TableRow>
+                                ) : roles.map((role) => (
+                                    <TableRow key={role.id} className="hover:bg-slate-50/50">
+                                        <TableCell className="font-bold text-slate-900">
+                                            <div className="flex items-center">
+                                                {role.isSystem && <Shield className="h-3 w-3 mr-2 text-blue-500" />}
+                                                {role.name}
                                             </div>
-                                        ) : (
-                                            <Badge variant="outline" className="text-[10px] uppercase font-bold text-slate-400">Fixed System Role</Badge>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                        </TableCell>
+                                        <TableCell className="text-sm text-slate-500">{role.description || "No description provided"}</TableCell>
+                                        <TableCell>
+                                            <Badge variant="secondary" className="bg-slate-100 text-slate-600">
+                                                {role.permissions?.length || 0} Grants
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center text-sm font-medium text-slate-700">
+                                                <Users className="h-4 w-4 mr-2 text-slate-400" />
+                                                {role._count?.users || 0}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {!role.isSystem ? (
+                                                <div className="flex justify-end space-x-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-primary hover:bg-primary/5"
+                                                        onClick={() => {
+                                                            setSelectedRole(role)
+                                                            setOpen(true)
+                                                        }}
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-red-500 hover:bg-red-50"
+                                                        onClick={() => setDeleteModal({ open: true, id: role.id, name: role.name })}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Badge variant="outline" className="text-[10px] uppercase font-bold text-slate-400">Fixed System Role</Badge>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
-            </div>
 
-            <AlertModal
-                isOpen={deleteModal.open}
-                onClose={() => setDeleteModal({ ...deleteModal, open: false })}
-                onConfirm={handleDelete}
-                loading={isDeleting}
-                title="TERMINATE SECURITY ROLE"
-                variant="danger"
-                description={`This will erase the role "${deleteModal.name}" and revoke all associated privileges from linked employees. Are you sure?`}
-                confirmText="Confirm Deletion"
-            />
+                <AlertModal
+                    isOpen={deleteModal.open}
+                    onClose={() => setDeleteModal({ ...deleteModal, open: false })}
+                    onConfirm={handleDelete}
+                    loading={isDeleting}
+                    title="TERMINATE SECURITY ROLE"
+                    variant="danger"
+                    description={`This will erase the role "${deleteModal.name}" and revoke all associated privileges from linked employees. Are you sure?`}
+                    confirmText="Confirm Deletion"
+                />
+            </div>
         </div>
     )
 }

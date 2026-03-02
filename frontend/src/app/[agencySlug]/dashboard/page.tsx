@@ -208,26 +208,26 @@ export default function AgencyDashboard() {
                         ) : (
                             <div className="space-y-4">
                                 {recentProjects.map((project, idx) => (
-                                    <div key={project.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/30 transition-all">
+                                    <div key={project.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/30 transition-all gap-4sm:gap-0">
                                         <div className="flex items-center gap-4">
-                                            <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center shadow-sm font-bold text-primary">
+                                            <div className="h-10 w-10 md:h-12 md:w-12 bg-white rounded-xl flex items-center justify-center shadow-sm font-black text-primary shrink-0">
                                                 0{idx + 1}
                                             </div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors">{project.name}</h4>
-                                                <p className="text-xs text-slate-500 font-medium">Project ID: {project.id.slice(0, 8).toUpperCase()}</p>
+                                            <div className="min-w-0 flex-1">
+                                                <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors truncate">{project.name}</h4>
+                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">ID: {project.id.slice(0, 8).toUpperCase()}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-6">
-                                            <div className="hidden md:block text-right">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Affiliated Client</p>
+                                        <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-6 border-t sm:border-none pt-3 sm:pt-0">
+                                            <div className="hidden lg:block text-right">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client</p>
                                                 <p className="text-sm font-bold text-slate-700">{project.client?.name || "Independent"}</p>
                                             </div>
-                                            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 shadow-none px-3 py-1 rounded-lg font-bold text-[10px]">
+                                            <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 shadow-none px-3 py-1 rounded-lg font-bold text-[10px] whitespace-nowrap">
                                                 {project.status || 'ACTIVE'}
                                             </Badge>
                                             <Link href={`/${agencySlug}/projects`}>
-                                                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-white hover:shadow-md transition-all">
+                                                <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-white hover:shadow-md transition-all">
                                                     <ChevronRight className="h-4 w-4" />
                                                 </Button>
                                             </Link>

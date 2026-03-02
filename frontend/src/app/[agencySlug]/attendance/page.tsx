@@ -258,82 +258,84 @@ export default function AttendancePage() {
                         </Badge>
                     )}
                 </div>
-                <Table>
-                    <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                        <TableRow className="h-14">
-                            <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Personnel Profile</TableHead>
-                            <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Professional Rank</TableHead>
-                            <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Deployment Site</TableHead>
-                            <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Check-In</TableHead>
-                            <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Check-Out</TableHead>
-                            <TableHead className="text-right px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Operational Status</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {attendanceData.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-12 text-slate-400 italic">No attendance records for today.</TableCell>
+                <div className="overflow-x-auto">
+                    <Table className="min-w-[900px] lg:min-w-full">
+                        <TableHeader className="bg-slate-50/50 border-b border-slate-100">
+                            <TableRow className="h-14">
+                                <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Personnel Profile</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Professional Rank</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Deployment Site</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Check-In</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Check-Out</TableHead>
+                                <TableHead className="text-right px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Operational Status</TableHead>
                             </TableRow>
-                        ) : (
-                            attendanceData.map((record) => (
-                                <TableRow key={record.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <TableCell className="px-8 py-6">
-                                        <div className="flex items-center">
-                                            <Avatar className="h-10 w-10 mr-4 border-2 border-slate-100">
-                                                <AvatarFallback className="text-[10px] font-black bg-slate-100">
-                                                    {record.employee?.fullName?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || '??'}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors">{record.employee?.fullName}</div>
-                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID: {record.employee?.id?.slice(-6).toUpperCase() || "N/A"}</div>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge className="bg-slate-100 text-slate-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
-                                            {record.employee?.designation?.name || 'FRONT-LINE'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="text-sm font-bold text-slate-700">
-                                            {record.project?.name || "UNASSIGNED"}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center text-sm font-bold text-slate-900">
-                                            <Clock className="h-3.5 w-3.5 mr-2 text-slate-400" />
-                                            {record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center text-sm font-bold text-slate-900">
-                                            <Clock className="h-3.5 w-3.5 mr-2 text-slate-400" />
-                                            {record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right px-8">
-                                        {record.status === "PRESENT" && (
-                                            <Badge className="bg-emerald-50 text-emerald-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
-                                                Operational
-                                            </Badge>
-                                        )}
-                                        {record.status === "LATE" && (
-                                            <Badge className="bg-amber-50 text-amber-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
-                                                Delayed
-                                            </Badge>
-                                        )}
-                                        {record.status === "ABSENT" && (
-                                            <Badge className="bg-red-50 text-red-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
-                                                Missing
-                                            </Badge>
-                                        )}
-                                    </TableCell>
+                        </TableHeader>
+                        <TableBody>
+                            {attendanceData.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-12 text-slate-400 italic">No attendance records for today.</TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : (
+                                attendanceData.map((record) => (
+                                    <TableRow key={record.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                        <TableCell className="px-8 py-6">
+                                            <div className="flex items-center">
+                                                <Avatar className="h-10 w-10 mr-4 border-2 border-slate-100">
+                                                    <AvatarFallback className="text-[10px] font-black bg-slate-100">
+                                                        {record.employee?.fullName?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || '??'}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors">{record.employee?.fullName}</div>
+                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID: {record.employee?.id?.slice(-6).toUpperCase() || "N/A"}</div>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className="bg-slate-100 text-slate-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
+                                                {record.employee?.designation?.name || 'FRONT-LINE'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="text-sm font-bold text-slate-700">
+                                                {record.project?.name || "UNASSIGNED"}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center text-sm font-bold text-slate-900">
+                                                <Clock className="h-3.5 w-3.5 mr-2 text-slate-400" />
+                                                {record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center text-sm font-bold text-slate-900">
+                                                <Clock className="h-3.5 w-3.5 mr-2 text-slate-400" />
+                                                {record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "-"}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right px-8">
+                                            {record.status === "PRESENT" && (
+                                                <Badge className="bg-emerald-50 text-emerald-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
+                                                    Operational
+                                                </Badge>
+                                            )}
+                                            {record.status === "LATE" && (
+                                                <Badge className="bg-amber-50 text-amber-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
+                                                    Delayed
+                                                </Badge>
+                                            )}
+                                            {record.status === "ABSENT" && (
+                                                <Badge className="bg-red-50 text-red-700 border-none shadow-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
+                                                    Missing
+                                                </Badge>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
         </div>
     )
