@@ -187,20 +187,31 @@ export class EmployeesService {
 
         // Update User account if it exists and details changed
         if (employee.user) {
-          const userUpdate: any = {
-            email: employeeUpdate.email,
-            fullName: employeeUpdate.fullName,
-          };
+          const userUpdate: any = {};
+
+          if (employeeUpdate.email) userUpdate.email = employeeUpdate.email;
+          if (employeeUpdate.fullName) userUpdate.fullName = employeeUpdate.fullName;
 
           if (data.password) {
             userUpdate.password = await bcrypt.hash(data.password, 10);
           }
 
-          await tx.user.update({
-            where: { id: employee.user.id },
-            data: userUpdate,
-          });
+          // Only perform update if there's actual data to change
+          if (Object.keys(userUpdate).length > 0) {
+            await tx.user.update({
+              where: { id: employee.user.id },
+              data: userUpdate,
+            });
+          }
         }
+
+        await this.auditLogsService.create(agencyId, {
+          action: 'EDIT_PERSONNEL',
+          details: `Personnel record for ${employee.fullName} (${employee.employeeCode}) updated.`,
+          entity: 'Employee',
+          entityId: id,
+          severity: 'INFO'
+        });
 
         return updatedEmployee;
       });

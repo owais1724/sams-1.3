@@ -22,45 +22,41 @@ export class PermissionsGuard implements CanActivate {
     const userRole = typeof user.role === 'string' ? user.role.toLowerCase().trim() : '';
     const isProd = process.env.NODE_ENV === 'production';
 
-    // ── Tier 1: Super Admin bypasses everything ──────────────────────────────
+    // ── Tier 1: Platform Super Admin bypasses everything ─────────────────────
+    // These are the global platform owners/developers who manage the infrastructure.
     if (userRole === 'super admin') {
       return true;
     }
 
-    // ── Tier 2: Agency Admin bypasses within their own agency ─────────────────
-    if (userRole === 'agency admin') {
-      return true;
-    }
-
-    // ── Tier 3: All other roles are strictly permission-checked ───────────────
-    // Gather required permissions from both controller-level AND handler-level metadata.
-    // Handler-level wins (more specific).
+    // ── Tier 2: All other roles (Agency Admin, HR, Guard, etc.) are strictly permission-checked ──
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
       PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
     );
 
+    const userPermissions: string[] = user.permissions || [];
+
     if (!isProd && process.env.DEBUG_AUTH === 'true') {
       console.log(
-        `[PermissionsGuard] role="${userRole}" | required=${JSON.stringify(requiredPermissions)} | has=${JSON.stringify(user.permissions)}`,
+        `[PermissionsGuard] ${user.email} (${userRole}) | route: ${request.method} ${request.url}`,
       );
+      console.log(`[PermissionsGuard] Required: ${JSON.stringify(requiredPermissions)}`);
+      console.log(`[PermissionsGuard] Has: ${JSON.stringify(userPermissions)}`);
     }
 
-    // ── DEFAULT DENY: if no permissions declared on route, block non-admins ───
-    // This is the secure default — routes must explicitly declare who can access them.
+    // ── DEFAULT DENY: if no permissions declared on route, block all non-system-admins ──
     if (!requiredPermissions || requiredPermissions.length === 0) {
       if (!isProd) {
         console.warn(
-          `[PermissionsGuard] BLOCKED — no @Permissions() on route "${context.getHandler().name}", role="${userRole}"`,
+          `[PermissionsGuard] BLOCKED — Route "${context.getHandler().name}" is missing @Permissions() and role is "${userRole}"`,
         );
       }
       throw new ForbiddenException(
-        'You do not have permission to access this resource',
+        'Security Violation: This action has no defined permissions. Please contact technical support.',
       );
     }
 
     // ── Check user permissions against required ───────────────────────────────
-    const userPermissions: string[] = user.permissions || [];
     const hasPermission = requiredPermissions.some((p) =>
       userPermissions.includes(p),
     );

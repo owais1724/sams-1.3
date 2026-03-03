@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 @Injectable()
 export class ProjectsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private auditLogsService: AuditLogsService
+  ) { }
 
   async create(agencyId: string, data: any) {
     // Validate client belongs to this agency
@@ -14,12 +18,22 @@ export class ProjectsService {
       if (!client) throw new ForbiddenException('Unauthorized client selection');
     }
 
-    return this.prisma.project.create({
+    const project = await this.prisma.project.create({
       data: {
         ...data,
         agencyId,
       },
     });
+
+    await this.auditLogsService.create(agencyId, {
+      action: 'CREATE_PROJECT',
+      details: `Project "${project.name}" initialized.`,
+      entity: 'Project',
+      entityId: project.id,
+      severity: 'INFO'
+    });
+
+    return project;
   }
 
   async findAll(agencyId: string) {
@@ -50,10 +64,20 @@ export class ProjectsService {
     // Strip fields that should not be updated directly
     const { agencyId: _a, id: _id, ...safeData } = data;
 
-    return this.prisma.project.update({
+    const updatedProject = await this.prisma.project.update({
       where: { id },
       data: safeData,
       include: { client: true },
     });
+
+    await this.auditLogsService.create(agencyId, {
+      action: 'UPDATE_PROJECT',
+      details: `Project "${updatedProject.name}" details updated.`,
+      entity: 'Project',
+      entityId: id,
+      severity: 'INFO'
+    });
+
+    return updatedProject;
   }
 }
