@@ -226,21 +226,51 @@ export function StatCard({ title, value, icon, color = "teal", trend, className 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. DATA TABLE WRAPPER
-//    The white rounded card that wraps every data table in the app.
+// 6. DATA TABLE & WRAPPER
+//    The main data display component used in lists.
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface TableCardWrapperProps {
+interface DataTableProps {
+    columns: string[]
     children: React.ReactNode
     className?: string
-    minWidth?: string   // prevents squishing on mobile
+    minWidth?: string
+}
+
+export function DataTable({ columns, children, className, minWidth = "800px" }: DataTableProps) {
+    return (
+        <TableCardWrapper className={className} minWidth={minWidth}>
+            <Table>
+                <TableHeader>
+                    <TableRow className="border-b border-slate-50 hover:bg-transparent">
+                        {columns.map((col, i) => (
+                            <TableColHead
+                                key={i}
+                                align={i === columns.length - 1 ? "right" : "left"}
+                                className={i === 0 ? "px-8" : i === columns.length - 1 ? "px-8" : ""}
+                            >
+                                {col}
+                            </TableColHead>
+                        ))}
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {children}
+                </TableBody>
+            </Table>
+        </TableCardWrapper>
+    )
 }
 
 export function TableCardWrapper({
     children,
     className,
     minWidth = "700px",
-}: TableCardWrapperProps) {
+}: {
+    children: React.ReactNode
+    className?: string
+    minWidth?: string
+}) {
     return (
         <div className={cn(
             "bg-white rounded-[32px] md:rounded-[40px]",
@@ -307,28 +337,56 @@ export function TableRowEmpty({ colSpan, title, description, icon, action }: {
 }) {
     return (
         <TableRow>
-            <TableCell colSpan={colSpan} className="py-20 text-center px-6">
-                <div className="flex flex-col items-center gap-4">
-                    {icon && (
-                        <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm">
-                            {icon}
-                        </div>
-                    )}
-                    <div>
-                        <p className="font-extrabold text-slate-900 text-lg tracking-tight">{title}</p>
-                        {description && (
-                            <p className="text-slate-500 text-sm font-medium max-w-sm mx-auto mt-1">{description}</p>
-                        )}
-                    </div>
-                    {action && <div className="mt-2">{action}</div>}
-                </div>
+            <TableCell colSpan={colSpan} className="py-20 text-center px-6 border-none">
+                <EmptyState
+                    title={title}
+                    description={description}
+                    icon={icon}
+                    action={action}
+                    className="border-none shadow-none bg-transparent py-0"
+                />
             </TableCell>
         </TableRow>
     )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 9. STATUS BADGE
+// 9. EMPTY STATE (Standalone)
+//    Used when a whole page or section has no data.
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface EmptyStateProps {
+    title: string
+    description?: string
+    icon?: React.ReactNode
+    action?: React.ReactNode
+    className?: string
+}
+
+export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
+    return (
+        <div className={cn(
+            "flex flex-col items-center justify-center py-24 px-6 text-center bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50",
+            className
+        )}>
+            {icon && (
+                <div className="h-24 w-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm mb-8 group-hover:scale-110 transition-transform shrink-0">
+                    <span className="scale-125">{icon}</span>
+                </div>
+            )}
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2 uppercase">{title}</h3>
+            {description && (
+                <p className="text-slate-500 font-medium max-w-sm mx-auto mb-10 text-sm leading-relaxed">
+                    {description}
+                </p>
+            )}
+            {action && <div className="mt-2 shrink-0">{action}</div>}
+        </div>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10. STATUS BADGE
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface StatusBadgeProps {
