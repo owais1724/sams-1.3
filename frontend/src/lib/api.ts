@@ -1,54 +1,23 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
-const TOKEN_KEY = 'sams_access_token';
-
-/** Save token received from login response (used by mobile as fallback) */
-export function saveToken(token: string) {
-    try {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(TOKEN_KEY, token);
-        }
-    } catch (e) { /* ignore */ }
-}
-
-/** Remove token on logout */
-export function clearToken() {
-    try {
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem(TOKEN_KEY);
-        }
-    } catch (e) { /* ignore */ }
-}
-
-/** Read stored token */
-function getToken(): string | null {
-    try {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem(TOKEN_KEY);
-        }
-    } catch (e) { /* ignore */ }
-    return null;
-}
-
+/**
+ * API Client
+ *
+ * Uses /api/* prefix which is reverse-proxied by Next.js to the backend.
+ * This makes all requests appear same-domain to the browser, so HTTP-only
+ * cookies work on ALL browsers including Safari iOS (no ITP blocking).
+ *
+ * NEXT_PUBLIC_API_URL must be set to "/api" in production.
+ * In development, keep it as "http://localhost:3001" and the rewrites in
+ * next.config.ts will handle the proxy if NEXT_PUBLIC_API_URL is not set.
+ */
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
-    withCredentials: true, // Sends cookies on desktop browsers
-});
-
-// ── Request interceptor: attach Bearer token for mobile ───────────────────────
-// Desktop browsers send the HttpOnly cookie automatically via withCredentials.
-// Mobile browsers (Safari iOS) block cross-domain SameSite=None cookies (ITP),
-// so we fall back to a stored token sent as an Authorization header.
-api.interceptors.request.use((config) => {
-    const token = getToken();
-    if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
+    withCredentials: true, // Always send cookies — now same-domain so mobile works
 });
 
 // ── Response interceptor: handle 401 globally ─────────────────────────────────
@@ -69,9 +38,8 @@ api.interceptors.response.use(
             const isLoginRequest = url.includes('/auth/login');
 
             if (!isLoginRequest) {
-                console.warn(`[API] 401 at ${method} ${url}. Clearing session.`);
+                console.warn(`[API] 401 at ${method} ${url}. Session expired.`);
 
-                clearToken();
                 useAuthStore.getState().logout();
 
                 const isLoginPage = typeof window !== 'undefined' && (

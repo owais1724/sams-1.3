@@ -31,7 +31,6 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     if (typeof window !== 'undefined') {
                         sessionStorage.removeItem('sams_portal_type');
-                        localStorage.removeItem('sams_access_token');
                     }
                 } catch (e) { /* ignore */ }
             },

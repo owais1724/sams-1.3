@@ -8,12 +8,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        // ── 1. Cookie (desktop browsers, same-domain) ─────────────────────
+        // Extract from HTTP-only cookie (works on all browsers via the Next.js reverse proxy)
         (request: any) => {
           return request?.cookies?.access_token || null;
         },
-        // ── 2. Authorization: Bearer header (mobile browsers, cross-domain) ─
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET')!,

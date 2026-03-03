@@ -41,7 +41,7 @@ export class AuthController {
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',   // 'lax' works now — Next.js proxy makes it same-domain
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: '/',
     });
@@ -51,7 +51,7 @@ export class AuthController {
         `[AuthController] Cookie set successfully for user: ${user.email}`,
       );
     }
-    return { user, access_token };
+    return { user };
   }
 
   @Post('logout')
@@ -65,7 +65,7 @@ export class AuthController {
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',
       path: '/',
     });
 
@@ -73,7 +73,7 @@ export class AuthController {
     res.cookie('access_token', '', {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',
       path: '/',
       expires: new Date(0),
     });
