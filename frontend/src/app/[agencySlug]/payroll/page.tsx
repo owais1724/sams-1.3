@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
+import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
 
 interface Payroll {
@@ -65,20 +66,47 @@ export default function PayrollPage() {
     fetchData()
   }, [])
 
+  const { user: authUser } = useAuthStore()
+
   const fetchData = async () => {
     setLoading(true)
+
+    const isAdmin = authUser?.role === 'Super Admin' || authUser?.role === 'Agency Admin'
+    const hasPerm = (p: string) => isAdmin || authUser?.permissions?.includes(p)
+
     try {
-      const [payrollRes, designationRes, employeeRes] = await Promise.all([
-        api.get('/payrolls'),
-        api.get('/designations'),
-        api.get('/employees')
-      ])
-      setPayrolls(payrollRes.data || [])
-      setDesignations(designationRes.data || [])
-      setEmployees(employeeRes.data || [])
+      // Priority 1: Payrolls
+      if (hasPerm('view_payroll')) {
+        try {
+          const res = await api.get('/payrolls')
+          setPayrolls(res.data || [])
+        } catch (err) {
+          console.warn("Payrolls fetch failed", err)
+        }
+      }
+
+      // Priority 2: Designations (Side data)
+      if (hasPerm('view_designations') || isAdmin || hasPerm('manage_roles')) {
+        try {
+          const res = await api.get('/designations')
+          setDesignations(res.data || [])
+        } catch (err) {
+          console.warn("Designations fetch failed", err)
+        }
+      }
+
+      // Priority 3: Employees (Side data for targeting)
+      if (hasPerm('view_personnel')) {
+        try {
+          const res = await api.get('/employees')
+          setEmployees(res.data || [])
+        } catch (err) {
+          console.warn("Employees fetch failed", err)
+        }
+      }
     } catch (error) {
-      console.error('Failed to fetch data:', error)
-      toast.error("Failed to load records")
+      console.error('Critical payroll fetch error', error)
+      toast.error("Failed to load payroll system database.")
     } finally {
       setLoading(false)
     }

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/design-system"
 import { FormSheet } from "@/components/common/FormSheet"
 import { useAuthStore } from "@/store/authStore"
+import { toast } from "@/components/ui/sonner"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function ProjectsPage() {
@@ -29,19 +30,30 @@ export default function ProjectsPage() {
     const [editingProject, setEditingProject] = useState<any>(null)
 
     // Permission flags — Strictly following the database matrix
-    const canCreate = authUser?.role === 'super admin' || authUser?.permissions?.includes('create_project')
-    const canEdit = authUser?.role === 'super admin' || authUser?.permissions?.includes('edit_project')
+    const canViewClients = authUser?.role === 'Super Admin' || authUser?.permissions?.includes('view_clients')
+    const canCreate = authUser?.role === 'Super Admin' || authUser?.permissions?.includes('create_project')
+    const canEdit = authUser?.role === 'Super Admin' || authUser?.permissions?.includes('edit_project')
 
     const fetchData = async () => {
         try {
-            const [projectsRes, clientsRes] = await Promise.all([
-                api.get("/projects"),
-                api.get("/clients")
-            ])
+            // First fetch projects (primary intent of the page)
+            const projectsRes = await api.get("/projects")
             setProjects(projectsRes.data)
-            setClients(clientsRes.data)
+
+            // Then try to fetch clients if user has permission
+            if (canViewClients) {
+                try {
+                    const clientsRes = await api.get("/clients")
+                    setClients(clientsRes.data)
+                } catch (err: any) {
+                    if (err.status !== 403) {
+                        console.error("Failed to fetch clients", err)
+                    }
+                }
+            }
         } catch (error) {
-            console.error(error)
+            console.error("Critical fetch error", error)
+            toast.error("Failed to load project database. Please verify your clearance.")
         } finally {
             setLoading(false)
         }

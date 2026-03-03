@@ -69,7 +69,7 @@ export function AgencySidebar() {
             name: "Employees",
             href: `/${agencySlug}/employees`,
             icon: Users,
-            permissions: ["view_employees", "create_employee"]
+            permissions: ["view_personnel", "create_personnel"]
         },
         {
             name: "Access Control",

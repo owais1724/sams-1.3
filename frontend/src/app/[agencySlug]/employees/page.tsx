@@ -71,18 +71,31 @@ export default function EmployeesPage() {
     const [deleting, setDeleting] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
 
+    const isAdmin = user?.role === 'Super Admin' || user?.role === 'Agency Admin'
+    const hasPerm = (p: string) => isAdmin || user?.permissions?.includes(p)
+
     const fetchData = async () => {
         if (!user) return
+
         try {
-            const params = user.agencyId ? { agencyId: user.agencyId } : {}
-            const [empRes, desRes] = await Promise.all([
-                api.get("/employees", { params }),
-                api.get("/designations", { params })
-            ])
-            setEmployees(empRes.data)
-            setDesignations(desRes.data)
+            // Priority 1: Employees list
+            if (hasPerm('view_personnel')) {
+                const empRes = await api.get("/employees")
+                setEmployees(empRes.data)
+            }
+
+            // Priority 2: Designations (Side data)
+            if (hasPerm('view_designations') || isAdmin || hasPerm('manage_roles')) {
+                try {
+                    const desRes = await api.get("/designations")
+                    setDesignations(desRes.data)
+                } catch (err) {
+                    console.warn("Designations fetch failed (non-critical)", err)
+                }
+            }
         } catch (error) {
-            console.error(error)
+            console.error("Critical roster fetch error", error)
+            toast.error("Failed to load roster database.")
         } finally {
             setLoading(false)
         }
@@ -157,11 +170,13 @@ export default function EmployeesPage() {
                 titleHighlight="Directory"
                 subtitle="Lifecycle management and deployment of security staff."
                 action={
-                    <CreateButton
-                        label="Create Employee"
-                        icon={<Plus className="h-4 w-4" />}
-                        onClick={() => { setEditingEmployee(null); setOpenEnroll(true) }}
-                    />
+                    hasPerm('create_personnel') && (
+                        <CreateButton
+                            label="Create Employee"
+                            icon={<Plus className="h-4 w-4" />}
+                            onClick={() => { setEditingEmployee(null); setOpenEnroll(true) }}
+                        />
+                    )
                 }
             />
 
@@ -284,15 +299,17 @@ export default function EmployeesPage() {
                                                 >
                                                     <ExternalLink className="h-4 w-4" />
                                                 </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    title="Modify Record"
-                                                    className="h-10 w-10 rounded-xl text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all"
-                                                    onClick={() => { setEditingEmployee(emp); setOpenEnroll(true) }}
-                                                >
-                                                    <Edit3 className="h-4 w-4" />
-                                                </Button>
+                                                {hasPerm('edit_personnel') && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        title="Modify Record"
+                                                        className="h-10 w-10 rounded-xl text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all"
+                                                        onClick={() => { setEditingEmployee(emp); setOpenEnroll(true) }}
+                                                    >
+                                                        <Edit3 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </motion.tr>
@@ -422,15 +439,17 @@ export default function EmployeesPage() {
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Administrative Control</p>
                                 <p className="text-[11px] text-slate-500 font-medium">Record purge requires clearance.</p>
                             </div>
-                            <Button
-                                variant="destructive"
-                                disabled={deleting}
-                                onClick={handleDeleteEmployee}
-                                className="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border-none rounded-2xl font-black text-[10px] px-6 h-10 shadow-none transition-all"
-                            >
-                                <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                {deleting ? "PURGING..." : "PURGE RECORD"}
-                            </Button>
+                            {hasPerm('delete_personnel') && (
+                                <Button
+                                    variant="destructive"
+                                    disabled={deleting}
+                                    onClick={handleDeleteEmployee}
+                                    className="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border-none rounded-2xl font-black text-[10px] px-6 h-10 shadow-none transition-all"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                    {deleting ? "PURGING..." : "PURGE RECORD"}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </DialogContent>

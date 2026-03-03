@@ -19,16 +19,18 @@ export default function AdminLayout({
     const { user, isAuthenticated, logout, login } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
 
-    const isLoginPage = pathname === "/admin/login"
+    const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login')
 
     useEffect(() => {
         let isActive = true;
 
-        // ── Synchronous per-tab portal check ──
-        // sessionStorage is per-tab, unlike cookies which are shared across tabs.
-        // If this tab was authenticated as an agency user, immediately block access.
+        // ── Per-tab Session Isolation ──
+        // sessionStorage is per-tab. If this tab doesn't have the 'admin' flag,
+        // we block automatic cookie-based login to prevent session leakage across tabs
+        // when a URL is copy-pasted.
         const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
-        if (tabPortalType === 'agency' && !isLoginPage) {
+        if (!isLoginPage && tabPortalType !== 'admin') {
+            logout();
             window.location.href = '/admin/login';
             return;
         }

@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { CalendarDays, Users, Clock, TrendingUp, Briefcase, Award } from "lucide-react"
+import { CalendarDays, Users, Clock, TrendingUp, Briefcase, Award, Building2, Wallet } from "lucide-react"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 
@@ -30,110 +30,72 @@ export default function StaffDashboard() {
   }, [])
 
   const fetchDashboardData = async () => {
+    setLoading(true)
     try {
       // Fetch user info with permissions
-      let userData: any = null;
-      try {
-        const userResponse = await api.get('/auth/me')
-        userData = userResponse.data
-        setUserPermissions(userData.permissions || [])
-      } catch (e) {
-        console.error("Failed to fetch user permissions", e)
-        setLoading(false)
-        return // Stop further requests if auth fails
-      }
+      const userResponse = await api.get('/auth/me')
+      const userData = userResponse.data
+      const perms = userData.permissions || []
+      setUserPermissions(perms)
 
+      const isAdmin = userData?.role === 'Super Admin' || userData?.role === 'Agency Admin'
+      const hasPerm = (p: string) => isAdmin || perms.includes(p)
 
-      // Fetch real data from APIs individually based on permissions
-      let employees = []
-      let attendance = []
-      let projects = []
-      let leaves = []
+      // Parallel fetching with settled status to avoid blocking
+      const [empRes, attRes, projRes, leaveRes] = await Promise.allSettled([
+        hasPerm('view_personnel') ? api.get('/employees') : Promise.reject('No permission'),
+        hasPerm('view_attendance') ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'), // Staff view own
+        hasPerm('view_projects') ? api.get('/projects') : Promise.reject('No permission'),
+        hasPerm('view_leaves') ? api.get('/leaves') : Promise.reject('No permission')
+      ])
 
-      // 1. Employees (Personnel) - Typically HR/Admin only
-      // 1. Employees (Personnel) - Typically HR/Admin/Supervisor
-      const isPrivileged = userData?.role?.toLowerCase().includes('admin') ||
-        userData?.role?.toLowerCase().includes('hr') ||
-        userData?.role?.toLowerCase().includes('supervisor');
+      const employees = empRes.status === 'fulfilled' ? empRes.value.data : []
+      const attendance = attRes.status === 'fulfilled' ? attRes.value.data : []
+      const projects = projRes.status === 'fulfilled' ? projRes.value.data : []
+      const leaves = leaveRes.status === 'fulfilled' ? leaveRes.value.data : []
 
-      if (userData?.permissions?.includes('view_attendance') || isPrivileged) {
-        try {
-          const res = await api.get('/employees')
-          employees = res.data || []
-        } catch (e: any) {
-          console.error("Employees API failed", e.response?.status)
-        }
-      }
-
-      // 2. Attendance - Staff can always view their own logs (handled by backend now)
-      try {
-        const res = await api.get('/attendance?today=true')
-        attendance = res.data || []
-      } catch (e: any) {
-        console.error("Attendance API failed", e.response?.status)
-      }
-
-      // 3. Projects - Visible to staff if they need to check-in
-      if (userData?.permissions?.includes('view_projects') || isPrivileged) {
-        try {
-          const res = await api.get('/projects')
-          projects = res.data || []
-        } catch (e: any) {
-          console.error("Projects API failed", e.response?.status)
-        }
-      }
-
-      // 4. Leaves
-      if (userData?.permissions?.includes('view_leaves') || isPrivileged) {
-        try {
-          const res = await api.get('/leaves')
-          leaves = res.data || []
-        } catch (e: any) {
-          console.error("Leaves API failed", e.response?.status)
-        }
-      }
-
-      // Calculate real statistics
+      // Calculate statistics
       const presentToday = attendance.filter((a: any) => a.status === 'PRESENT').length
       const absentToday = attendance.filter((a: any) => a.status === 'ABSENT').length
-      const onLeave = leaves.filter((l: any) =>
+      const onLeaveCount = leaves.filter((l: any) =>
         new Date(l.startDate) <= new Date() &&
         new Date(l.endDate) >= new Date() &&
         l.status === 'AGENCY_APPROVED'
       ).length
-      const activeProjects = projects.filter((p: any) => p.isActive).length
+      const activeProjectsCount = projects.filter((p: any) => p.status === 'ACTIVE' || p.isActive).length
 
       setUserStats({
         totalStaff: employees.length,
         presentToday,
         absentToday,
-        onLeave,
-        activeProjects,
+        onLeave: onLeaveCount,
+        activeProjects: activeProjectsCount,
         completedTasks: 0
       })
 
       // Set recent activities
       const activities = attendance.slice(0, 4).map((record: any) => ({
         type: record.status === 'PRESENT' ? 'checkin' : 'absent',
-        title: `${record.employee?.fullName || 'Unknown'} ${record.status === 'PRESENT' ? 'checked in' : 'marked absent'}`,
-        time: new Date(record.checkIn || record.date).toLocaleString(),
+        title: `${record.employee?.fullName || 'Personnel'} ${record.status === 'PRESENT' ? 'checked in' : 'marked absent'}`,
+        time: new Date(record.checkIn || record.createdAt).toLocaleTimeString(),
         icon: record.status === 'PRESENT' ? 'green' : 'red'
       }))
-      setRecentActivities(activities)
+      setRecentActivities(activities as any)
 
-      // Set top performers
-      const performers = employees.slice(0, 3).map((emp: any) => ({
+      // Set personnel list
+      const performers = employees.slice(0, 5).map((emp: any) => ({
         name: emp.fullName,
         designation: emp.designation?.name || 'Staff',
-        attendance: '95%',
+        attendance: 'Active',
         projects: (emp.assignedProjects?.length || 0).toString(),
         tasks: '0',
         initials: emp.fullName.split(' ').map((n: any) => n[0]).join('').toUpperCase()
       }))
-      setTopPerformers(performers)
+      setTopPerformers(performers as any)
+
     } catch (error: any) {
-      console.error('Critical failure in fetchDashboardData:', error)
-      toast.error(`Dashboard error: ${error.response?.status || error.message}`)
+      console.error('Failure in fetchDashboardData:', error)
+      toast.error("Cloud synchronization issues. Dashboard might be partial.")
     } finally {
       setLoading(false)
     }
@@ -297,35 +259,47 @@ export default function StaffDashboard() {
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {(userPermissions.includes('mark_attendance') || userPermissions.includes('view_attendance')) && (
-              <Button variant="outline" className="h-20 flex-col space-y-2" onClick={() => router.push(`/${agencySlug}/attendance`)}>
+              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-primary hover:text-primary transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/attendance`)}>
                 <Clock className="h-6 w-6" />
-                <span className="text-sm">Attendance</span>
+                <span className="text-sm font-bold">Attendance</span>
               </Button>
             )}
-            {userPermissions.includes('create_personnel') && (
-              <Button variant="outline" className="h-20 flex-col space-y-2" onClick={() => router.push(`/${agencySlug}/personnel`)}>
+            {userPermissions.includes('view_personnel') && (
+              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-teal-600 hover:text-teal-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/employees`)}>
                 <Users className="h-6 w-6" />
-                <span className="text-sm">View Staff</span>
+                <span className="text-sm font-bold">Personnel</span>
               </Button>
             )}
-            {userPermissions.includes('create_project') && (
-              <Button variant="outline" className="h-20 flex-col space-y-2" onClick={() => router.push(`/${agencySlug}/projects`)}>
+            {userPermissions.includes('view_projects') && (
+              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-emerald-600 hover:text-emerald-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/projects`)}>
                 <Briefcase className="h-6 w-6" />
-                <span className="text-sm">Projects</span>
+                <span className="text-sm font-bold">Projects</span>
               </Button>
             )}
-            {userPermissions.includes('view_reports') && (
-              <Button variant="outline" className="h-20 flex-col space-y-2">
-                <TrendingUp className="h-6 w-6" />
-                <span className="text-sm">Reports</span>
+            {userPermissions.includes('view_clients') && (
+              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-blue-600 hover:text-blue-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/clients`)}>
+                <Building2 className="h-6 w-6" />
+                <span className="text-sm font-bold">Clients</span>
+              </Button>
+            )}
+            {(userPermissions.includes('view_payroll') || userPermissions.includes('manage_payroll')) && (
+              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-amber-600 hover:text-amber-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/payroll`)}>
+                <Wallet className="h-6 w-6" />
+                <span className="text-sm font-bold">Payroll</span>
               </Button>
             )}
             {userPermissions.includes('apply_leave') && (
-              <Button variant="outline" className="h-20 flex-col space-y-2" onClick={() => router.push(`/${agencySlug}/leaves`)}>
+              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-orange-600 hover:text-orange-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/leaves`)}>
                 <CalendarDays className="h-6 w-6" />
-                <span className="text-sm">Leave</span>
+                <span className="text-sm font-bold">Leave</span>
+              </Button>
+            )}
+            {userPermissions.includes('view_reports') && (
+              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-primary transition-all shadow-sm">
+                <TrendingUp className="h-6 w-6" />
+                <span className="text-sm font-bold">Analytics</span>
               </Button>
             )}
           </div>

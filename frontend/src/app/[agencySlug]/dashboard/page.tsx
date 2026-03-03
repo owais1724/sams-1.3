@@ -11,6 +11,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/sonner"
+import { useAuthStore } from "@/store/authStore"
 
 export default function AgencyDashboard() {
     const { agencySlug } = useParams()
@@ -24,32 +25,61 @@ export default function AgencyDashboard() {
     const [pendingLeaves, setPendingLeaves] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
+    const { user: authUser } = useAuthStore()
+
     useEffect(() => {
         const fetchDashboardData = async () => {
             setLoading(true)
+
+            // Derive permissions
+            const isAdmin = authUser?.role === 'Super Admin' || authUser?.role === 'Agency Admin'
+            const hasPerm = (p: string) => isAdmin || authUser?.permissions?.includes(p)
+
             try {
-                const [clientsRes, projectsRes, employeesRes, leavesRes] = await Promise.all([
-                    api.get("/clients"),
-                    api.get("/projects"),
-                    api.get("/employees"),
-                    api.get("/leaves")
+                // Fetch mandatory/primary data (Projects are usually visible if you can enter dashboard)
+                const [projectsRes] = await Promise.allSettled([
+                    api.get("/projects")
                 ])
 
-                const clients = clientsRes.data || []
-                const projects = projectsRes.data || []
-                const employees = employeesRes.data || []
-                const leaves = leavesRes.data || []
+                const projects = projectsRes.status === 'fulfilled' ? projectsRes.value.data : []
+                setRecentProjects(projects.slice(0, 5))
+
+                // Fetch other stats individually or conditionally
+                let clientsCount = 0
+                let employeesCount = 0
+                let leaves: any[] = []
+
+                if (hasPerm('view_clients')) {
+                    try {
+                        const res = await api.get("/clients")
+                        clientsCount = res.data?.length || 0
+                    } catch (err) { /* silent fail */ }
+                }
+
+                if (hasPerm('view_personnel')) {
+                    try {
+                        const res = await api.get("/employees")
+                        employeesCount = res.data?.length || 0
+                    } catch (err) { /* silent fail */ }
+                }
+
+                if (hasPerm('view_leaves')) {
+                    try {
+                        const res = await api.get("/leaves")
+                        leaves = res.data || []
+                    } catch (err) { /* silent fail */ }
+                }
 
                 const pending = leaves.filter((l: any) => l.status !== 'AGENCY_APPROVED' && l.status !== 'REJECTED')
+                setPendingLeaves(pending.slice(0, 5))
 
                 setStats({
-                    clients: clients.length,
+                    clients: clientsCount,
                     projects: projects.length,
-                    employees: employees.length,
+                    employees: employeesCount,
                     pendingLeaves: pending.length
                 })
-                setRecentProjects(projects.slice(0, 5))
-                setPendingLeaves(pending.slice(0, 5))
+
             } catch (e) {
                 console.error("Dashboard data fetch failed", e)
             } finally {
@@ -57,7 +87,7 @@ export default function AgencyDashboard() {
             }
         }
         fetchDashboardData()
-    }, [])
+    }, [authUser])
 
     const cards = [
         {

@@ -26,12 +26,18 @@ export default function AgencyLayout({
     useEffect(() => {
         let isActive = true;
 
-        // ── Synchronous per-tab portal check ──
-        // sessionStorage is per-tab, unlike cookies which are shared across tabs.
-        // If this tab was authenticated as Super Admin, immediately block access.
+        // ── Per-tab Session Isolation ──
+        // sessionStorage is per-tab. If this tab doesn't have the 'agency' flag,
+        // we block automatic cookie-based login to prevent session leakage across tabs
+        // when a URL is copy-pasted.
         const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
-        if (tabPortalType === 'admin' && !isLoginPage) {
-            window.location.href = `/${agencySlug}/login`;
+        if (!isLoginPage && tabPortalType !== 'agency') {
+            logout();
+            if (pathname?.includes('/staff')) {
+                window.location.href = `/${agencySlug}/staff-login`;
+            } else {
+                window.location.href = `/${agencySlug}/login`;
+            }
             return;
         }
 
