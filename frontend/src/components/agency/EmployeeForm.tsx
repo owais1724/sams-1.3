@@ -21,6 +21,7 @@ import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
+import { SelectInput } from "@/components/ui/select-input"
 
 const countries = [
     { name: "India", code: "+91", iso: "IN", flag: "🇮🇳", length: 10 },
@@ -276,15 +277,14 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
 
                                 {(!showQuickAdd && designations.length > 0) ? (
                                     <FormControl>
-                                        <select
+                                        <SelectInput
                                             {...field}
-                                            className="w-full h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 appearance-none outline-none shadow-sm"
+                                            placeholder="Choose a designation..."
                                         >
-                                            <option value="">Choose a designation...</option>
                                             {designations.map(d => (
                                                 <option key={d.id} value={d.id}>{d.name}</option>
                                             ))}
-                                        </select>
+                                        </SelectInput>
                                     </FormControl>
                                 ) : (
                                     <div className="flex flex-col gap-2 p-4 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/30">
@@ -339,6 +339,11 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                     placeholder="Enter phone number"
                                 />
                             </FormControl>
+                            {initialData?.phoneNumber && (
+                                <p className="text-[10px] font-bold text-slate-400 pl-1 mt-1">
+                                    Saved: <span className="text-slate-600 font-black">{initialData.phoneNumber}</span>
+                                </p>
+                            )}
                             <FormMessage />
                         </FormItem>
                     )}
@@ -352,14 +357,13 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                             <FormItem className="space-y-1">
                                 <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Currency</FormLabel>
                                 <FormControl>
-                                    <select
+                                    <SelectInput
                                         {...field}
-                                        className="w-full h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 appearance-none outline-none shadow-sm"
                                     >
                                         {currencies.map(c => (
                                             <option key={c.value} value={c.value}>{c.label}</option>
                                         ))}
-                                    </select>
+                                    </SelectInput>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -414,7 +418,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                     <div className="relative group">
                                         <Input
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="Password"
+                                            placeholder={initialData ? "Leave blank to keep current password" : "Set a strong password"}
                                             {...field}
                                             className="h-12 rounded-xl bg-white border-slate-200 pr-10"
                                         />

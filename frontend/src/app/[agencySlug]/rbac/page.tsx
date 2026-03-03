@@ -12,7 +12,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Shield, Plus, Key, Users, Trash2 } from "lucide-react"
+import { Shield, Plus, Key, Users, Trash2, Edit3 } from "lucide-react"
 import {
     Sheet,
     SheetContent,
@@ -293,6 +293,7 @@ export default function RBACPage() {
                                                             setOpen(true)
                                                         }}
                                                     >
+                                                        <Edit3 className="h-3.5 w-3.5 mr-1.5" />
                                                         Edit
                                                     </Button>
                                                     <Button

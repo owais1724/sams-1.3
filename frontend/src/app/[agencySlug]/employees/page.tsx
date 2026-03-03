@@ -11,7 +11,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Plus, Users, UserCheck, Shield, Settings2, Wallet, Calculator, Search, Filter, LayoutGrid, List, Trash2, Mail, Phone, ShieldCheck, ExternalLink } from "lucide-react"
+import { Plus, Users, UserCheck, Shield, Settings2, Wallet, Calculator, Search, Filter, LayoutGrid, List, Trash2, Mail, Phone, ShieldCheck, ExternalLink, Edit3 } from "lucide-react"
 import {
     Sheet,
     SheetContent,
@@ -334,6 +334,7 @@ export default function EmployeesPage() {
                                                                     setOpenEnroll(true)
                                                                 }}
                                                             >
+                                                                <Edit3 className="h-3.5 w-3.5 mr-1.5" />
                                                                 Edit
                                                             </Button>
                                                             <Button

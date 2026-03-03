@@ -384,3 +384,180 @@ export function PageLoading({ message = "Loading..." }: PageLoadingProps) {
         </div>
     )
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 11. TABLE CARD WRAPPER
+//     The white rounded card that wraps every data table in the app.
+//     Replaces the repeated:
+//       <div className="bg-white rounded-[32px] md:rounded-[40px] border border-slate-100 shadow-2xl ...">
+//         <div className="overflow-x-auto">
+//           <Table>...
+//         </div>
+//       </div>
+//
+//     Usage:
+//       <TableCardWrapper>
+//         <Table>...</Table>
+//       </TableCardWrapper>
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface TableCardWrapperProps {
+    children: React.ReactNode
+    className?: string
+    minWidth?: string   // e.g. "800px" — prevents squishing on mobile
+}
+
+export function TableCardWrapper({
+    children,
+    className,
+    minWidth = "700px",
+}: TableCardWrapperProps) {
+    return (
+        <div className={cn(
+            "bg-white rounded-[32px] md:rounded-[40px]",
+            "border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden",
+            className
+        )}>
+            <div className="overflow-x-auto">
+                <div style={{ minWidth }}>
+                    {children}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 12. TABLE COLUMN HEADER
+//     The consistent uppercase column label style used in every table.
+//     Replaces the repeated:
+//       <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+//
+//     Usage:
+//       <TableColHead>Employee</TableColHead>
+//       <TableColHead align="right" className="px-8">Actions</TableColHead>
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface TableColHeadProps {
+    children: React.ReactNode
+    align?: "left" | "right" | "center"
+    className?: string
+}
+
+export function TableColHead({ children, align = "left", className }: TableColHeadProps) {
+    return (
+        <TableHead className={cn(
+            "text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap",
+            align === "right" && "text-right",
+            align === "center" && "text-center",
+            className
+        )}>
+            {children}
+        </TableHead>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 13. TABLE ROW — LOADING STATE
+//     Shown while data is being fetched, inside a <TableBody>.
+//     Replaces the repeated <TableCell colSpan={n} ...>Loading...</TableCell>
+//
+//     Usage:
+//       {loading && <TableRowLoading colSpan={5} message="Loading employees..." />}
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface TableRowLoadingProps {
+    colSpan: number
+    message?: string
+}
+
+export function TableRowLoading({ colSpan, message = "Loading..." }: TableRowLoadingProps) {
+    return (
+        <TableRow>
+            <TableCell colSpan={colSpan} className="text-center py-16">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="h-6 w-6 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">
+                        {message}
+                    </p>
+                </div>
+            </TableCell>
+        </TableRow>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 14. TABLE ROW — EMPTY STATE
+//     Shown when a table has no data. Replaces the repetitive empty TableRow
+//
+//     Usage:
+//       {data.length === 0 && (
+//         <TableRowEmpty colSpan={5} icon={<Users />} title="No employees" description="Add your first employee." />
+//       )}
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface TableRowEmptyProps {
+    colSpan: number
+    title: string
+    description?: string
+    icon?: React.ReactNode
+    action?: React.ReactNode
+}
+
+export function TableRowEmpty({ colSpan, title, description, icon, action }: TableRowEmptyProps) {
+    return (
+        <TableRow>
+            <TableCell colSpan={colSpan} className="py-20 text-center">
+                <div className="flex flex-col items-center gap-3">
+                    {icon && (
+                        <div className="h-14 w-14 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 border border-slate-100">
+                            {icon}
+                        </div>
+                    )}
+                    <p className="font-bold text-slate-700 text-sm">{title}</p>
+                    {description && (
+                        <p className="text-slate-400 text-xs font-medium max-w-xs">{description}</p>
+                    )}
+                    {action && <div className="mt-2">{action}</div>}
+                </div>
+            </TableCell>
+        </TableRow>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 15. CONFIRM DELETE BUTTON
+//     The ghost trash-can icon button used in table action columns.
+//     Already in TableActionButtons.tsx but exported here for standalone use.
+//
+//     Usage:
+//       <ConfirmDeleteButton onClick={() => openDeleteModal(item.id)} />
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { Trash2 } from "lucide-react"
+
+interface ConfirmDeleteButtonProps {
+    onClick: () => void
+    disabled?: boolean
+    title?: string
+    className?: string
+}
+
+export function ConfirmDeleteButton({ onClick, disabled, title = "Delete", className }: ConfirmDeleteButtonProps) {
+    return (
+        <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClick}
+            disabled={disabled}
+            title={title}
+            className={cn(
+                "h-8 w-8 sm:h-10 sm:w-10 rounded-xl",
+                "text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all",
+                className
+            )}
+        >
+            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        </Button>
+    )
+}

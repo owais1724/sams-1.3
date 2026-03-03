@@ -190,4 +190,13 @@ export class AgenciesService {
       return tx.agency.delete({ where: { id } });
     });
   }
+  async toggleStatus(id: string) {
+    const agency = await this.prisma.agency.findUnique({ where: { id } });
+    if (!agency) throw new NotFoundException('Agency not found');
+
+    return this.prisma.agency.update({
+      where: { id },
+      data: { isActive: !agency.isActive },
+    });
+  }
 }

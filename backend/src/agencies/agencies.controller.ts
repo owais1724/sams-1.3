@@ -60,4 +60,12 @@ export class AgenciesController {
     }
     return this.agenciesService.remove(id);
   }
+
+  @Patch(':id/toggle-status')
+  async toggleStatus(@Request() req, @Param('id') id: string) {
+    if (req.user.role !== 'Super Admin') {
+      throw new ForbiddenException('Only Super Admins can change agency status');
+    }
+    return this.agenciesService.toggleStatus(id);
+  }
 }

@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Form,
@@ -35,18 +35,28 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
+            name: "",
+            contact: "",
+            email: "",
+            address: ""
+        },
+    })
+
+    // Re-populate when switching between clients
+    useEffect(() => {
+        form.reset({
             name: initialData?.name || "",
             contact: initialData?.contact || "",
             email: initialData?.email || "",
-            address: initialData?.address || ""
-        },
-    })
+            address: initialData?.address || "",
+        })
+    }, [initialData]) // eslint-disable-line react-hooks/exhaustive-deps
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
         try {
             if (initialData?.id) {
-                await api.post(`/clients/${initialData.id}`, values)
+                await api.patch(`/clients/${initialData.id}`, values)
                 toast.success("Client updated successfully")
             } else {
                 await api.post("/clients", values)

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Building2, Shield, Users, Edit } from "lucide-react"
+import { Plus, Trash2, Building2, Shield, Users, Edit3, Power, PowerOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
     Sheet,
@@ -38,6 +38,10 @@ export default function AdminDashboard() {
         name: ""
     })
     const [isDeleting, setIsDeleting] = useState(false)
+    const [toggleModal, setToggleModal] = useState<{ open: boolean, id: string, name: string, currentStatus: boolean }>({
+        open: false, id: "", name: "", currentStatus: true
+    })
+    const [isToggling, setIsToggling] = useState(false)
 
     const fetchAgencies = async () => {
         try {
@@ -62,6 +66,22 @@ export default function AdminDashboard() {
             toast.error(error.response?.data?.message || "Failed to delete agency")
         } finally {
             setIsDeleting(false)
+        }
+    }
+
+    const handleToggleStatus = async () => {
+        if (!toggleModal.id) return
+        setIsToggling(true)
+        try {
+            const res = await api.patch(`/agencies/${toggleModal.id}/toggle-status`)
+            const newStatus = res.data.isActive
+            setAgencies(prev => prev.map(a => a.id === toggleModal.id ? { ...a, isActive: newStatus } : a))
+            toast.success(newStatus ? `${toggleModal.name} has been activated` : `${toggleModal.name} has been deactivated`)
+            setToggleModal({ open: false, id: "", name: "", currentStatus: true })
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to update agency status")
+        } finally {
+            setIsToggling(false)
         }
     }
 
@@ -216,19 +236,35 @@ export default function AdminDashboard() {
                                             })}
                                         </TableCell>
                                         <TableCell className="pr-8 text-right">
-                                            <div className="flex items-center justify-end gap-3 translate-x-4 md:translate-x-0 group-hover:translate-x-0 transition-transform">
+                                            <div className="flex items-center justify-end gap-2">
+                                                {/* Toggle Button */}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className={cn(
+                                                        "h-11 px-4 font-black rounded-2xl transition-all active:scale-95 shadow-sm text-xs",
+                                                        agency.isActive
+                                                            ? "bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white shadow-amber-100/50"
+                                                            : "bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white shadow-emerald-100/50"
+                                                    )}
+                                                    onClick={() => setToggleModal({ open: true, id: agency.id, name: agency.name, currentStatus: agency.isActive })}
+                                                >
+                                                    {agency.isActive
+                                                        ? <><PowerOff className="h-3.5 w-3.5 mr-1.5" />DEACTIVATE</>
+                                                        : <><Power className="h-3.5 w-3.5 mr-1.5" />ACTIVATE</>
+                                                    }
+                                                </Button>
+                                                {/* Edit Button */}
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     className="h-11 px-5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-blue-100/50"
-                                                    onClick={() => {
-                                                        setEditingAgency(agency)
-                                                        setOpen(true)
-                                                    }}
+                                                    onClick={() => { setEditingAgency(agency); setOpen(true) }}
                                                 >
-                                                    <Edit className="h-4 w-4 mr-2" />
+                                                    <Edit3 className="h-4 w-4 mr-2" />
                                                     EDIT
                                                 </Button>
+                                                {/* Remove Button */}
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -248,6 +284,23 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
+            {/* ── Toggle Status Modal ── */}
+            <AlertModal
+                isOpen={toggleModal.open}
+                onClose={() => setToggleModal({ ...toggleModal, open: false })}
+                onConfirm={handleToggleStatus}
+                loading={isToggling}
+                title={toggleModal.currentStatus ? "DEACTIVATE AGENCY" : "ACTIVATE AGENCY"}
+                variant={toggleModal.currentStatus ? "danger" : "success"}
+                description={
+                    toggleModal.currentStatus
+                        ? `Deactivating ${toggleModal.name} will block all logins for this agency. Data is preserved and you can reactivate anytime.`
+                        : `Activating ${toggleModal.name} will restore full access for all agency admins and staff.`
+                }
+                confirmText={toggleModal.currentStatus ? "Deactivate" : "Activate"}
+            />
+
+            {/* ── Delete Modal ── */}
             <AlertModal
                 isOpen={deleteModal.open}
                 onClose={() => setDeleteModal({ ...deleteModal, open: false })}

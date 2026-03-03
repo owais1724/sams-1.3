@@ -9,82 +9,69 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { Permissions } from '../auth/permissions.decorator';
 import { PayrollService } from './payroll.service';
 import { type CreatePayrollDto, type UpdatePayrollDto } from './payroll.entity';
 
 @Controller('payrolls')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 export class PayrollController {
-  constructor(private readonly payrollService: PayrollService) {}
+  constructor(private readonly payrollService: PayrollService) { }
 
   @Post()
-  async createPayroll(
-    @Body() createPayrollDto: CreatePayrollDto,
-    @Request() req,
-  ) {
-    const agencyId = req.user.agencyId;
-    return this.payrollService.createPayroll(createPayrollDto, agencyId);
+  @Permissions('manage_payroll')
+  async createPayroll(@Body() createPayrollDto: CreatePayrollDto, @Request() req) {
+    return this.payrollService.createPayroll(createPayrollDto, req.user.agencyId);
   }
 
   @Get()
+  @Permissions('view_payroll', 'manage_payroll')
   async getPayrolls(@Request() req) {
-    const agencyId = req.user.agencyId;
-    return this.payrollService.getPayrolls(agencyId);
+    return this.payrollService.getPayrolls(req.user.agencyId);
   }
 
   @Get(':id')
+  @Permissions('view_payroll', 'manage_payroll')
   async getPayrollById(@Param('id') id: string, @Request() req) {
-    const agencyId = req.user.agencyId;
-    return this.payrollService.getPayrollById(id, agencyId);
+    return this.payrollService.getPayrollById(id, req.user.agencyId);
   }
 
   @Put(':id')
-  async updatePayroll(
-    @Param('id') id: string,
-    @Body() updatePayrollDto: UpdatePayrollDto,
-    @Request() req,
-  ) {
-    const agencyId = req.user.agencyId;
-    return this.payrollService.updatePayroll(id, updatePayrollDto, agencyId);
+  @Permissions('manage_payroll')
+  async updatePayroll(@Param('id') id: string, @Body() updatePayrollDto: UpdatePayrollDto, @Request() req) {
+    return this.payrollService.updatePayroll(id, updatePayrollDto, req.user.agencyId);
   }
 
   @Delete(':id')
+  @Permissions('manage_payroll')
   async deletePayroll(@Param('id') id: string, @Request() req) {
-    const agencyId = req.user.agencyId;
-    return this.payrollService.deletePayroll(id, agencyId);
+    return this.payrollService.deletePayroll(id, req.user.agencyId);
   }
 
   @Post('generate-bulk')
+  @Permissions('manage_payroll')
   async generateBulkPayroll(
     @Body('month') month: string,
     @Body('designationId') designationId: string,
     @Request() req,
   ) {
-    const agencyId = req.user.agencyId;
-    return this.payrollService.generateBulkPayroll(
-      month,
-      agencyId,
-      designationId,
-    );
+    return this.payrollService.generateBulkPayroll(month, req.user.agencyId, designationId);
   }
 
   @Post(':id/status')
-  async updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: string,
-    @Request() req,
-  ) {
-    const agencyId = req.user.agencyId;
-    return this.payrollService.updateStatus(id, status, agencyId);
+  @Permissions('manage_payroll')
+  async updateStatus(@Param('id') id: string, @Body('status') status: string, @Request() req) {
+    return this.payrollService.updateStatus(id, status, req.user.agencyId);
   }
 
   @Post('generate-individual')
+  @Permissions('manage_payroll')
   async generateIndividual(
     @Body() data: { employeeId: string; month: string; amount: number },
     @Request() req,
   ) {
-    const agencyId = req.user.agencyId;
-    return this.payrollService.generateIndividual(data, agencyId);
+    return this.payrollService.generateIndividual(data, req.user.agencyId);
   }
 }

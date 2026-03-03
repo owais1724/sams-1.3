@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Eye, EyeOff } from "lucide-react"
 import {
@@ -39,6 +39,18 @@ const formSchema = z.object({
     path: ["adminPassword"]
 });
 
+// Parse stored phone string e.g. "+919876543210" → { countryCode: "+91", phoneNumber: "9876543210" }
+// Longer codes first to avoid "+1" greedily matching "+234", "+254"
+function parsePhone(raw: string): { countryCode: string; phoneNumber: string } {
+    const knownCodes = ["+254", "+234", "+44", "+27", "+91", "+1"]
+    for (const code of knownCodes) {
+        if (raw?.startsWith(code)) {
+            return { countryCode: code, phoneNumber: raw.slice(code.length) }
+        }
+    }
+    return { countryCode: "+91", phoneNumber: raw || "" }
+}
+
 export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, initialData?: any }) {
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
@@ -46,17 +58,30 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            name: initialData?.name || "",
-            slug: initialData?.slug || "",
-            adminName: initialData?.users?.[0]?.fullName || "",
-            adminEmail: initialData?.users?.[0]?.email || "",
+            name: "",
+            slug: "",
+            adminName: "",
+            adminEmail: "",
             adminPassword: "",
-            adminPhone: initialData?.users?.[0]?.phone ? {
-                countryCode: initialData.users[0].phone.countryCode || "+91",
-                phoneNumber: initialData.users[0].phone.phoneNumber || ""
-            } : { countryCode: "+91", phoneNumber: "" },
+            adminPhone: { countryCode: "+91", phoneNumber: "" },
         },
     })
+
+    // Re-populate form whenever the agency being edited changes
+    useEffect(() => {
+        const adminUser = initialData?.users?.[0]
+        const rawPhone = adminUser?.phoneNumber || ""
+        const parsedPhone = rawPhone ? parsePhone(rawPhone) : { countryCode: "+91", phoneNumber: "" }
+
+        form.reset({
+            name: initialData?.name || "",
+            slug: initialData?.slug || "",
+            adminName: adminUser?.fullName || "",
+            adminEmail: adminUser?.email || "",
+            adminPassword: "",
+            adminPhone: parsedPhone,
+        })
+    }, [initialData?.id]) // re-run only when a different agency is opened
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
@@ -81,6 +106,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
 
                 await api.patch(`/agencies/${initialData.id}`, updateData)
                 toast.success("Agency and administrator updated successfully")
+                onSuccess()
             } else {
                 if (values.adminPhone?.phoneNumber) {
                     const phoneError = validatePhoneNumber(values.adminPhone.phoneNumber, values.adminPhone.countryCode);
@@ -212,6 +238,12 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         required={!initialData}
                                     />
                                 </FormControl>
+                                {/* Show saved phone as a hint when editing */}
+                                {initialData?.users?.[0]?.phoneNumber && (
+                                    <p className="text-[10px] font-bold text-slate-400 pl-1">
+                                        Saved: <span className="text-slate-700 font-black tracking-wide">{initialData.users[0].phoneNumber}</span>
+                                    </p>
+                                )}
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -228,7 +260,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                     <div className="relative group">
                                         <Input
                                             type={showPassword ? "text" : "password"}
-                                            placeholder={initialData ? "Password" : "Password"}
+                                            placeholder={initialData ? "Leave blank to keep current password" : "Set a password"}
                                             className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-black px-4 pr-12"
                                             {...field}
                                         />
@@ -245,6 +277,13 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         </button>
                                     </div>
                                 </FormControl>
+                                {/* Password-set indicator — passwords are hashed, never shown */}
+                                {initialData && (
+                                    <p className="text-[10px] font-bold text-emerald-600 pl-1 flex items-center gap-1">
+                                        <span>✓</span>
+                                        <span>Password is set — leave blank to keep it unchanged</span>
+                                    </p>
+                                )}
                                 <FormMessage />
                             </FormItem>
                         )}
