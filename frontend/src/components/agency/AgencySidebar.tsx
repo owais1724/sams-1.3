@@ -11,7 +11,6 @@ import {
     Clock,
     CalendarDays,
     Wallet,
-    LogOut,
     ShieldCheck
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -19,6 +18,7 @@ import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
+import { SidebarItem, SidebarLogout, SidebarSectionLabel } from "@/components/ui/design-system"
 
 export function AgencySidebar() {
     const { agencySlug } = useParams()
@@ -138,32 +138,18 @@ export function AgencySidebar() {
             {/* Navigation */}
             <div className="flex-1 overflow-y-auto pt-8 px-4 space-y-8">
                 <div>
-                    <p className="px-3 mb-4 text-[10px] font-black text-teal-200/40 uppercase tracking-[0.2em]">Management</p>
+                    <SidebarSectionLabel>Management</SidebarSectionLabel>
                     <nav className="space-y-1.5">
-                        {navItems.map((item) => {
-                            const isActive = pathname === item.href
-                            return (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className={cn(
-                                        "group flex items-center rounded-xl px-4 py-4 text-sm font-bold transition-all duration-300 relative overflow-hidden",
-                                        isActive
-                                            ? "bg-[#14B8A6] text-white shadow-xl shadow-teal-500/20"
-                                            : "text-teal-100/60 hover:text-white hover:bg-white/5"
-                                    )}
-                                >
-                                    <item.icon className={cn(
-                                        "mr-3 h-5 w-5 transition-transform duration-300 group-hover:scale-110",
-                                        isActive ? "text-white" : "text-teal-200/40 group-hover:text-white"
-                                    )} />
-                                    {item.name}
-                                    {isActive && (
-                                        <div className="absolute right-0 top-0 bottom-0 w-1 bg-white rounded-l-full shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-                                    )}
-                                </Link>
-                            )
-                        })}
+                        {navItems.map((item) => (
+                            <SidebarItem
+                                key={item.name}
+                                name={item.name}
+                                href={item.href}
+                                icon={item.icon}
+                                isActive={pathname === item.href}
+                                className="text-teal-100/60 hover:text-white"
+                            />
+                        ))}
                     </nav>
                 </div>
             </div>
@@ -180,17 +166,13 @@ export function AgencySidebar() {
                     </div>
                 </div>
 
-                <button
+                <SidebarLogout
                     onClick={async () => {
                         await api.post("/auth/logout")
                         logout()
                         window.location.replace(isStaff ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`)
                     }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 px-3 py-2.5 text-xs font-black text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 group"
-                >
-                    <LogOut className="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" />
-                    Sign Out
-                </button>
+                />
             </div>
         </div>
     )

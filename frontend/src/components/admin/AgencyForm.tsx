@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Eye, EyeOff } from "lucide-react"
 import {
     Form,
@@ -13,12 +12,12 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-    FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { PhoneInput, validatePhoneNumber } from "@/components/ui/phone-input"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
+import { FormCard, FormHeader, SubmitButton } from "@/components/ui/design-system"
 
 const formSchema = z.object({
     name: z.string().min(2, "Agency name must be at least 2 characters"),
@@ -31,16 +30,12 @@ const formSchema = z.object({
         phoneNumber: z.string()
     })
 }).refine((data) => {
-    // Basic password validation only if provided or if not in edit mode
-    // Note: complex validation like regex is better handled in the actual field or a separate effect/state
     return true;
 }, {
     message: "Invalid data",
     path: ["adminPassword"]
 });
 
-// Parse stored phone string e.g. "+919876543210" → { countryCode: "+91", phoneNumber: "9876543210" }
-// Longer codes first to avoid "+1" greedily matching "+234", "+254"
 function parsePhone(raw: string): { countryCode: string; phoneNumber: string } {
     const knownCodes = ["+254", "+234", "+44", "+27", "+91", "+1"]
     for (const code of knownCodes) {
@@ -67,7 +62,6 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
         },
     })
 
-    // Re-populate form whenever the agency being edited changes
     useEffect(() => {
         const adminUser = initialData?.users?.[0]
         const rawPhone = adminUser?.phoneNumber || ""
@@ -81,7 +75,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
             adminPassword: "",
             adminPhone: parsedPhone,
         })
-    }, [initialData?.id]) // re-run only when a different agency is opened
+    }, [initialData?.id])
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
@@ -130,12 +124,8 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-6 rounded-[32px] border border-slate-100 p-8 bg-white shadow-xl shadow-slate-200/50">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="h-2 w-2 bg-blue-600 rounded-full animate-pulse" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Core Infrastructure</h3>
-                    </div>
-
+                <FormCard>
+                    <FormHeader title="Core Infrastructure" color="blue" />
                     <FormField
                         control={form.control}
                         name="name"
@@ -177,14 +167,10 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                             </FormItem>
                         )}
                     />
-                </div>
+                </FormCard>
 
-                <div className="space-y-6 rounded-[32px] border border-slate-100 p-8 bg-white shadow-xl shadow-slate-200/50">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="h-2 w-2 bg-emerald-600 rounded-full animate-pulse" />
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Master Credentials</h3>
-                    </div>
-
+                <FormCard>
+                    <FormHeader title="Master Credentials" color="emerald" />
                     <FormField
                         control={form.control}
                         name="adminName"
@@ -238,7 +224,6 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         required={!initialData}
                                     />
                                 </FormControl>
-                                {/* Show saved phone as a hint when editing */}
                                 {initialData?.users?.[0]?.phoneNumber && (
                                     <p className="text-[10px] font-bold text-slate-400 pl-1">
                                         Saved: <span className="text-slate-700 font-black tracking-wide">{initialData.users[0].phoneNumber}</span>
@@ -254,7 +239,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-1.5">
                                 <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">
-                                    {initialData ? "Password" : "Password"} {!initialData && <span className="text-red-500">*</span>}
+                                    Password {!initialData && <span className="text-red-500">*</span>}
                                 </FormLabel>
                                 <FormControl>
                                     <div className="relative group">
@@ -277,7 +262,6 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         </button>
                                     </div>
                                 </FormControl>
-                                {/* Password-set indicator — passwords are hashed, never shown */}
                                 {initialData && (
                                     <p className="text-[10px] font-bold text-emerald-600 pl-1 flex items-center gap-1">
                                         <span>✓</span>
@@ -288,11 +272,12 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                             </FormItem>
                         )}
                     />
-                </div>
+                </FormCard>
 
-                <Button type="submit" className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl shadow-xl shadow-slate-200 transition-all active:scale-[0.98]" disabled={loading}>
-                    {loading ? "PROCESSING..." : (initialData ? "Update Agency" : "Create Agency")}
-                </Button>
+                <SubmitButton
+                    label={initialData ? "Update Agency" : "Create Agency"}
+                    loading={loading}
+                />
             </form>
         </Form>
     )

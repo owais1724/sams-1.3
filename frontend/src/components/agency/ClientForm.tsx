@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import {
     Form,
     FormControl,
@@ -16,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
+import { SubmitButton } from "@/components/ui/design-system"
 
 const formSchema = z.object({
     name: z.string().min(2, "Client name is required"),
@@ -142,9 +142,11 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black shadow-lg transition-all active:scale-[0.98] uppercase tracking-widest mt-4" disabled={loading}>
-                    {loading ? "Processing..." : initialData?.id ? "Update Client" : "Register Client"}
-                </Button>
+
+                <SubmitButton
+                    label={initialData?.id ? "Update Client" : "Register Client"}
+                    loading={loading}
+                />
             </form>
         </Form>
     )
