@@ -18,13 +18,24 @@ import {
     StatusBadge,
 } from "@/components/ui/design-system"
 import { FormSheet } from "@/components/common/FormSheet"
+import { useAuthStore } from "@/store/authStore"
 
 export default function ProjectsPage() {
+    const { user: authUser } = useAuthStore()
     const [projects, setProjects] = useState<any[]>([])
     const [clients, setClients] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
     const [editingProject, setEditingProject] = useState<any>(null)
+
+    // Permission flags — Strictly following the database matrix
+    // Only the Platform Super Admin bypasses these. Agency owners must have the box checked.
+    const canCreate = authUser?.role === 'super admin' || authUser?.permissions?.includes('create_project')
+    const canEdit = authUser?.role === 'super admin' || authUser?.permissions?.includes('edit_project')
+
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`[Permission Check] canCreate: ${canCreate}, canEdit: ${canEdit}`, authUser?.permissions)
+    }
 
     const fetchData = async () => {
         try {
@@ -52,13 +63,13 @@ export default function ProjectsPage() {
             <PageHeader
                 title="Projects"
                 subtitle="Security sites and operational projects"
-                action={
+                action={canCreate ? (
                     <CreateButton
                         label="Create Project"
                         icon={<Plus className="h-4 w-4" />}
                         onClick={openCreate}
                     />
-                }
+                ) : null}
             />
 
             {/* ── Form Sheet (create / edit) ───────────────────────────── */}
@@ -118,15 +129,17 @@ export default function ProjectsPage() {
                                         <StatusBadge status={project.isActive ? "ACTIVE" : "INACTIVE"} />
                                     </TableCell>
                                     <TableCell className="text-right px-8">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-10 px-5 rounded-2xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all active:scale-95"
-                                            onClick={() => openEdit(project)}
-                                        >
-                                            <Edit3 className="h-3.5 w-3.5 mr-1.5" />
-                                            Edit
-                                        </Button>
+                                        {canEdit && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-10 px-5 rounded-2xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all active:scale-95"
+                                                onClick={() => openEdit(project)}
+                                            >
+                                                <Edit3 className="h-3.5 w-3.5 mr-1.5" />
+                                                Edit
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))

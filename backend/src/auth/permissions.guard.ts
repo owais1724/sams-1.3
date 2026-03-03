@@ -23,12 +23,11 @@ export class PermissionsGuard implements CanActivate {
     const isProd = process.env.NODE_ENV === 'production';
 
     // ── Tier 1: Platform Super Admin bypasses everything ─────────────────────
-    // These are the global platform owners/developers who manage the infrastructure.
     if (userRole === 'super admin') {
       return true;
     }
 
-    // ── Tier 2: All other roles (Agency Admin, HR, Guard, etc.) are strictly permission-checked ──
+    // ── Tier 2: Permission Enforcement ────────────────────────────────────────
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
       PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
@@ -36,40 +35,34 @@ export class PermissionsGuard implements CanActivate {
 
     const userPermissions: string[] = user.permissions || [];
 
-    if (!isProd && process.env.DEBUG_AUTH === 'true') {
-      console.log(
-        `[PermissionsGuard] ${user.email} (${userRole}) | route: ${request.method} ${request.url}`,
-      );
-      console.log(`[PermissionsGuard] Required: ${JSON.stringify(requiredPermissions)}`);
-      console.log(`[PermissionsGuard] Has: ${JSON.stringify(userPermissions)}`);
-    }
+    // Detailed debug output for the user's terminal
+    if (!isProd) {
+      console.log(`[RBAC] User: ${user.email} | Role: ${userRole}`);
+      console.log(`[RBAC] Route: ${request.method} ${request.url}`);
+      console.log(`[RBAC] Required: ${JSON.stringify(requiredPermissions)}`);
 
-    // ── DEFAULT DENY: if no permissions declared on route, block all non-system-admins ──
-    if (!requiredPermissions || requiredPermissions.length === 0) {
-      if (!isProd) {
-        console.warn(
-          `[PermissionsGuard] BLOCKED — Route "${context.getHandler().name}" is missing @Permissions() and role is "${userRole}"`,
-        );
+      const hasPermission = !requiredPermissions || requiredPermissions.length === 0
+        ? false
+        : requiredPermissions.some(p => userPermissions.includes(p));
+
+      if (!hasPermission) {
+        console.error(`[RBAC] ACCESS DENIED — User lacks required privileges.`);
+      } else {
+        console.log(`[RBAC] ACCESS GRANTED.`);
       }
-      throw new ForbiddenException(
-        'Security Violation: This action has no defined permissions. Please contact technical support.',
-      );
     }
 
-    // ── Check user permissions against required ───────────────────────────────
+    // Default Deny if no permissions specified
+    if (!requiredPermissions || requiredPermissions.length === 0) {
+      throw new ForbiddenException('Access Denied: Unprotected Resource');
+    }
+
     const hasPermission = requiredPermissions.some((p) =>
       userPermissions.includes(p),
     );
 
     if (!hasPermission) {
-      if (!isProd) {
-        console.log(
-          `[PermissionsGuard] DENIED for "${user.email}" — required: [${requiredPermissions}], has: [${userPermissions}]`,
-        );
-      }
-      throw new ForbiddenException(
-        'You do not have permission to perform this action',
-      );
+      throw new ForbiddenException(`Access Denied: Missing ${requiredPermissions.join(' or ')}`);
     }
 
     return true;
