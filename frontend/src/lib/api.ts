@@ -1,18 +1,57 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
+const TOKEN_KEY = 'sams_access_token';
+
+/** Save token received from login response (used by mobile as fallback) */
+export function saveToken(token: string) {
+    try {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(TOKEN_KEY, token);
+        }
+    } catch (e) { /* ignore */ }
+}
+
+/** Remove token on logout */
+export function clearToken() {
+    try {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem(TOKEN_KEY);
+        }
+    } catch (e) { /* ignore */ }
+}
+
+/** Read stored token */
+function getToken(): string | null {
+    try {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(TOKEN_KEY);
+        }
+    } catch (e) { /* ignore */ }
+    return null;
+}
+
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
-    withCredentials: true, // Important for cookies
+    withCredentials: true, // Sends cookies on desktop browsers
 });
 
-// Request interceptor removed as we now use HTTP-only cookies
+// ── Request interceptor: attach Bearer token for mobile ───────────────────────
+// Desktop browsers send the HttpOnly cookie automatically via withCredentials.
+// Mobile browsers (Safari iOS) block cross-domain SameSite=None cookies (ITP),
+// so we fall back to a stored token sent as an Authorization header.
+api.interceptors.request.use((config) => {
+    const token = getToken();
+    if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+});
 
-
-// Response interceptor to handle errors globally
+// ── Response interceptor: handle 401 globally ─────────────────────────────────
 api.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -20,23 +59,21 @@ api.interceptors.response.use(
         const url = error.config?.url || 'Unknown URL';
         const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
 
-        // Prepare a cleaner error message
         const message =
             error.response?.data?.message ||
             error.message ||
             "An unexpected error occurred";
 
-        // Automatically logout on 401 Unauthorized - but NOT for the login request itself
+        // Auto-logout on 401 — but NOT for the login request itself
         if (status === 401) {
             const isLoginRequest = url.includes('/auth/login');
 
             if (!isLoginRequest) {
-                console.warn(`[API] 401 Unauthorized detected at ${method} ${url}. Session expired.`);
+                console.warn(`[API] 401 at ${method} ${url}. Clearing session.`);
 
-                // Clear frontend auth state
+                clearToken();
                 useAuthStore.getState().logout();
 
-                // Do NOT redirect if we are already on a login page
                 const isLoginPage = typeof window !== 'undefined' && (
                     window.location.pathname.includes('/login') ||
                     window.location.pathname.includes('/staff-login')
@@ -61,12 +98,10 @@ api.interceptors.response.use(
             }
         }
 
-        // Log error for debugging
         if (status !== 401 && status !== 403) {
             console.error(`[API] ${method} ${url} Error:`, message);
         }
 
-        // Create a robust error object
         const customError = new Error(Array.isArray(message) ? message.join(', ') : message) as any;
         customError.status = status;
         customError.response = error.response;

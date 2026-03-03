@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import api from "@/lib/api"
+import api, { saveToken } from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
@@ -85,6 +85,7 @@ export default function AgencyAdminLogin() {
             }
 
             login(user)
+            if (response.data.access_token) saveToken(response.data.access_token)
             sessionStorage.setItem('sams_portal_type', 'agency')
             toast.success("Identity verified. Welcome back.")
             router.push(`/${agencySlug}/dashboard`)

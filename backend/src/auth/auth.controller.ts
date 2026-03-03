@@ -51,7 +51,7 @@ export class AuthController {
         `[AuthController] Cookie set successfully for user: ${user.email}`,
       );
     }
-    return { user };
+    return { user, access_token };
   }
 
   @Post('logout')

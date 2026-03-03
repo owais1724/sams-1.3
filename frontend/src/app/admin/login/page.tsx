@@ -21,7 +21,7 @@ import { toast } from "@/components/ui/sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { Lock, Mail, ChevronRight, Loader2, ShieldCheck, Cpu, Eye, EyeOff } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
-import api from "@/lib/api"
+import api, { saveToken } from "@/lib/api"
 
 const formSchema = z.object({
     email: z.string().email("Please enter a valid administrative email"),
@@ -70,6 +70,7 @@ export default function LoginPage() {
             }
 
             login(user)
+            if (response.data.access_token) saveToken(response.data.access_token)
             sessionStorage.setItem('sams_portal_type', 'admin')
             toast.success("Welcome, Administrator")
             router.push("/admin/dashboard")
