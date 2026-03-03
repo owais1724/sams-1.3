@@ -142,8 +142,9 @@ export class EmployeesService {
         throw new ConflictException(`${target} already exists.`);
       }
 
+      const isProd = process.env.NODE_ENV === 'production';
       throw new InternalServerErrorException(
-        `Failed to create personnel: ${error.message}`,
+        isProd ? 'Failed to create personnel' : `Failed to create personnel: ${error.message}`,
       );
     }
   }
@@ -180,7 +181,7 @@ export class EmployeesService {
         }
 
         const updatedEmployee = await tx.employee.update({
-          where: { id },
+          where: { id, agencyId },  // agencyId prevents cross-agency update (TOCTOU defense)
           data: employeeUpdate,
         });
 
@@ -205,8 +206,9 @@ export class EmployeesService {
       });
     } catch (error: any) {
       if (error instanceof ConflictException) throw error;
+      const isProd = process.env.NODE_ENV === 'production';
       throw new InternalServerErrorException(
-        `Failed to update employee: ${error.message}`,
+        isProd ? 'Failed to update employee' : `Failed to update employee: ${error.message}`,
       );
     }
   }

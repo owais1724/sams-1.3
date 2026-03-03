@@ -53,7 +53,7 @@ export class AuthService {
     return result;
   }
 
-  async login(user: any) {
+  async login(user: any, clientIp: string = 'unknown') {
     // Fetch user with role and permissions
     const userWithPermissions = await this.usersService.findOneWithPermissions(
       user.email,
@@ -70,20 +70,22 @@ export class AuthService {
         userWithPermissions.role?.permissions?.map((p: any) => p.action) || [],
     };
 
-    // Create audit log for login
-    await this.auditLogsService.create(
-      userWithPermissions.agencyId,
-      {
-        action: 'LOGIN',
-        details: `User ${userWithPermissions.fullName} logged into the system`,
-        metadata: {
-          role: userWithPermissions.role?.name,
-          ip: 'CLIENT_IP_PLACEHOLDER', // In a real scenario, you'd pass the actual IP
+    // Create audit log for login (skip for Super Admin — no agencyId)
+    if (userWithPermissions.agencyId) {
+      await this.auditLogsService.create(
+        userWithPermissions.agencyId,
+        {
+          action: 'LOGIN',
+          details: `User ${userWithPermissions.fullName} logged into the system`,
+          metadata: {
+            role: userWithPermissions.role?.name,
+            ip: clientIp,
+          },
+          severity: 'INFO',
         },
-        severity: 'INFO',
-      },
-      userWithPermissions.id,
-    );
+        userWithPermissions.id,
+      );
+    }
 
     return {
       access_token: this.jwtService.sign(payload),

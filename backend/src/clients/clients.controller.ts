@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   UseGuards,
   Request,
@@ -26,7 +27,7 @@ export class ClientsController {
     return this.clientsService.findAll(req.user.agencyId);
   }
 
-  @Post(':id')
+  @Patch(':id')
   async update(@Param('id') id: string, @Request() req, @Body() data: any) {
     return this.clientsService.update(id, req.user.agencyId, data);
   }

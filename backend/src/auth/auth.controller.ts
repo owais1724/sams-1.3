@@ -31,7 +31,10 @@ export class AuthController {
       );
     }
 
-    const { access_token, user } = await this.authService.login(req.user);
+    const { access_token, user } = await this.authService.login(
+      req.user,
+      req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
+    );
 
     // Set HTTP-only cookie
     if (!isProd) {

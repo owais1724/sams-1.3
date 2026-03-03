@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredPermissions =
@@ -35,11 +35,10 @@ export class PermissionsGuard implements CanActivate {
       );
     }
 
-    if (
-      normalizedRole.includes('admin') ||
-      normalizedRole.includes('hr') ||
-      normalizedRole.includes('supervisor')
-    ) {
+    // Exact whitelist of privileged roles that bypass per-route permission checks.
+    // Use exact match to prevent bypass via role names like "not_admin".
+    const PRIVILEGED_ROLES = ['super admin', 'agency admin', 'hr manager', 'supervisor'];
+    if (PRIVILEGED_ROLES.includes(normalizedRole)) {
       return true;
     }
 
