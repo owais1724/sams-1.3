@@ -2,23 +2,36 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /**
-   * Reverse Proxy — route all /api/* requests through Next.js server to the backend.
+   * Reverse Proxy Rewrites
    *
-   * WHY THIS SOLVES MOBILE LOGIN:
-   * Without this, the browser calls backend.railway.app directly (cross-domain).
-   * Safari iOS blocks cross-domain SameSite=None cookies (ITP).
+   * All /api/* requests from the browser hit the frontend domain (same origin).
+   * Next.js server-side forwards them to the backend.
    *
-   * WITH this, the browser calls our own frontend domain (/api/*).
-   * Next.js server-side forwards the request to the backend.
-   * The browser sees only ONE domain → SameSite=Lax cookies work perfectly.
-   * Mobile browsers (Safari, Chrome) accept the cookies without any issues.
+   * Result: Browser sees one domain → SameSite=Lax cookies work on mobile.
    *
-   * Security: HTTP-only cookies remain HTTP-only. Nothing exposed to JS.
+   * Required Railway env vars on FRONTEND service:
+   *   NEXT_PUBLIC_API_URL = /api
+   *   BACKEND_URL         = https://your-backend.railway.app
    */
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    // Strip trailing slash
-    const base = backendUrl.replace(/\/$/, "");
+    const backendUrl = process.env.BACKEND_URL;
+
+    if (!backendUrl) {
+      console.warn(
+        "\n⚠️  [next.config] BACKEND_URL is not set!\n" +
+        "   Set BACKEND_URL=https://your-backend.railway.app in Railway environment variables.\n" +
+        "   Without it, /api/* requests will fail in production.\n"
+      );
+      // In local dev, fall back to localhost
+      return [
+        {
+          source: "/api/:path*",
+          destination: `http://localhost:3001/:path*`,
+        },
+      ];
+    }
+
+    const base = backendUrl.replace(/\/$/, ""); // Strip trailing slash
 
     return [
       {
