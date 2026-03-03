@@ -23,7 +23,11 @@ export class PermissionsGuard implements CanActivate {
     const isProd = process.env.NODE_ENV === 'production';
 
     // ── Tier 1: Platform Super Admin bypasses everything ─────────────────────
-    if (userRole === 'super admin') {
+    // Note: We check against common variations of the role name
+    const isPlatformAdmin = ['super admin', 'superadmin', 'platform admin'].includes(userRole);
+
+    if (isPlatformAdmin) {
+      if (!isProd) console.log(`[RBAC] Platform Bypass Active for ${user.email}`);
       return true;
     }
 
@@ -33,6 +37,13 @@ export class PermissionsGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
+    // If no permissions specified on the route - ALLOW if authenticated
+    // (We previously had 'Unprotected Resource' which was too strict for base pages)
+    if (!requiredPermissions || requiredPermissions.length === 0) {
+      if (!isProd) console.log(`[RBAC] No specific permissions required for this route.`);
+      return true;
+    }
+
     const userPermissions: string[] = user.permissions || [];
 
     // Detailed debug output for the user's terminal
@@ -40,21 +51,7 @@ export class PermissionsGuard implements CanActivate {
       console.log(`[RBAC] User: ${user.email} | Role: ${userRole}`);
       console.log(`[RBAC] Route: ${request.method} ${request.url}`);
       console.log(`[RBAC] Required: ${JSON.stringify(requiredPermissions)}`);
-
-      const hasPermission = !requiredPermissions || requiredPermissions.length === 0
-        ? false
-        : requiredPermissions.some(p => userPermissions.includes(p));
-
-      if (!hasPermission) {
-        console.error(`[RBAC] ACCESS DENIED — User lacks required privileges.`);
-      } else {
-        console.log(`[RBAC] ACCESS GRANTED.`);
-      }
-    }
-
-    // Default Deny if no permissions specified
-    if (!requiredPermissions || requiredPermissions.length === 0) {
-      throw new ForbiddenException('Access Denied: Unprotected Resource');
+      console.log(`[RBAC] User Has: ${JSON.stringify(userPermissions)}`);
     }
 
     const hasPermission = requiredPermissions.some((p) =>
@@ -62,9 +59,11 @@ export class PermissionsGuard implements CanActivate {
     );
 
     if (!hasPermission) {
+      if (!isProd) console.error(`[RBAC] ACCESS DENIED — User lacks: ${requiredPermissions.join(' or ')}`);
       throw new ForbiddenException(`Access Denied: Missing ${requiredPermissions.join(' or ')}`);
     }
 
+    if (!isProd) console.log(`[RBAC] ACCESS GRANTED.`);
     return true;
   }
 }
