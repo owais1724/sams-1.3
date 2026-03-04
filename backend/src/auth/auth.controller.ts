@@ -104,12 +104,31 @@ export class AuthController {
       throw new Error('User not found');
     }
 
+    const roleName: string = user.role?.name || '';
+    const isSuperAdmin = ['super admin', 'superadmin', 'platform admin'].includes(
+      roleName.toLowerCase().trim()
+    );
+
+    // Platform-level permissions are ONLY for Super Admins.
+    // Strip them from the response for everyone else so they can never
+    // appear in the staff dashboard or be used to bypass guards.
+    const PLATFORM_ONLY = [
+      'create_agency', 'edit_agency', 'delete_agency', 'view_agencies',
+      'create_agency_admin', 'edit_agency_admin', 'delete_agency_admin',
+      'view_audit_logs_platform',
+    ];
+
+    const allPerms: string[] = user.role?.permissions?.map((p: any) => p.action) || [];
+    const permissions = isSuperAdmin
+      ? allPerms
+      : allPerms.filter((p) => !PLATFORM_ONLY.includes(p));
+
     return {
       id: user.id,
       email: user.email,
       fullName: user.fullName || 'Unknown',
-      role: user.role?.name || 'No Role',
-      permissions: user.role?.permissions?.map((p: any) => p.action) || [],
+      role: roleName || 'No Role',
+      permissions,
       agencyId: user.agencyId,
       agencySlug: user.agency?.slug,
       employeeId: user.employeeId,

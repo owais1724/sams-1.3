@@ -35,7 +35,16 @@ export default function StaffDashboard() {
       // Fetch user info with permissions
       const userResponse = await api.get('/auth/me')
       const userData = userResponse.data
-      const perms = userData.permissions || []
+
+      // ── Strip platform-level permissions that only Super Admins should have ──
+      const PLATFORM_PERMISSIONS = [
+        'create_agency', 'edit_agency', 'delete_agency', 'view_agencies',
+        'create_agency_admin', 'edit_agency_admin', 'delete_agency_admin',
+        'view_audit_logs_platform',
+      ]
+      const perms: string[] = (userData.permissions || []).filter(
+        (p: string) => !PLATFORM_PERMISSIONS.includes(p)
+      )
       setUserPermissions(perms)
 
       const isAdmin = userData?.role === 'Super Admin' || userData?.role === 'Agency Admin'
