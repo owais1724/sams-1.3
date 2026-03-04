@@ -113,8 +113,8 @@ export default function AdminLayout({
                             <ShieldCheck className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-sm font-black tracking-[0.1em] uppercase leading-none">Sentinel</h1>
-                            <span className="text-[9px] text-teal-300/60 font-black uppercase tracking-widest mt-1 block">Platform Admin</span>
+                            <h1 className="text-sm font-black tracking-[0.1em] uppercase leading-none">SAMS Admin</h1>
+                            <span className="text-[9px] text-teal-300/60 font-black uppercase tracking-widest mt-1 block">Platform Control</span>
                         </div>
                     </div>
                     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>

@@ -130,10 +130,10 @@ export default function AgencyLayout({
                         </div>
                         <div className="min-w-0">
                             <h1 className="text-sm font-black tracking-[0.1em] uppercase leading-none truncate max-w-[150px]">
-                                {user?.agencyName || 'Sentinel'}
+                                {user?.agencyName || 'SAMS Ops'}
                             </h1>
                             <span className="text-[9px] text-teal-300/60 font-black uppercase tracking-widest mt-1 block">
-                                {user?.agencyName ? 'Institutional Node' : 'Security SaaS'}
+                                {user?.agencyName ? 'Institutional Node' : 'Security Portal'}
                             </span>
                         </div>
                     </div>

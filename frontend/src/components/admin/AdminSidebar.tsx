@@ -28,7 +28,7 @@ export function AdminSidebar({ onItemClick }: { onItemClick?: () => void }) {
                     <ShieldCheck className="h-7 w-7 text-white" />
                 </div>
                 <div className="relative z-10 font-outfit truncate">
-                    <h1 className="text-xl font-black tracking-[0.15em] text-white leading-tight">SENTINEL</h1>
+                    <h1 className="text-xl font-black tracking-[0.15em] text-white leading-tight">SAMS ADMIN</h1>
                     <div className="flex items-center gap-1.5 mt-0.5">
                         <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
                         <span className="text-[10px] text-teal-300/60 font-black uppercase tracking-[0.2em] truncate">Platform Master</span>
