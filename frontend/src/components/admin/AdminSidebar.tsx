@@ -20,7 +20,7 @@ export function AdminSidebar({ onItemClick }: { onItemClick?: () => void }) {
     const { user, logout } = useAuthStore()
 
     return (
-        <div className="flex h-full w-full flex-col bg-gradient-to-b from-[#0d5c56] to-[#06423d] text-white border-r border-white/5 relative z-20 font-outfit shadow-[10px_0_50px_-5px_rgba(0,0,0,0.3)]">
+        <div className="flex h-full w-full flex-col bg-gradient-to-b from-[#0d5c56] to-[#06423d] text-white relative z-20 font-outfit shadow-[10px_0_50px_-5px_rgba(0,0,0,0.3)]">
             {/* Logo Section */}
             <div className="flex h-24 items-center px-8 border-b border-white/5 gap-4 relative overflow-hidden group shrink-0">
                 <div className="absolute inset-0 bg-white/[0.02] transform skew-y-12 translate-y-12 group-hover:translate-y-10 transition-transform duration-700" />

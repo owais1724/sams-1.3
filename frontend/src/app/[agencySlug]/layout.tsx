@@ -113,15 +113,17 @@ export default function AgencyLayout({
     }
 
     return (
-        <div className="flex h-screen bg-slate-50 font-outfit overflow-hidden">
-            {/* Desktop Sidebar */}
-            <div className="hidden lg:flex w-72 shrink-0 border-r border-white/5 shadow-2xl z-20">
-                <AgencySidebar />
+        <div className="flex h-screen bg-slate-100 font-outfit p-4 gap-4 overflow-hidden">
+            {/* Desktop Sidebar - The Floating Island */}
+            <div className="hidden lg:flex w-76 shrink-0 z-20">
+                <div className="w-full h-full rounded-[40px] overflow-hidden shadow-[20px_0_60px_-15px_rgba(0,0,0,0.1)]">
+                    <AgencySidebar />
+                </div>
             </div>
 
-            <div className="flex-1 flex flex-col h-screen overflow-hidden">
-                {/* Mobile Header */}
-                <header className="lg:hidden flex items-center justify-between px-5 h-20 bg-[#0d5c56] text-white border-b border-white/5 shrink-0 z-30 shadow-xl shadow-black/10">
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+                {/* Mobile Header - Elevated */}
+                <header className="lg:hidden flex items-center justify-between px-6 h-20 bg-[#0d5c56] text-white rounded-[32px] mb-4 shrink-0 z-30 shadow-xl shadow-black/10">
                     <div className="flex items-center gap-4">
                         <div className="h-10 w-10 bg-gradient-to-tr from-[#14B8A6] to-emerald-400 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
                             <ShieldCheck className="h-5 w-5 text-white" />
@@ -134,16 +136,16 @@ export default function AgencyLayout({
                     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-2xl h-12 w-12 border border-white/5 bg-white/5">
-                                <Menu className="h-6 w-6" />
+                                <Menu className="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0d5c56] overflow-hidden">
+                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0d5c56] overflow-hidden rounded-r-[40px]">
                             <AgencySidebar onItemClick={() => setSidebarOpen(false)} />
                         </SheetContent>
                     </Sheet>
                 </header>
 
-                <main className="flex-1 overflow-y-auto">
+                <main className="flex-1 overflow-y-auto bg-white rounded-[40px] shadow-sm border border-slate-200/50">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={pathname}
@@ -151,7 +153,7 @@ export default function AgencyLayout({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3, ease: "easeOut" }}
-                            className="p-3 sm:p-6 md:p-10"
+                            className="p-6 md:p-10 lg:p-12"
                         >
                             {children}
                         </motion.div>
