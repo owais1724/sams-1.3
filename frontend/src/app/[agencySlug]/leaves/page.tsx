@@ -277,7 +277,7 @@ export default function LeavesPage() {
       </div>
 
       <div className="space-y-6 pt-4">
-        <SectionHeading title="Personnel Availability Matrix" subtitle="Real-time authorization status of institutional absence protocols." />
+        <SectionHeading title="Personnel Availability Matrix" />
 
         <DataTable columns={['Personnel Node', 'Absence Specs', 'Operational Window', 'Security Status', 'Actions']}>
           <AnimatePresence mode="popLayout">

@@ -202,7 +202,7 @@ export default function AttendancePage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard title="Active Deployments" value={stats.present} icon={<CheckCircle2 />} color="emerald" />
                 <StatCard title="Delayed Entries" value={stats.late} icon={<Clock />} color="amber" />
-                <StatCard title="Missing Nodes" value={stats.absent} icon={<XCircle />} color="red" />
+                <StatCard title="Missing Nodes" value={stats.absent} icon={<XCircle />} color="rose" />
                 <StatCard title="Institutional Roster" value={stats.total} icon={<Users />} color="blue" />
             </div>
 
@@ -210,7 +210,6 @@ export default function AttendancePage() {
             <div className="space-y-6 pt-4">
                 <SectionHeading
                     title="Operational Status Matrix"
-                    subtitle={`Real-time personnel tracking for ${new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`}
                 />
 
                 <DataTable columns={['Personnel Node', 'Mission Site', 'Entry Matrix', 'Exit Matrix', 'Operational Status']}>

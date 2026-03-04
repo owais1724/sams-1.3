@@ -142,7 +142,7 @@ export default function RBACPage() {
             </div>
 
             <div className="space-y-6">
-                <SectionHeading title="Identity Access Roster" subtitle="Real-time authorization status of all institutional personnel." />
+                <SectionHeading title="Identity Access Roster" />
                 <DataTable columns={['Personnel Node', 'Security Protocol', 'Actions']}>
                     <AnimatePresence mode="popLayout">
                         {employees.length === 0 ? (
@@ -199,7 +199,7 @@ export default function RBACPage() {
             </div>
 
             <div className="space-y-6 pt-10">
-                <SectionHeading title="Structural Privilege Matrix" subtitle="The core authorization graph defining institutional operational boundaries." />
+                <SectionHeading title="Structural Privilege Matrix" />
                 <DataTable columns={['Node Identifier', 'Protocol Context', 'Grant Intensity', 'Network Load', 'Actions']}>
                     <AnimatePresence mode="popLayout">
                         {roles.map((role, idx) => (

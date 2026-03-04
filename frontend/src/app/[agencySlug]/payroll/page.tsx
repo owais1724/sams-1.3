@@ -229,7 +229,7 @@ export default function PayrollPage() {
 
       <div className="space-y-8 pt-4">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
-          <SectionHeading title="Disbursement Ledger" subtitle="Immutable record of institutional financial transactions and roster compensation." />
+          <SectionHeading title="Disbursement Ledger" />
 
           <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto no-scrollbar max-w-full">
             {tabCategories.map((tab) => (

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Plus, Building, Filter, Mail, Activity, Eye, Edit3, Trash2 } from "lucide-react"
 import { ClientForm } from "@/components/agency/ClientForm"
 import { motion, AnimatePresence } from "framer-motion"
@@ -116,9 +117,9 @@ export default function ClientsPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <StatusBadge status="ACTIVE" className="bg-slate-50 border-slate-100 text-slate-500">
+                                    <Badge className="bg-slate-50 border border-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-xl">
                                         {client.projects?.length || 0} Projects
-                                    </StatusBadge>
+                                    </Badge>
                                 </TableCell>
                                 <TableCell className="text-right px-8">
                                     <div className="flex justify-end gap-2 opactiy-0 group-hover:opacity-100 transition-opacity">

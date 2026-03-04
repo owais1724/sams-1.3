@@ -170,7 +170,7 @@ export default function AuditLogsPage() {
 
             <div className="grid gap-6 md:grid-cols-3">
                 <StatCard title="Total Events" value={logs.length} icon={<Database />} color="blue" />
-                <StatCard title="Critical Nodes" value={logs.filter(l => l.severity === 'CRITICAL').length} icon={<Shield />} color="red" />
+                <StatCard title="Critical Nodes" value={logs.filter(l => l.severity === 'CRITICAL').length} icon={<Shield />} color="rose" />
                 <StatCard title="Active Session" value={logs.filter(l => l.action.includes('LOGIN')).length} icon={<ShieldCheck />} color="emerald" />
             </div>
 
