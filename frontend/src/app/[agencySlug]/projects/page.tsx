@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
 import { TableCell, TableRow } from "@/components/ui/table"
-import { Plus, Briefcase, MapPin, Edit3, Activity, Globe, Shield, Clock } from "lucide-react"
+import { Plus, Briefcase, MapPin, Edit3, Activity, Globe, Shield, Clock, Trash2 } from "lucide-react"
 import { ProjectForm } from "@/components/agency/ProjectForm"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,6 +22,7 @@ import { useAuthStore } from "@/store/authStore"
 import { toast } from "@/components/ui/sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 export default function ProjectsPage() {
     const { user: authUser } = useAuthStore()
@@ -30,6 +31,12 @@ export default function ProjectsPage() {
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
     const [editingProject, setEditingProject] = useState<any>(null)
+    const [deleteModal, setDeleteModal] = useState<{ open: boolean, id: string, name: string }>({
+        open: false,
+        id: "",
+        name: ""
+    })
+    const [isDeleting, setIsDeleting] = useState(false)
 
     // Permission flags are now handled by PermissionGuard in the UI
     const canViewClients = authUser?.role === 'Super Admin' || authUser?.permissions?.includes('view_clients')
@@ -63,6 +70,21 @@ export default function ProjectsPage() {
 
     const openCreate = () => { setEditingProject(null); setOpen(true) }
     const openEdit = (project: any) => { setEditingProject(project); setOpen(true) }
+
+    const handleDelete = async () => {
+        if (!deleteModal.id) return
+        setIsDeleting(true)
+        try {
+            await api.delete(`/projects/${deleteModal.id}`)
+            toast.success("Project deleted successfully")
+            setDeleteModal({ open: false, id: "", name: "" })
+            fetchData()
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to delete project")
+        } finally {
+            setIsDeleting(false)
+        }
+    }
 
     const activeProjectCount = projects.filter(p => p.isActive).length
 
@@ -164,12 +186,25 @@ export default function ProjectsPage() {
                                     <StatusBadge status={project.isActive ? "ACTIVE" : "INACTIVE"} />
                                 </TableCell>
                                 <TableCell className="text-right px-8">
-                                    <PermissionGuard
-                                        permission="edit_project"
-                                        fallback={<span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">View Only</span>}
-                                    >
-                                        <RowEditButton onClick={() => openEdit(project)} />
-                                    </PermissionGuard>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <PermissionGuard
+                                            permission="edit_project"
+                                            fallback={<span className="text-[10px] font-black text-slate-300 uppercase tracking-widest pl-4">View Only</span>}
+                                        >
+                                            <RowEditButton onClick={() => openEdit(project)} />
+                                        </PermissionGuard>
+                                        <PermissionGuard permission="delete_project">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setDeleteModal({ open: true, id: project.id, name: project.name })}
+                                                className="h-9 w-9 p-0 text-red-500 hover:text-white hover:bg-red-500 font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center"
+                                                title="Delete Project"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </PermissionGuard>
+                                    </div>
                                 </TableCell>
                             </motion.tr>
                         ))
@@ -193,6 +228,18 @@ export default function ProjectsPage() {
                     onRefreshClients={fetchData}
                 />
             </FormSheet>
+
+            {/* ── Delete Confirmation Modal ──────────────────────────── */}
+            <AlertModal
+                isOpen={deleteModal.open}
+                onClose={() => setDeleteModal({ ...deleteModal, open: false })}
+                onConfirm={handleDelete}
+                loading={isDeleting}
+                title="TerminATE PROJECT"
+                variant="danger"
+                description={`This action will permanently delete "${deleteModal.name}" and remove it from operational monitoring.`}
+                confirmText="Terminate Project"
+            />
         </div>
     )
 }
