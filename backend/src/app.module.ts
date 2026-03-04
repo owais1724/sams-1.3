@@ -17,6 +17,7 @@ import { LeavesModule } from './leaves/leaves.module';
 import { PayrollModule } from './payroll/payroll.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { PermissionsSeedModule } from './permissions-seed/permissions-seed.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
     PayrollModule,
     AttendanceModule,
     AuditLogsModule,
+    PermissionsSeedModule,
   ],
   controllers: [AppController],
   providers: [
@@ -50,4 +52,4 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
