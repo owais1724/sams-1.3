@@ -8,7 +8,7 @@ import * as fs from 'fs';
 
 @Injectable()
 export class RolesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   private logError(error: any) {
     fs.appendFileSync(
@@ -17,9 +17,25 @@ export class RolesService {
     );
   }
 
+  // Permissions that are platform-level (Super Admin only) and must NEVER
+  // appear in the agency RBAC role editor.
+  private readonly PLATFORM_ONLY_PERMISSIONS = [
+    'create_agency',
+    'edit_agency',
+    'delete_agency',
+    'view_agencies',
+    'create_agency_admin',
+    'edit_agency_admin',
+    'delete_agency_admin',
+    'view_audit_logs_platform',
+  ];
+
   async findAllPermissions() {
     try {
       return await this.prisma.permission.findMany({
+        where: {
+          NOT: { action: { in: this.PLATFORM_ONLY_PERMISSIONS } },
+        },
         orderBy: { action: 'asc' },
       });
     } catch (e) {
@@ -91,8 +107,8 @@ export class RolesService {
         data: {
           permissions: data.permissionIds
             ? {
-                set: data.permissionIds.map((id) => ({ id })),
-              }
+              set: data.permissionIds.map((id) => ({ id })),
+            }
             : undefined,
         },
         include: { permissions: true },
@@ -107,8 +123,8 @@ export class RolesService {
         description: data.description,
         permissions: data.permissionIds
           ? {
-              set: data.permissionIds.map((id) => ({ id })),
-            }
+            set: data.permissionIds.map((id) => ({ id })),
+          }
           : undefined,
       },
       include: { permissions: true },
