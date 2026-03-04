@@ -159,7 +159,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                 return;
             }
 
-            const { phone, ...apiValues } = values
+            const { phone, employeeCode, ...apiValues } = values
             const payload: any = {
                 ...apiValues,
                 phoneNumber: `${phone.countryCode}${phone.phoneNumber}`,
