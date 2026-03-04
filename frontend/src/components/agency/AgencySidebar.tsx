@@ -24,7 +24,7 @@ export function AgencySidebar({ onItemClick }: { onItemClick?: () => void }) {
     const { agencySlug } = useParams()
     const pathname = usePathname()
     const { user, login, logout } = useAuthStore()
-    const [loading, setLoading] = useState(!user)
+    const [loading, setLoading] = useState(!user) // only show skeleton on first ever load
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -38,11 +38,11 @@ export function AgencySidebar({ onItemClick }: { onItemClick?: () => void }) {
             }
         }
 
-        // ALWAYS fetch fresh permissions from DB on mount.
-        // This ensures role changes made by admin are reflected immediately
-        // without requiring staff to log out and back in.
+        // Re-fetch permissions on every route change.
+        // The layout stays mounted in Next.js, so we use pathname as a trigger
+        // to ensure admin's permission changes are reflected without re-login.
         fetchProfile()
-    }, [login])
+    }, [pathname, login])
 
     const isStaff = user?.role && !user.role.toLowerCase().includes('admin');
 
