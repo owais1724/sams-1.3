@@ -3,7 +3,7 @@ import { useAuthStore } from "@/store/authStore";
 export function usePermission() {
     const { user } = useAuthStore();
 
-    const isAdmin = user?.role === 'Super Admin' || user?.role === 'Agency Admin';
+    const isAdmin = user?.role === 'Super Admin';
 
     const hasPermission = (permission: string | string[]) => {
         if (!user) return false;

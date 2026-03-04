@@ -6,7 +6,6 @@ import {
   Body,
   Param,
   UseGuards,
-  ForbiddenException,
   Request,
   Patch,
 } from '@nestjs/common';
@@ -14,9 +13,11 @@ import { AgenciesService } from './agencies.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateAgencyDto } from './dto/create-agency.dto';
 import { UpdateAgencyDto } from './dto/update-agency.dto';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { Permissions } from '../auth/permissions.decorator';
 
 @Controller('agencies')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 export class AgenciesController {
   constructor(private readonly agenciesService: AgenciesService) { }
 
@@ -26,46 +27,36 @@ export class AgenciesController {
   }
 
   @Post()
+  @Permissions('create_agency')
   async create(@Request() req, @Body() data: CreateAgencyDto) {
-    if (req.user.role !== 'Super Admin') {
-      throw new ForbiddenException('Only Super Admins can create agencies');
-    }
     return this.agenciesService.createAgency(data);
   }
 
   @Get()
+  @Permissions('create_agency', 'edit_agency', 'delete_agency')
   async findAll(@Request() req) {
-    if (req.user.role !== 'Super Admin') {
-      throw new ForbiddenException('Only Super Admins can list agencies');
-    }
     return this.agenciesService.findAll();
   }
 
   @Patch(':id')
+  @Permissions('edit_agency')
   async update(
     @Request() req,
     @Param('id') id: string,
     @Body() data: UpdateAgencyDto,
   ) {
-    if (req.user.role !== 'Super Admin') {
-      throw new ForbiddenException('Only Super Admins can update agencies');
-    }
     return this.agenciesService.update(id, data);
   }
 
   @Delete(':id')
+  @Permissions('delete_agency')
   async remove(@Request() req, @Param('id') id: string) {
-    if (req.user.role !== 'Super Admin') {
-      throw new ForbiddenException('Only Super Admins can delete agencies');
-    }
     return this.agenciesService.remove(id);
   }
 
   @Patch(':id/toggle-status')
+  @Permissions('edit_agency')
   async toggleStatus(@Request() req, @Param('id') id: string) {
-    if (req.user.role !== 'Super Admin') {
-      throw new ForbiddenException('Only Super Admins can change agency status');
-    }
     return this.agenciesService.toggleStatus(id);
   }
 }
