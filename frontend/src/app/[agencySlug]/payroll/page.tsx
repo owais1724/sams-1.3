@@ -2,17 +2,35 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import {
+  PageHeader,
+  CreateButton,
+  StatCard,
+  DataTable,
+  PageLoading,
+  TableRowEmpty,
+  StatusBadge,
+  SubmitButton
+} from "@/components/ui/design-system"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Wallet, Plus, Download, Eye, Calculator, CheckCircle2, AlertCircle, Calendar, Filter } from "lucide-react"
+import { Wallet, Download, Eye, Calculator, CheckCircle2, AlertCircle, Receipt, Database, Activity, CreditCard } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import api from "@/lib/api"
-import { toast } from "@/components/ui/sonner"
+import { toast } from "sonner"
 import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
+import { TableCell, TableRow } from "@/components/ui/table"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from "@/components/ui/sheet"
+import { Label } from "@/components/ui/label"
 
 interface Payroll {
   id: string
@@ -27,6 +45,7 @@ interface Payroll {
   employee?: {
     id: string
     fullName: string
+    employeeCode?: string
     email: string
     designation: {
       id: string
@@ -40,12 +59,6 @@ interface Designation {
   name: string
 }
 
-const statusColors = {
-  DRAFT: "bg-gray-100 text-gray-800",
-  PROCESSED: "bg-blue-100 text-blue-800",
-  PAID: "bg-green-100 text-green-800"
-}
-
 export default function PayrollPage() {
   const { agencySlug } = useParams()
   const [payrolls, setPayrolls] = useState<Payroll[]>([])
@@ -54,399 +67,205 @@ export default function PayrollPage() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
 
-  // Generation Form
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
   const [generateDesignationId, setGenerateDesignationId] = useState<string>("all")
-  const [employees, setEmployees] = useState<any[]>([])
-  const [generationMode, setGenerationMode] = useState<'bulk' | 'individual'>('bulk')
-  const [targetEmployeeId, setTargetEmployeeId] = useState<string>("")
-  const [customAmount, setCustomAmount] = useState<string>("")
-
-  useEffect(() => {
-    fetchData()
-  }, [])
 
   const { user: authUser } = useAuthStore()
 
   const fetchData = async () => {
     setLoading(true)
-
     const isAdmin = authUser?.role === 'Super Admin' || authUser?.role === 'Agency Admin'
     const hasPerm = (p: string) => isAdmin || authUser?.permissions?.includes(p)
 
     try {
-      // Priority 1: Payrolls
-      if (hasPerm('view_payroll')) {
-        try {
-          const res = await api.get('/payrolls')
-          setPayrolls(res.data || [])
-        } catch (err) {
-          console.warn("Payrolls fetch failed", err)
-        }
-      }
+      const [payrollRes, desRes] = await Promise.all([
+        hasPerm('view_payroll') ? api.get('/payrolls') : Promise.resolve({ data: [] }),
+        (hasPerm('view_designations') || isAdmin) ? api.get('/designations') : Promise.resolve({ data: [] })
+      ])
 
-      // Priority 2: Designations (Side data)
-      if (hasPerm('view_designations') || isAdmin || hasPerm('manage_roles')) {
-        try {
-          const res = await api.get('/designations')
-          setDesignations(res.data || [])
-        } catch (err) {
-          console.warn("Designations fetch failed", err)
-        }
-      }
-
-      // Priority 3: Employees (Side data for targeting)
-      if (hasPerm('view_employee')) {
-        try {
-          const res = await api.get('/employees')
-          setEmployees(res.data || [])
-        } catch (err) {
-          console.warn("Employees fetch failed", err)
-        }
-      }
-    } catch (error) {
-      console.error('Critical payroll fetch error', error)
-      toast.error("Failed to load payroll system database.")
+      setPayrolls(payrollRes.data || [])
+      setDesignations(desRes.data || [])
+    } catch (err) {
+      toast.error("Financial node communication failure.")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleGenerate = async () => {
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const handleGeneratePayroll = async () => {
     setGenerating(true)
     try {
-      if (generationMode === 'bulk') {
-        const res = await api.post('/payrolls/generate-bulk', {
-          month: selectedMonth,
-          designationId: generateDesignationId === "all" ? undefined : generateDesignationId
-        })
-        toast.success(`Generated payroll for ${res.data} employees`)
-      } else {
-        if (!targetEmployeeId || !customAmount) {
-          toast.error("Please select an employee and enter an amount")
-          setGenerating(false)
-          return
-        }
-        await api.post('/payrolls/generate-individual', {
-          employeeId: targetEmployeeId,
-          month: selectedMonth,
-          amount: parseFloat(customAmount)
-        })
-        toast.success(`Individual payroll generated successfully`)
-      }
+      await api.post('/payrolls/generate', {
+        month: selectedMonth,
+        designationId: generateDesignationId === 'all' ? undefined : generateDesignationId
+      })
+      toast.success("Payroll ledger generated successfully.")
       setIsDialogOpen(false)
       fetchData()
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Generation failed")
+      toast.error(error.response?.data?.message || "Generation protocol failure.")
     } finally {
       setGenerating(false)
     }
   }
 
-  const updateStatus = async (id: string, newStatus: string) => {
-    try {
-      await api.post(`/payrolls/${id}/status`, { status: newStatus })
-      toast.success(`Payroll status updated to ${newStatus}`)
-      fetchData()
-    } catch (error: any) {
-      toast.error("Failed to update status")
-    }
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount)
   }
 
-  const stats = {
-    totalNet: payrolls.reduce((acc, p) => acc + p.netPay, 0),
-    paidCount: payrolls.filter(p => p.status === 'PAID').length,
-    pendingCount: payrolls.filter(p => p.status !== 'PAID').length
+  const getMonthName = (monthStr: string) => {
+    if (!monthStr) return "N/A"
+    const [year, month] = monthStr.split('-')
+    return new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' })
   }
 
-  // Group payrolls by designation
-  const groupedPayrolls = designations.map(d => ({
-    ...d,
-    records: payrolls.filter(p => p.employee?.designation?.id === d.id)
-  })).filter(group => group.records.length > 0)
-
-  if (loading && payrolls.length === 0) {
-    return <div className="flex items-center justify-center h-64">Loading payroll system...</div>
-  }
+  if (loading) return <PageLoading message="Synchronizing Financial Node..." />
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight flex items-center truncate">
-            <Wallet className="h-6 w-6 md:h-8 md:w-8 mr-2 md:mr-3 text-primary flex-shrink-0" />
-            Payroll Management
-          </h1>
-          <p className="text-[10px] md:text-sm text-slate-500 truncate">Manage salary processing and disbursements.</p>
-        </div>
+    <div className="space-y-8 pb-20">
+      <PageHeader
+        title="Payroll"
+        titleHighlight="Ledger"
+        subtitle="Regulate and authorize institutional salary disbursements and tax deductions."
+        action={
+          <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <SheetTrigger asChild>
+              <CreateButton label="Generate Payroll" icon={<Calculator className="h-4 w-4" />} />
+            </SheetTrigger>
+            <SheetContent className="sm:max-w-[700px] border-none shadow-2xl p-0 overflow-hidden bg-white">
+              <div className="p-10 md:p-14 overflow-y-auto h-full">
+                <SheetHeader className="mb-12">
+                  <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+                    <Receipt className="h-7 w-7 text-primary" />
+                  </div>
+                  <SheetTitle className="text-3xl font-black tracking-tight leading-none text-slate-900 uppercase">
+                    Initialize Payroll Cycle
+                  </SheetTitle>
+                  <SheetDescription className="font-bold text-slate-500 uppercase tracking-widest text-[10px] pt-1">
+                    Authorization for system-wide salary calculation and disbursement.
+                  </SheetDescription>
+                </SheetHeader>
 
-        <Button onClick={() => setIsDialogOpen(true)} className="w-full md:w-auto h-12 md:h-10 bg-primary hover:bg-primary/90 rounded-xl font-bold text-sm md:text-base">
-          <Plus className="h-4 w-4 mr-2" />
-          Generate Payroll
-        </Button>
-      </div>
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">Target Disbursement Month</Label>
+                    <Input
+                      type="month"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      className="h-14 rounded-2xl bg-slate-50 border-slate-100 focus:bg-white transition-all font-black text-slate-900"
+                    />
+                  </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-6 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Net Disbursement</p>
-            <h3 className="text-3xl font-black text-slate-900 mt-1">${stats.totalNet.toLocaleString()}</h3>
-          </div>
-          <div className="h-14 w-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
-            <Wallet className="h-7 w-7" />
-          </div>
-        </Card>
-
-        <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-6 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transfers Completed</p>
-            <h3 className="text-3xl font-black text-emerald-600 mt-1">{stats.paidCount}</h3>
-          </div>
-          <div className="h-14 w-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-            <CheckCircle2 className="h-7 w-7" />
-          </div>
-        </Card>
-
-        <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-6 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Awaiting Processing</p>
-            <h3 className="text-3xl font-black text-amber-600 mt-1">{stats.pendingCount}</h3>
-          </div>
-          <div className="h-14 w-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center">
-            <AlertCircle className="h-7 w-7" />
-          </div>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="all" className="w-full">
-        <div className="flex items-center justify-between mb-4 border-b border-slate-200">
-          <TabsList className="bg-transparent h-auto p-0 space-x-6">
-            <TabsTrigger
-              value="all"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-2 font-bold"
-            >
-              All Payrolls
-            </TabsTrigger>
-            {designations.map(d => (
-              <TabsTrigger
-                key={d.id}
-                value={d.id}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-2 font-bold"
-              >
-                {d.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-
-        <TabsContent value="all" className="mt-0">
-          <div className="grid gap-4">
-            {payrolls.length > 0 ? (
-              payrolls.map((p) => <PayrollCard key={p.id} payroll={p} onUpdateStatus={updateStatus} />)
-            ) : (
-              <EmptyState />
-            )}
-          </div>
-        </TabsContent>
-
-        {designations.map(d => (
-          <TabsContent key={d.id} value={d.id} className="mt-0">
-            <div className="grid gap-4">
-              {payrolls.filter(p => p.employee?.designation?.id === d.id || p.employee?.designation?.name === d.name).length > 0 ? (
-                payrolls.filter(p => p.employee?.designation?.id === d.id || p.employee?.designation?.name === d.name)
-                  .map((p) => <PayrollCard key={p.id} payroll={p} onUpdateStatus={updateStatus} />)
-              ) : (
-                <EmptyState message={`No payroll records found for ${d.name}`} />
-              )}
-            </div>
-          </TabsContent>
-        ))}
-      </Tabs>
-
-      {/* Generation Dialog */}
-      {isDialogOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md shadow-2xl border-none rounded-[40px] overflow-hidden">
-            <CardHeader className="bg-slate-50 p-8 border-b border-slate-100">
-              <CardTitle className="flex items-center text-xl font-black text-slate-900 uppercase tracking-tight">
-                <Calculator className="h-5 w-5 mr-3 text-primary" />
-                Initialize Payroll
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6 p-8">
-              <div className="flex gap-2 p-1.5 bg-slate-100 rounded-2xl mb-2">
-                <Button
-                  variant={generationMode === 'bulk' ? 'default' : 'ghost'}
-                  className={`flex-1 text-[10px] font-black uppercase tracking-widest h-10 rounded-xl ${generationMode === 'bulk' ? 'bg-white text-primary shadow-sm hover:bg-white' : 'text-slate-500 hover:bg-slate-200/50'}`}
-                  onClick={() => setGenerationMode('bulk')}
-                >
-                  Bulk Ops
-                </Button>
-                <Button
-                  variant={generationMode === 'individual' ? 'default' : 'ghost'}
-                  className={`flex-1 text-[10px] font-black uppercase tracking-widest h-10 rounded-xl ${generationMode === 'individual' ? 'bg-white text-primary shadow-sm hover:bg-white' : 'text-slate-500 hover:bg-slate-200/50'}`}
-                  onClick={() => setGenerationMode('individual')}
-                >
-                  Unit Target
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Operational Period</label>
-                <Input
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold transition-all px-6"
-                />
-              </div>
-
-              {generationMode === 'bulk' ? (
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Rank Filter</label>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">Operational Filter (Designation)</Label>
                     <Select value={generateDesignationId} onValueChange={setGenerateDesignationId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Designations" />
+                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-slate-100 font-bold text-slate-900">
+                        <SelectValue placeholder="Select designation scope" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Entire Agency Roster</SelectItem>
+                      <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
+                        <SelectItem value="all" className="py-3 font-bold">ALL PERSONNEL NODES</SelectItem>
                         {designations.map(d => (
-                          <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                          <SelectItem key={d.id} value={d.id} className="py-3 font-bold uppercase text-[11px] tracking-wider">{d.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-relaxed">
-                      Auto-generating disbursement records for <span className="underline">{generateDesignationId === "all" ? "Entire Agency" : designations.find(d => d.id === generateDesignationId)?.name}</span>. Base salary tables will be applied.
+
+                  <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100/50 flex gap-4">
+                    <AlertCircle className="h-6 w-6 text-amber-600 shrink-0" />
+                    <p className="text-xs font-semibold text-amber-800 leading-relaxed">
+                      Generating payroll will calculate Net Pay for all employees in the selected scope based on their active contracts and attendance data.
                     </p>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Employee Select</label>
-                    <Select value={targetEmployeeId} onValueChange={(val) => {
-                      setTargetEmployeeId(val);
-                      const emp = employees.find(e => e.id === val);
-                      if (emp) setCustomAmount(emp.basicSalary?.toString() || "");
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Identify officer..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {employees.map(e => (
-                          <SelectItem key={e.id} value={e.id}>{e.fullName} <span className="text-slate-400 text-[10px] ml-2">[{e.designation?.name}]</span></SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Manual Amount ($)</label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={customAmount}
-                      onChange={(e) => setCustomAmount(e.target.value)}
-                      className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all px-6 text-lg font-black"
-                    />
-                  </div>
+                <div className="mt-14 pb-10">
+                  <SubmitButton
+                    onClick={handleGeneratePayroll}
+                    loading={generating}
+                    label="Execute Financial Protocol"
+                    icon={<CheckCircle2 className="h-4 w-4" />}
+                  />
                 </div>
-              )}
-            </CardContent>
-            <CardFooter className="flex space-x-4 p-8 bg-slate-50 border-t border-slate-100">
-              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="flex-1 h-14 rounded-2xl font-bold text-slate-500 hover:text-slate-900 transition-all">
-                ABORT
-              </Button>
-              <Button
-                onClick={handleGenerate}
-                className="flex-1 h-14 rounded-2xl bg-primary text-white font-black shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                disabled={generating}
-              >
-                {generating ? "PROCESSING..." : "COMMIT PAYROLL"}
-              </Button>
-            </CardFooter>
-          </Card>
+              </div>
+            </SheetContent>
+          </Sheet>
+        }
+      />
+
+      <div className="grid gap-6 md:grid-cols-4">
+        <StatCard title="Total Disbursed" value={formatCurrency(payrolls.filter(p => p.status === 'PAID').reduce((sum, p) => sum + p.netPay, 0))} icon={<CreditCard />} color="blue" />
+        <StatCard title="Pending Payouts" value={formatCurrency(payrolls.filter(p => p.status !== 'PAID').reduce((sum, p) => sum + p.netPay, 0))} icon={<Wallet />} color="amber" />
+        <StatCard title="Staff Coverage" value={payrolls.length} icon={<Database />} color="emerald" />
+        <StatCard title="Processed Nodes" value={payrolls.filter(p => p.status === 'PAID').length} icon={<Activity />} color="violet" />
+      </div>
+
+      <div className="mt-12">
+        <div className="flex items-center justify-between mb-6 px-2">
+          <div>
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Disbursement Ledger</h2>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Immutable record of institutional financial activities.</p>
+          </div>
+          <Button variant="outline" className="rounded-2xl h-12 border-slate-100 shadow-sm font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">
+            <Download className="h-4 w-4 mr-2" /> Export CSV
+          </Button>
         </div>
-      )}
+
+        <DataTable columns={['Personnel Node', 'Pay Period', 'Fiscal Summary', 'Status', 'Actions']}>
+          {payrolls.length === 0 ? (
+            <TableRowEmpty colSpan={5} title="No Financial Records Logged" icon={<Receipt />} />
+          ) : (
+            payrolls.map((payroll) => (
+              <TableRow key={payroll.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                <TableCell className="px-8 py-6">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-slate-300 font-black group-hover:border-primary/20 transition-all">
+                      {payroll.employee?.fullName?.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-slate-900 leading-tight group-hover:text-primary transition-colors">{payroll.employee?.fullName}</div>
+                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{payroll.employee?.designation?.name || "STAFF-NODE"}</div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-black text-slate-900">{getMonthName(payroll.month)}</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic pt-0.5">Verified Protocol</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-black text-emerald-600">{formatCurrency(payroll.netPay)}</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Net Compensation</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={payroll.status} />
+                </TableCell>
+                <TableCell className="text-right px-8">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-xl hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 transition-all"
+                  >
+                    <Eye className="h-4 w-4 text-slate-400" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </DataTable>
+      </div>
     </div>
-  )
-}
-
-function PayrollCard({ payroll, onUpdateStatus }: { payroll: Payroll, onUpdateStatus: (id: string, s: string) => void }) {
-  return (
-    <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden hover:shadow-2xl transition-all duration-300 group">
-      <div className={`h-1.5 w-full ${payroll.status === 'PAID' ? 'bg-emerald-500' :
-        payroll.status === 'PROCESSED' ? 'bg-blue-500' : 'bg-slate-200'
-        }`} />
-      <CardContent className="p-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <div className="h-12 w-12 bg-slate-50 border-2 border-slate-100 rounded-2xl flex items-center justify-center font-black text-slate-400 uppercase text-xs group-hover:scale-110 transition-transform">
-              {payroll.employee?.fullName?.charAt(0) || 'E'}
-            </div>
-            <div>
-              <p className="font-extrabold text-slate-900 text-lg tracking-tight">{payroll.employee?.fullName}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{payroll.employee?.designation.name} • OPS-{payroll.id.slice(-4).toUpperCase()}</p>
-            </div>
-          </div>
-          <Badge className={cn(
-            "rounded-full px-4 py-1 font-black text-[10px] uppercase border-none shadow-none",
-            statusColors[payroll.status as keyof typeof statusColors]
-          )}>
-            {payroll.status}
-          </Badge>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 py-6 border-y border-slate-50">
-          <div className="text-center p-2 bg-slate-50/30 rounded-2xl">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Base</p>
-            <p className="text-sm md:text-base font-bold text-slate-900">${payroll.basicSalary.toLocaleString()}</p>
-          </div>
-          <div className="text-center p-2 bg-emerald-50/30 rounded-2xl">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Incentives</p>
-            <p className="text-sm md:text-base font-bold text-emerald-600">+${payroll.allowances.toLocaleString()}</p>
-          </div>
-          <div className="text-center p-2 bg-red-50/30 rounded-2xl">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tax/Ded.</p>
-            <p className="text-sm md:text-base font-bold text-red-600">-${payroll.deductions.toLocaleString()}</p>
-          </div>
-          <div className="text-center bg-slate-900/5 rounded-2xl py-3 px-2">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Dist.</p>
-            <p className="text-sm md:text-base font-black text-slate-900 font-mono">${payroll.netPay.toLocaleString()}</p>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center mt-8">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Logged: {new Date(payroll.generatedDate).toLocaleDateString()}</p>
-          <div className="flex space-x-3">
-            {payroll.status === 'DRAFT' && (
-              <Button onClick={() => onUpdateStatus(payroll.id, 'PROCESSED')} className="h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest bg-primary text-white shadow-lg shadow-primary/20">Commit</Button>
-            )}
-            {payroll.status === 'PROCESSED' && (
-              <Button onClick={() => onUpdateStatus(payroll.id, 'PAID')} className="h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-100">Disburse</Button>
-            )}
-            <Button variant="ghost" className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900">
-              <Download className="h-4 w-4 mr-2" />
-              Voucher
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function EmptyState({ message = "No payroll records found" }: { message?: string }) {
-  return (
-    <Card className="border-dashed border-2 bg-slate-50/50">
-      <CardContent className="text-center py-12">
-        <Wallet className="h-10 w-10 text-slate-200 mx-auto mb-3" />
-        <p className="text-slate-500 font-medium">{message}</p>
-      </CardContent>
-    </Card>
   )
 }

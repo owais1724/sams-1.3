@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FormLabel } from "@/components/ui/form"
@@ -100,7 +101,7 @@ export function PhoneInput({
           onValueChange={handleCountryChange}
           disabled={disabled}
         >
-          <SelectTrigger className="w-32 h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 focus:bg-white focus:border-primary/20 transition-all font-semibold">
+          <SelectTrigger className="w-32">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -123,8 +124,7 @@ export function PhoneInput({
             onBlur={handleBlur}
             placeholder={placeholder}
             disabled={disabled}
-            className={`h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold px-4 ${error ? "border-red-500" : ""
-              }`}
+            className={cn("px-4", error && "border-red-500")}
           />
           <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
             {value.phoneNumber.length}/{selectedCountry.maxLength}

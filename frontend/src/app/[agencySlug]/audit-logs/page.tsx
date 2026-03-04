@@ -13,19 +13,21 @@ import {
     Building2,
     Activity,
     ClipboardCheck,
-    AlertCircle
+    AlertCircle,
+    Database,
+    ShieldCheck
 } from "lucide-react"
+import {
+    PageHeader,
+    StatCard,
+    DataTable,
+    PageLoading,
+    TableRowEmpty,
+    StatusBadge
+} from "@/components/ui/design-system"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
 import {
     Dialog,
     DialogContent,
@@ -33,8 +35,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { TableCell, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import api from "@/lib/api"
+import { toast } from "sonner"
 
 export default function AuditLogsPage() {
     const [logs, setLogs] = useState<any[]>([])
@@ -47,7 +51,7 @@ export default function AuditLogsPage() {
             const response = await api.get("/audit-logs")
             setLogs(response.data)
         } catch (error) {
-            console.error("Failed to fetch logs:", error)
+            toast.error("Intelligence ledger communication failure.")
         } finally {
             setLoading(false)
         }
@@ -65,30 +69,16 @@ export default function AuditLogsPage() {
         return Activity
     }
 
-    const getColor = (severity: string) => {
-        if (severity === 'CRITICAL') return "text-red-600"
-        if (severity === 'MEDIUM') return "text-amber-600"
-        return "text-teal-600"
-    }
-
-    const getBg = (severity: string) => {
-        if (severity === 'CRITICAL') return "bg-red-50"
-        if (severity === 'MEDIUM') return "bg-amber-50"
-        return "bg-teal-50"
-    }
-
     const filteredLogs = logs.filter(log =>
         log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.details?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         log.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
+    if (loading && logs.length === 0) return <PageLoading message="Synchronizing Forensic Ledger..." />
+
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-8 pb-20 font-outfit"
-        >
+        <div className="space-y-8 pb-20">
             {/* Dossier Dialog */}
             <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
                 <DialogContent className="sm:max-w-2xl border-none rounded-[40px] p-0 overflow-hidden shadow-2xl bg-white">
@@ -97,11 +87,7 @@ export default function AuditLogsPage() {
                         <DialogDescription>Detailed view of security event metadata and forensic logs.</DialogDescription>
                     </DialogHeader>
                     {selectedLog && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="relative"
-                        >
+                        <div className="relative">
                             <div className="bg-slate-950 p-10 text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
                                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full -ml-24 -mb-24" />
@@ -113,7 +99,7 @@ export default function AuditLogsPage() {
                                         </div>
                                         <Badge variant="outline" className="text-white/40 border-white/10 font-bold tracking-widest text-[9px]">ENCRYPTED PROTOCOL</Badge>
                                     </div>
-                                    <h2 className="text-4xl font-black tracking-tighter mb-2">Security <span className="text-teal-400">Dossier</span></h2>
+                                    <h2 className="text-4xl font-black tracking-tighter mb-2 uppercase">Forensic <span className="text-teal-400">Dossier</span></h2>
                                     <p className="text-slate-400 font-medium text-sm">System integrity event verified and logged at secure node.</p>
                                 </div>
                             </div>
@@ -122,48 +108,26 @@ export default function AuditLogsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                            <Lock className="h-3 w-3" /> Event ID
+                                            <Lock className="h-3 w-3" /> Action Key
                                         </p>
-                                        <p className="text-sm font-black text-slate-900 font-mono tracking-tight bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">LOG-{selectedLog.id.slice(0, 8).toUpperCase()}</p>
+                                        <p className="text-sm font-black text-slate-900 font-mono tracking-tight bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 uppercase">{selectedLog.action}</p>
                                     </div>
                                     <div className="space-y-2">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                             <Activity className="h-3 w-3" /> Severity Matrix
                                         </p>
-                                        <Badge className={cn("font-black text-[10px] px-3", selectedLog.severity === 'CRITICAL' ? "bg-red-500 text-white" : "bg-emerald-500 text-white")}>
+                                        <Badge className={cn("font-black text-[10px] px-3 py-1 rounded-full",
+                                            selectedLog.severity === 'CRITICAL' ? "bg-red-500 text-white" :
+                                                selectedLog.severity === 'MEDIUM' ? "bg-amber-500 text-white" : "bg-emerald-500 text-white")}>
                                             {selectedLog.severity} PRIORITY
                                         </Badge>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Forensic Metadata</p>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <div className="flex items-center justify-between py-1">
-                                            <span className="text-sm text-slate-500 font-bold">Action Identifier</span>
-                                            <span className="text-sm text-slate-900 font-black">{selectedLog.action}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between py-1">
-                                            <span className="text-sm text-slate-500 font-bold">Authenticated User</span>
-                                            <span className="text-sm text-slate-900 font-black text-right">{selectedLog.user?.fullName || "SYSTEM_DAEMON"}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between py-1">
-                                            <span className="text-sm text-slate-500 font-bold">Source Node IP</span>
-                                            <span className="text-sm text-slate-900 font-black italic">{selectedLog.metadata?.ip || "INTERNAL_ROUTING"}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between py-1">
-                                            <span className="text-sm text-slate-500 font-bold">Temporal Stamp</span>
-                                            <span className="text-sm text-slate-900 font-black italic">
-                                                {new Date(selectedLog.createdAt).toLocaleTimeString('en-US', { hour12: false }) + ' on ' + new Date(selectedLog.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </span>
-                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 relative group overflow-hidden">
                                     <div className="relative z-10">
                                         <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                            <ClipboardCheck className="h-3.5 w-3.5" /> Intelligence Output
+                                            <ClipboardCheck className="h-3.5 w-3.5" /> Intelligence Narrative
                                         </p>
                                         <p className="text-slate-700 font-medium leading-relaxed italic text-sm">
                                             "{selectedLog.details || "No operational commentary provided for this transaction."}"
@@ -173,150 +137,109 @@ export default function AuditLogsPage() {
                                         <Building2 className="h-20 w-20" />
                                     </div>
                                 </div>
+
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Forensic Metadata</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase">Operator Node</p>
+                                            <p className="text-xs font-black text-slate-900">{selectedLog.user?.fullName || "SYSTEM_DAEMON"}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase">Temporal Stamp</p>
+                                            <p className="text-xs font-black text-slate-900">{new Date(selectedLog.createdAt).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </motion.div>
+                        </div>
                     )}
                 </DialogContent>
             </Dialog>
 
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex-1 min-w-0">
-                    <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight truncate">Security <span className="text-primary">Audit Trail</span></h1>
-                    <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-1 truncate">Immutable ledger of all system activity.</p>
-                </div>
+            <PageHeader
+                title="Forensic"
+                titleHighlight="Audit"
+                subtitle="Immutable ledger of institutional security events and operational transactions."
+                action={
+                    <Button variant="outline" className="rounded-2xl h-12 border-slate-100 shadow-sm font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all bg-white">
+                        <Download className="h-4 w-4 mr-2" /> Export Ledger
+                    </Button>
+                }
+            />
 
-                <div className="flex gap-3">
-                    <div className="w-full md:w-auto">
-                        <Button variant="outline" className="w-full h-12 md:h-auto border-slate-200 font-bold px-6 py-6 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all text-xs md:text-base">
-                            <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                            Export Ledger
-                        </Button>
-                    </div>
-                </div>
+            <div className="grid gap-6 md:grid-cols-3">
+                <StatCard title="Total Events" value={logs.length} icon={<Database />} color="blue" />
+                <StatCard title="Critical Nodes" value={logs.filter(l => l.severity === 'CRITICAL').length} icon={<Shield />} color="red" />
+                <StatCard title="Active Session" value={logs.filter(l => l.action.includes('LOGIN')).length} icon={<ShieldCheck />} color="emerald" />
             </div>
 
-            {/* Controls */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="relative group flex-1 max-w-md">
+            <div className="mt-4">
+                <div className="relative group max-w-md mb-8">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-hover:text-primary transition-colors" />
                     <Input
-                        placeholder="Search system events..."
-                        className="pl-11 pr-4 py-6 bg-white border-slate-200 rounded-2xl w-full focus:ring-primary shadow-sm hover:shadow-md transition-all font-medium italic"
+                        placeholder="Search forensic records..."
+                        className="pl-11 pr-4 py-7 bg-white border-slate-100 rounded-3xl w-full focus:ring-primary shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-slate-300/50 transition-all font-bold italic"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
-                <div className="flex gap-2">
-                    <Button variant="outline" className="p-6 rounded-2xl border-slate-200 hover:bg-slate-50 bg-white">
-                        <Filter className="h-4 w-4 mr-2" />
-                        Filter Logs
-                    </Button>
-                </div>
-            </div>
-
-            {/* Logs Table */}
-            <div className="bg-white rounded-[32px] md:rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden min-h-[400px]">
-                <div className="overflow-x-auto">
-                    <Table className="min-w-[1000px] lg:min-w-full">
-                        <TableHeader className="bg-slate-50/50 border-b border-slate-100">
-                            <TableRow>
-                                <TableHead className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Timestamp</TableHead>
-                                <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Security Event</TableHead>
-                                <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operator</TableHead>
-                                <TableHead className="py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Severity</TableHead>
-                                <TableHead className="text-right px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-20">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Scanning Ledger...</p>
+                <DataTable columns={['Temporal Stamp', 'Security Event', 'Operator Node', 'Severity Matrix', 'Actions']}>
+                    {filteredLogs.length === 0 ? (
+                        <TableRowEmpty colSpan={5} title="No Forensic Data Found" icon={<Shield />} />
+                    ) : (
+                        filteredLogs.map((log, idx) => {
+                            const LogIcon = getIcon(log.action)
+                            return (
+                                <TableRow key={log.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                    <TableCell className="px-8 py-6">
+                                        <div className="flex flex-col">
+                                            <span className="font-extrabold text-slate-900">{new Date(log.createdAt).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(log.createdAt).toLocaleDateString()}</span>
                                         </div>
                                     </TableCell>
-                                </TableRow>
-                            ) : filteredLogs.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-32">
-                                        <div className="flex flex-col items-center opacity-30">
-                                            <Shield className="h-16 w-16 mb-4 text-slate-400" />
-                                            <h3 className="text-lg font-bold">No Audit Data Found</h3>
-                                            <p className="text-xs font-medium max-w-[200px]">Perform administrative actions or login to generate fresh security logs.</p>
+                                    <TableCell>
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100 group-hover:border-primary/20 group-hover:text-primary transition-all">
+                                                <LogIcon className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <div className="font-extrabold text-slate-900 uppercase tracking-tight text-xs">{log.action.replace('_', ' ')}</div>
+                                                <div className="text-[10px] text-slate-500 font-medium truncate max-w-[200px]">{log.details}</div>
+                                            </div>
                                         </div>
                                     </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className="bg-white text-slate-500 border-slate-100 font-bold px-3 py-1 rounded-full text-[10px] uppercase">
+                                            {log.user?.fullName || "SYSTEM"}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge className={cn(
+                                            "shadow-none px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
+                                            log.severity === 'CRITICAL' ? "bg-red-500 text-white" :
+                                                log.severity === 'MEDIUM' ? "bg-amber-500 text-white" : "bg-emerald-500 text-white"
+                                        )}>
+                                            {log.severity}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right px-8">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-10 w-10 rounded-xl hover:bg-white hover:shadow-lg transition-all group-hover:text-primary"
+                                            onClick={() => setSelectedLog(log)}
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
-                            ) : (
-                                <AnimatePresence mode="popLayout">
-                                    {filteredLogs.map((log, idx) => {
-                                        const LogIcon = getIcon(log.action)
-                                        return (
-                                            <motion.tr
-                                                key={log.id}
-                                                initial={{ opacity: 0, scale: 0.98 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                transition={{ delay: idx * 0.05 }}
-                                                className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
-                                            >
-                                                <TableCell className="px-8 py-6">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-extrabold text-slate-900">{new Date(log.createdAt).toLocaleTimeString('en-US', { hour12: false })}</span>
-                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shadow-inner", getBg(log.severity), getColor(log.severity))}>
-                                                            <LogIcon className="h-5 w-5" />
-                                                        </div>
-                                                        <div>
-                                                            <div className="font-extrabold text-slate-900">{log.action.replace('_', ' ')}</div>
-                                                            <div className="text-[11px] text-slate-500 font-medium">{log.details}</div>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className="bg-white text-slate-600 border-slate-200 font-bold px-3 py-1 rounded-full text-[10px]">
-                                                        {log.user?.fullName || "System"}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge className={cn(
-                                                        "shadow-none px-3 py-1 rounded-lg text-[9px] font-black",
-                                                        log.severity === 'CRITICAL' ? "bg-red-500 text-white" :
-                                                            log.severity === 'MEDIUM' ? "bg-amber-500 text-white" : "bg-emerald-500 text-white"
-                                                    )}>
-                                                        {log.severity}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right px-8">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-10 w-10 rounded-xl hover:bg-white hover:shadow-md transition-all group-hover:text-primary"
-                                                        onClick={() => setSelectedLog(log)}
-                                                    >
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                </TableCell>
-                                            </motion.tr>
-                                        )
-                                    })}
-                                </AnimatePresence>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                            )
+                        })
+                    )}
+                </DataTable>
             </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-center gap-4 py-10 opacity-50">
-                <Shield className="h-5 w-5 text-slate-400" />
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">End of Intelligence Feed // Ledger Verified</p>
-            </div>
-        </motion.div>
+        </div>
     )
 }

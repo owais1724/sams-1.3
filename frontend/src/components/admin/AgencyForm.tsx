@@ -137,7 +137,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                 <FormControl>
                                     <Input
                                         placeholder="Name"
-                                        className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
+                                        className="italic"
                                         {...field}
                                     />
                                 </FormControl>
@@ -158,7 +158,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black text-sm group-focus-within:text-primary transition-colors z-10">/</div>
                                         <Input
                                             placeholder="Slug"
-                                            className="h-14 pl-10 pr-4 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 font-mono font-bold focus:bg-white focus:border-primary/20 transition-all transition-colors"
+                                            className="pl-10 font-mono font-bold"
                                             {...field}
                                         />
                                     </div>
@@ -182,7 +182,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                 <FormControl>
                                     <Input
                                         placeholder="Name"
-                                        className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
+                                        className="italic"
                                         {...field}
                                     />
                                 </FormControl>
@@ -202,7 +202,6 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                     <Input
                                         type="email"
                                         placeholder="Email"
-                                        className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-semibold px-4"
                                         {...field}
                                     />
                                 </FormControl>
@@ -246,7 +245,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         <Input
                                             type={showPassword ? "text" : "password"}
                                             placeholder={initialData ? "Leave blank to keep current password" : "Set a password"}
-                                            className="h-14 rounded-2xl bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 focus:bg-white focus:border-primary/20 transition-all font-black px-4 pr-12"
+                                            className="pr-12 font-black"
                                             {...field}
                                         />
                                         <button

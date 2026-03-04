@@ -2,12 +2,33 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  PageHeader,
+  StatCard,
+  PageLoading
+} from "@/components/ui/design-system"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { CalendarDays, Users, Clock, TrendingUp, Briefcase, Award, Building2, Wallet } from "lucide-react"
+import {
+  CalendarDays,
+  Users,
+  Clock,
+  TrendingUp,
+  Briefcase,
+  Award,
+  Building2,
+  Wallet,
+  ShieldCheck,
+  ArrowRight,
+  Activity,
+  Zap,
+  Target
+} from "lucide-react"
 import api from "@/lib/api"
-import { toast } from "@/components/ui/sonner"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export default function StaffDashboard() {
   const router = useRouter()
@@ -24,36 +45,31 @@ export default function StaffDashboard() {
   const [topPerformers, setTopPerformers] = useState([])
   const [userPermissions, setUserPermissions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
+  const [userData, setUserData] = useState<any>(null)
 
   const fetchDashboardData = async () => {
     setLoading(true)
     try {
-      // Fetch user info with permissions
-      const userResponse = await api.get('/auth/me')
-      const userData = userResponse.data
+      const userRes = await api.get('/auth/me')
+      const user = userRes.data
+      setUserData(user)
 
-      // ── Strip platform-level permissions that only Super Admins should have ──
       const PLATFORM_PERMISSIONS = [
         'create_agency', 'edit_agency', 'delete_agency', 'view_agencies',
         'create_agency_admin', 'edit_agency_admin', 'delete_agency_admin',
         'view_audit_logs_platform',
       ]
-      const perms: string[] = (userData.permissions || []).filter(
+      const perms: string[] = (user.permissions || []).filter(
         (p: string) => !PLATFORM_PERMISSIONS.includes(p)
       )
       setUserPermissions(perms)
 
-      const isAdmin = userData?.role === 'Super Admin' || userData?.role === 'Agency Admin'
+      const isAdmin = user?.role === 'Super Admin' || user?.role === 'Agency Admin'
       const hasPerm = (p: string) => isAdmin || perms.includes(p)
 
-      // Parallel fetching with settled status to avoid blocking
       const [empRes, attRes, projRes, leaveRes] = await Promise.allSettled([
         hasPerm('view_employee') ? api.get('/employees') : Promise.reject('No permission'),
-        hasPerm('view_attendance') ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'), // Staff view own
+        hasPerm('view_attendance') ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'),
         hasPerm('view_projects') ? api.get('/projects') : Promise.reject('No permission'),
         hasPerm('view_leaves') ? api.get('/leaves') : Promise.reject('No permission')
       ])
@@ -63,257 +79,177 @@ export default function StaffDashboard() {
       const projects = projRes.status === 'fulfilled' ? projRes.value.data : []
       const leaves = leaveRes.status === 'fulfilled' ? leaveRes.value.data : []
 
-      // Calculate statistics
       const presentToday = attendance.filter((a: any) => a.status === 'PRESENT').length
-      const absentToday = attendance.filter((a: any) => a.status === 'ABSENT').length
-      const onLeaveCount = leaves.filter((l: any) =>
-        new Date(l.startDate) <= new Date() &&
-        new Date(l.endDate) >= new Date() &&
-        l.status === 'AGENCY_APPROVED'
-      ).length
       const activeProjectsCount = projects.filter((p: any) => p.status === 'ACTIVE' || p.isActive).length
 
       setUserStats({
         totalStaff: employees.length,
         presentToday,
-        absentToday,
-        onLeave: onLeaveCount,
+        absentToday: 0,
+        onLeave: leaves.length,
         activeProjects: activeProjectsCount,
         completedTasks: 0
       })
 
-      // Set recent activities
-      const activities = attendance.slice(0, 4).map((record: any) => ({
+      setRecentActivities(attendance.slice(0, 5).map((record: any) => ({
         type: record.status === 'PRESENT' ? 'checkin' : 'absent',
-        title: `${record.employee?.fullName || 'Employee'} ${record.status === 'PRESENT' ? 'checked in' : 'marked absent'}`,
-        time: new Date(record.checkIn || record.createdAt).toLocaleTimeString(),
-        icon: record.status === 'PRESENT' ? 'green' : 'red'
-      }))
-      setRecentActivities(activities as any)
+        title: `${record.employee?.fullName || 'Staff Member'} ${record.status === 'PRESENT' ? 'recorded deployment' : 'marked absent'}`,
+        time: new Date(record.checkIn || record.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        color: record.status === 'PRESENT' ? 'emerald' : 'red'
+      })) as any)
 
-      // Set employee list
-      const performers = employees.slice(0, 5).map((emp: any) => ({
+      setTopPerformers(employees.slice(0, 4).map((emp: any) => ({
         name: emp.fullName,
-        designation: emp.designation?.name || 'Staff',
-        attendance: 'Active',
-        projects: (emp.assignedProjects?.length || 0).toString(),
-        tasks: '0',
+        designation: emp.designation?.name || 'Staff Node',
         initials: emp.fullName.split(' ').map((n: any) => n[0]).join('').toUpperCase()
-      }))
-      setTopPerformers(performers as any)
+      })) as any)
 
     } catch (error: any) {
-      console.error('Failure in fetchDashboardData:', error)
-      toast.error("Cloud synchronization issues. Dashboard might be partial.")
+      toast.error("Dashboard synchronization protocol offline.")
     } finally {
       setLoading(false)
     }
   }
 
-  const statCards = [
-    {
-      title: "Total Staff",
-      value: userStats.totalStaff,
-      icon: Users,
-      color: "bg-blue-100 text-blue-800",
-      trend: userStats.totalStaff > 0 ? "Active employees" : "No staff yet"
-    },
-    {
-      title: "Present Today",
-      value: userStats.presentToday,
-      icon: Clock,
-      color: "bg-green-100 text-green-800",
-      trend: userStats.totalStaff > 0 ? `${Math.round((userStats.presentToday / userStats.totalStaff) * 100)}% attendance` : "No data"
-    },
-    {
-      title: "On Leave",
-      value: userStats.onLeave,
-      icon: CalendarDays,
-      color: "bg-yellow-100 text-yellow-800",
-      trend: userStats.onLeave > 0 ? `${userStats.onLeave} staff members` : "None on leave"
-    },
-    {
-      title: "Active Projects",
-      value: userStats.activeProjects,
-      icon: Briefcase,
-      color: "bg-purple-100 text-purple-800",
-      trend: userStats.activeProjects > 0 ? "Ongoing projects" : "No active projects"
-    }
-  ]
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-64">Loading dashboard...</div>
-  }
+  if (loading) return <PageLoading message="Initializing Command Center..." />
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-10 pb-20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold">Staff Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's what's happening at your agency.</p>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-primary/10">Operational Terminal</div>
+            <Badge className="bg-emerald-500 text-white border-none text-[9px] font-black tracking-widest px-2 py-0.5 animate-pulse">SYSTEM LIVE</Badge>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
+            Command <span className="text-primary">Center</span>
+          </h1>
+          <p className="text-slate-500 font-bold text-sm mt-4 uppercase tracking-widest max-w-lg leading-relaxed">
+            Initialize and regulate high-level security permissions and role hierarchies for <span className="text-primary italic font-black">SAMS Operations</span>.
+          </p>
         </div>
-        <Badge className="bg-green-100 text-green-800">
-          System Online
-        </Badge>
-      </div>
 
-      {/* User Permissions Display */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Your Permissions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {userPermissions.length > 0 ? (
-              userPermissions.map((permission: string, index: number) => (
-                <Badge key={index} className="bg-blue-100 text-blue-800">
-                  {permission.replace('_', ' ')}
-                </Badge>
-              ))
-            ) : (
-              <p className="text-gray-500">No permissions assigned</p>
-            )}
+        <div className="flex items-center gap-4 bg-white p-4 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
+          <Avatar className="h-14 w-14 rounded-2xl border-2 border-slate-50">
+            <AvatarFallback className="bg-slate-900 text-white font-black">{userData?.fullName?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Operator</div>
+            <div className="text-lg font-black text-slate-900 leading-tight">{userData?.fullName}</div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{userData?.role || 'Personnel Node'}</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((stat, index) => {
-          const Icon = stat.icon
-          return (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stat.trend}
-                </p>
-              </CardContent>
-            </Card>
-          )
-        })}
+        </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="h-5 w-5" />
-              <span>Recent Activity</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      <div className="grid gap-6 md:grid-cols-4">
+        <StatCard title="Active Roster" value={userStats.totalStaff} icon={<Users />} color="blue" />
+        <StatCard title="On-Site Deployment" value={userStats.presentToday} icon={<Zap />} color="emerald" />
+        <StatCard title="Authorized Projects" value={userStats.activeProjects} icon={<Target />} color="violet" />
+        <StatCard title="Pending Approvals" value={userStats.onLeave} icon={<CalendarDays />} color="amber" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="lg:col-span-2 space-y-10">
+          <div>
+            <div className="flex items-center justify-between mb-8 px-2">
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                <Zap className="h-5 w-5 text-primary" />
+                Operational Quick-Links
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                { label: 'Attendance', icon: Clock, path: '/attendance', perm: 'mark_attendance', color: 'slate' },
+                { label: 'Roster', icon: Users, path: '/employees', perm: 'view_employee', color: 'teal' },
+                { label: 'Projects', icon: Briefcase, path: '/projects', perm: 'view_projects', color: 'emerald' },
+                { label: 'Clients', icon: Building2, path: '/clients', perm: 'view_clients', color: 'blue' },
+                { label: 'Payroll', icon: Wallet, path: '/payroll', perm: 'view_payroll', color: 'amber' },
+                { label: 'Leaves', icon: CalendarDays, path: '/leaves', perm: 'apply_leave', color: 'orange' },
+              ].filter(link => userPermissions.includes(link.perm) || userData?.role === 'Super Admin' || userData?.role === 'Agency Admin').map((link) => (
+                <Button
+                  key={link.label}
+                  variant="outline"
+                  className="h-32 flex-col gap-3 rounded-[32px] border-slate-100 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all shadow-sm group relative overflow-hidden bg-white"
+                  onClick={() => router.push(`/${agencySlug}${link.path}`)}
+                >
+                  <link.icon className="h-7 w-7 transition-transform group-hover:scale-110 duration-500" />
+                  <span className="text-xs font-black uppercase tracking-widest">{link.label}</span>
+                  <ArrowRight className="h-3 w-3 absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-slate-50/50 p-8 rounded-[40px] border border-slate-100 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-700">
+              <ShieldCheck className="h-40 w-40" />
+            </div>
+            <div className="relative z-10">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Security Privilege Authorization</h3>
+              <div className="flex flex-wrap gap-2">
+                {userPermissions.map(p => (
+                  <Badge key={p} className="bg-white text-slate-600 border border-slate-100 shadow-sm px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-wider">
+                    {p.replace('_', ' ')}
+                  </Badge>
+                ))}
+                {userPermissions.length === 0 && <span className="text-xs font-medium text-slate-400 italic">No specific privileges assigned to this node.</span>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-10">
+          <div>
+            <div className="flex items-center justify-between mb-8 px-2">
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Intelligence Log</h2>
+            </div>
             <div className="space-y-4">
-              {recentActivities.length > 0 ? (
-                recentActivities.map((activity: any, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 bg-${activity.icon}-500 rounded-full`}></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{activity.title}</p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
+              {recentActivities.map((activity: any, idx) => (
+                <div key={idx} className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group">
+                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", activity.color === 'emerald' ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600")}>
+                    <Activity className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-black text-slate-900 leading-tight group-hover:text-primary transition-colors truncate">{activity.title}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{activity.time} — Verified</p>
+                  </div>
+                </div>
+              ))}
+              {recentActivities.length === 0 && <p className="text-center py-10 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No activities logged in current cycle.</p>}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-8 px-2">
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Active Roster</h2>
+            </div>
+            <div className="space-y-4">
+              {topPerformers.map((performer: any, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 rounded-xl border border-white">
+                      <AvatarFallback className="bg-slate-200 text-slate-600 font-bold text-xs">{performer.initials}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="text-xs font-black text-slate-900 leading-tight">{performer.name}</div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{performer.designation}</div>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">No recent activity</p>
-              )}
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 mr-2" />
+                </div>
+              ))}
+              {topPerformers.length === 0 && <p className="text-center py-10 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Personnel roster offline.</p>}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Award className="h-5 w-5" />
-              <span>Staff Members</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {topPerformers.length > 0 ? (
-                topPerformers.map((performer: any, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                        {performer.initials}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">{performer.name}</p>
-                        <p className="text-xs text-gray-500">{performer.designation}</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-green-100 text-green-800">
-                      Active
-                    </Badge>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">No staff members found</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {(userPermissions.includes('mark_attendance') || userPermissions.includes('view_attendance')) && (
-              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-primary hover:text-primary transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/attendance`)}>
-                <Clock className="h-6 w-6" />
-                <span className="text-sm font-bold">Attendance</span>
-              </Button>
-            )}
-            {userPermissions.includes('view_employee') && (
-              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-teal-600 hover:text-teal-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/employees`)}>
-                <Users className="h-6 w-6" />
-                <span className="text-sm font-bold">Employee</span>
-              </Button>
-            )}
-            {userPermissions.includes('view_projects') && (
-              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-emerald-600 hover:text-emerald-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/projects`)}>
-                <Briefcase className="h-6 w-6" />
-                <span className="text-sm font-bold">Projects</span>
-              </Button>
-            )}
-            {userPermissions.includes('view_clients') && (
-              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-blue-600 hover:text-blue-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/clients`)}>
-                <Building2 className="h-6 w-6" />
-                <span className="text-sm font-bold">Clients</span>
-              </Button>
-            )}
-            {(userPermissions.includes('view_payroll') || userPermissions.includes('manage_payroll')) && (
-              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-amber-600 hover:text-amber-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/payroll`)}>
-                <Wallet className="h-6 w-6" />
-                <span className="text-sm font-bold">Payroll</span>
-              </Button>
-            )}
-            {userPermissions.includes('apply_leave') && (
-              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-orange-600 hover:text-orange-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/leaves`)}>
-                <CalendarDays className="h-6 w-6" />
-                <span className="text-sm font-bold">Leave</span>
-              </Button>
-            )}
-            {userPermissions.includes('view_reports') && (
-              <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-primary transition-all shadow-sm">
-                <TrendingUp className="h-6 w-6" />
-                <span className="text-sm font-bold">Analytics</span>
-              </Button>
-            )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

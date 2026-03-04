@@ -3,10 +3,10 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Trash2, Building } from "lucide-react"
+import { Plus, Trash2, Building, ShieldCheck, Briefcase } from "lucide-react"
 import { cn } from "@/lib/utils"
 import api from "@/lib/api"
-import { toast } from "@/components/ui/sonner"
+import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import {
     Table,
@@ -16,9 +16,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { RowDeleteButton } from "@/components/ui/design-system"
+import { RowDeleteButton, TableRowEmpty } from "@/components/ui/design-system"
 import { useAuthStore } from "@/store/authStore"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
+import { Label } from "@/components/ui/label"
 
 export function DesignationManager({ designations, onUpdate }: { designations: any[], onUpdate: () => void }) {
     const [loading, setLoading] = useState(false)
@@ -26,28 +27,22 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
     const [newDesc, setNewDesc] = useState("")
     const { user } = useAuthStore()
 
-    console.log("DesignationManager - Current user:", user)
-    console.log("DesignationManager - Agency ID:", user?.agencyId)
-
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!newName) return
-        console.log("Creating designation:", { name: newName, description: newDesc })
         setLoading(true)
         try {
-            const response = await api.post("/designations", {
+            await api.post("/designations", {
                 name: newName,
                 description: newDesc,
-                agencyId: user?.agencyId // Include agencyId for Super Admin context
+                agencyId: user?.agencyId
             })
-            console.log("Designation creation response:", response)
-            toast.success("Designation created")
+            toast.success("Designation protocol initialized.")
             setNewName("")
             setNewDesc("")
             onUpdate()
         } catch (error: any) {
-            console.error("Designation creation error:", error)
-            toast.error(error.response?.data?.message || error.message || "Failed to create designation")
+            toast.error(error.response?.data?.message || "Failed to initialize designation.")
         } finally {
             setLoading(false)
         }
@@ -56,89 +51,90 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
     const handleDelete = async (id: string) => {
         try {
             await api.delete(`/designations/${id}`)
-            toast.success("Designation removed")
+            toast.success("Designation purged from roster.")
             onUpdate()
         } catch (error: any) {
-            toast.error(error.extractedMessage || "Could not delete designation")
+            toast.error(error.response?.data?.message || "Purge protocol failed.")
         }
     }
 
     return (
-        <div className="grid gap-6 lg:grid-cols-3">
-            {!user?.agencyId && (
-                <div className="lg:col-span-3 bg-red-50 border border-red-200 rounded-xl p-4">
-                    <p className="text-red-700 font-medium">⚠️ Authentication Issue: No agency context found. Please log out and log back in.</p>
-                </div>
-            )}
+        <div className="grid gap-8 lg:grid-cols-3">
             <PermissionGuard permission="manage_roles">
-                <Card className="lg:col-span-1 shadow-sm border-slate-100">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Create Designation</CardTitle>
-                        <CardDescription>Define a functional role unique to your agency structure.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handleAdd} className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Designation Name</label>
-                                <Input
-                                    placeholder="e.g. Bodyguard"
-                                    value={newName}
-                                    onChange={(e) => setNewName(e.target.value)}
-                                />
+                <div className="lg:col-span-1">
+                    <div className="bg-slate-950 rounded-[32px] p-1 shadow-2xl overflow-hidden relative group">
+                        <div className="bg-slate-900 rounded-[30px] p-8 relative z-10 border border-white/5">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/20">
+                                    <ShieldCheck className="h-5 w-5 text-primary" />
+                                </div>
+                                <h3 className="text-lg font-black text-white uppercase tracking-tight">Init Rank</h3>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700">Description (Optional)</label>
-                                <Input
-                                    placeholder="Responsibilities..."
-                                    value={newDesc}
-                                    onChange={(e) => setNewDesc(e.target.value)}
-                                />
-                            </div>
-                            <Button type="submit" className="w-full h-11 rounded-xl bg-slate-900 font-bold" disabled={loading || !user?.agencyId}>
-                                {loading ? "Creating..." : "Create Designation"}
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+
+                            <form onSubmit={handleAdd} className="space-y-6">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Title</Label>
+                                    <Input
+                                        placeholder="e.g. SPECIAL OPERATIVE"
+                                        className="h-12 bg-white/5 border-white/10 text-white rounded-xl focus:bg-white/10 transition-all font-bold placeholder:text-slate-600"
+                                        value={newName}
+                                        onChange={(e) => setNewName(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Scope</Label>
+                                    <Input
+                                        placeholder="Identification of responsibilities..."
+                                        className="h-12 bg-white/5 border-white/10 text-white rounded-xl focus:bg-white/10 transition-all font-bold placeholder:text-slate-600"
+                                        value={newDesc}
+                                        onChange={(e) => setNewDesc(e.target.value)}
+                                    />
+                                </div>
+                                <Button type="submit" className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all mt-4" disabled={loading}>
+                                    {loading ? "PROCESSING..." : "REGISTER RANK"}
+                                </Button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </PermissionGuard>
 
-            <Card className={cn(
-                "shadow-sm border-slate-100 overflow-hidden",
-                user?.permissions?.includes('manage_roles') || user?.role?.includes('Admin') ? "lg:col-span-2" : "lg:col-span-3"
+            <div className={cn(
+                "lg:col-span-2 space-y-4",
+                !user?.permissions?.includes('manage_roles') && "lg:col-span-3"
             )}>
-                <CardHeader className="bg-slate-50/50">
-                    <CardTitle className="text-lg">Agency Structure</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
+                <div className="flex items-center justify-between mb-4 px-2">
+                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                        <Briefcase className="h-5 w-5 text-primary" />
+                        Structural Hierarchy
+                    </h3>
+                </div>
+
+                <div className="bg-white rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
                     <Table>
-                        <TableHeader>
-                            <TableRow className="bg-slate-50/50 hover:bg-transparent">
-                                <TableHead>Title</TableHead>
-                                <TableHead>Staff Count</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                        <TableHeader className="bg-slate-50/50 border-b border-slate-100">
+                            <TableRow className="h-14">
+                                <TableHead className="px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Designation Title</TableHead>
+                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Roster Density</TableHead>
+                                <TableHead className="text-right px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {designations.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-center py-10">
-                                        <Building className="mx-auto h-12 w-12 text-slate-200 mb-2" />
-                                        <p className="text-slate-400 text-[10px] font-black tracking-widest uppercase">No Designations Defined</p>
-                                    </TableCell>
-                                </TableRow>
+                                <TableRowEmpty colSpan={3} title="Structural Nodes Offline" icon={<Building />} />
                             ) : (
                                 designations.map((des) => (
-                                    <TableRow key={des.id} className="hover:bg-slate-50/20 transition-colors">
-                                        <TableCell>
-                                            <div className="font-bold text-slate-800 uppercase tracking-tight">{des.name}</div>
-                                            <div className="text-xs text-slate-400 font-medium">{des.description || "No description"}</div>
+                                    <TableRow key={des.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                        <TableCell className="px-8 py-5">
+                                            <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors uppercase tracking-tight">{des.name}</div>
+                                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">{des.description || "Baseline operational scope"}</div>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
-                                                {des._count?.employees || 0} Members
+                                            <div className="inline-flex items-center px-3 py-1 rounded-full bg-slate-50 text-slate-500 text-[10px] font-black border border-slate-100 shadow-sm">
+                                                {des._count?.employees || 0} ACTIVE MEMBERS
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="text-right px-8">
                                             <PermissionGuard permission="manage_roles">
                                                 <RowDeleteButton onClick={() => handleDelete(des.id)} />
                                             </PermissionGuard>
@@ -148,8 +144,8 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                             )}
                         </TableBody>
                     </Table>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     )
 }

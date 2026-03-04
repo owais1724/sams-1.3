@@ -2,18 +2,48 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  PageHeader,
+  CreateButton,
+  DataTable,
+  PageLoading,
+  StatusBadge,
+  TableRowLoading,
+  TableRowEmpty,
+  StatCard,
+  RowViewButton,
+  RowEditButton,
+  SubmitButton
+} from "@/components/ui/design-system"
+import { useAuthStore } from "@/store/authStore"
+import { usePermission } from "@/hooks/usePermission"
+import { PermissionGuard } from "@/components/common/PermissionGuard"
+import { toast } from "sonner"
+import api from "@/lib/api"
+import { cn } from "@/lib/utils"
+const formatDate = (date: string | Date, options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short' }) => {
+  return new Intl.DateTimeFormat('en-GB', options).format(new Date(date))
+}
+
+const formatYear = (date: string | Date) => {
+  return new Date(date).getFullYear().toString()
+}
+import { Plus, CalendarDays, CheckCircle2, XCircle, Clock, FileText, User, Filter, MoreHorizontal, History, Briefcase, ShieldCheck } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { CalendarDays, Plus, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react"
-import { toast } from "@/components/ui/sonner"
-import api from "@/lib/api"
-import { cn } from "@/lib/utils"
+import { TableCell, TableRow } from "@/components/ui/table"
 
 interface LeaveRequest {
   id: string
@@ -34,8 +64,8 @@ interface LeaveRequest {
   pendingWith?: string
   employee: {
     id: string
-    name: string
-    email: string
+    fullName: string
+    employeeCode: string
     role: string
     designation: {
       name: string
@@ -43,33 +73,10 @@ interface LeaveRequest {
   }
 }
 
-interface User {
-  id: string
-  employeeId?: string
-  role: string
-  fullName: string
-}
-
-const statusColors = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  SUPERVISOR_APPROVED: "bg-blue-100 text-blue-800",
-  HR_APPROVED: "bg-purple-100 text-purple-800",
-  AGENCY_APPROVED: "bg-green-100 text-green-800",
-  REJECTED: "bg-red-100 text-red-800"
-}
-
-const statusIcons = {
-  PENDING: Clock,
-  SUPERVISOR_APPROVED: CheckCircle,
-  HR_APPROVED: CheckCircle,
-  AGENCY_APPROVED: CheckCircle,
-  REJECTED: XCircle
-}
-
 export default function LeavesPage() {
-  const { agencySlug } = useParams()
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([])
-  const [user, setUser] = useState<User | null>(null)
+  const { user } = useAuthStore()
+  const { hasPermission } = usePermission()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [formData, setFormData] = useState({
     leaveType: "",
@@ -82,22 +89,8 @@ export default function LeavesPage() {
   const [processingId, setProcessingId] = useState<string | null>(null)
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true)
-      await Promise.all([fetchUserData(), fetchLeaveRequests()])
-      setLoading(false)
-    }
-    init()
-  }, [])
-
-  const fetchUserData = async () => {
-    try {
-      const response = await api.get('/auth/me')
-      setUser(response.data)
-    } catch (error) {
-      console.error('Error fetching user data:', error)
-    }
-  }
+    if (user) fetchLeaveRequests()
+  }, [user])
 
   const fetchLeaveRequests = async () => {
     try {
@@ -105,6 +98,8 @@ export default function LeavesPage() {
       setLeaveRequests(response.data)
     } catch (error) {
       toast.error('Failed to fetch leave requests')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -115,6 +110,7 @@ export default function LeavesPage() {
 
     if (!user?.employeeId) {
       toast.error('Only staff members can apply for leave')
+      setSubmitting(false)
       return
     }
 
@@ -171,22 +167,17 @@ export default function LeavesPage() {
     const isApplicantHR = applicantRole.includes('hr');
     const isApplicantSupervisor = applicantRole.includes('supervisor');
 
-    // Terminal statuses (except for Emergency Audit)
     if (status === 'REJECTED') return false
 
-    // For Emergency leaves, they are "Auditable" only if approved by SYSTEM
     const isEmergencyAudit = status === 'AGENCY_APPROVED' &&
       leave.leaveType === 'EMERGENCY' &&
       leave.agencyApprovedBy === 'SYSTEM_AUTO_EMERGENCY';
 
     if (status === 'AGENCY_APPROVED' && !isEmergencyAudit) return false
 
-    // Agency Admin can always approve/audit anything that isn't final
     if (isAdmin) return true
 
-    // HR Approval/Audit Logic
     if (isHR) {
-      // HR can approve Supervisor and Staff leaves, but not HR/Admin leaves
       if (!isApplicantAdmin && !isApplicantHR) {
         if (status === 'PENDING' || status === 'SUPERVISOR_APPROVED' || isEmergencyAudit) {
           return true
@@ -194,9 +185,7 @@ export default function LeavesPage() {
       }
     }
 
-    // Supervisor Approval/Audit Logic
     if (isSupervisor) {
-      // Supervisor can approve PENDING or Emergency Audit frontline staff leaves
       if (!isApplicantAdmin && !isApplicantHR && !isApplicantSupervisor) {
         if (status === 'PENDING' || isEmergencyAudit) {
           return true
@@ -215,218 +204,178 @@ export default function LeavesPage() {
     const isSupervisor = role.includes('supervisor');
     const isAdmin = role.includes('admin');
 
-    // HR and Admin approval are terminal
     if (isHR || isAdmin) return 'AGENCY_APPROVED'
-
-    // Supervisor approval moves to intermediate level
     if (isSupervisor) return 'SUPERVISOR_APPROVED'
 
     return null
   }
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground animate-pulse">Synchronizing leave data...</p>
-      </div>
-    )
-  }
+  if (loading) return <PageLoading message="Synchronizing Leave Protocols..." />
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <CalendarDays className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Leave Management</h1>
-        </div>
+    <div className="space-y-8 pb-20">
+      <PageHeader
+        title="Leave"
+        titleHighlight="Protocols"
+        subtitle="High-level oversight of staff availability and emergency deployment bypasses."
+        action={
+          user?.role !== 'Agency Admin' && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <CreateButton
+                  label="Request Leave"
+                  icon={<Plus className="h-4 w-4" />}
+                />
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
+                <DialogHeader className="p-10 bg-slate-900 text-white relative">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
+                  <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10">Initialize Leave Request</DialogTitle>
+                  <DialogDescription className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest z-10">Professional absence documentation</DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="p-10 space-y-6">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Protocol Type</Label>
+                    <Select value={formData.leaveType} onValueChange={(value) => setFormData({ ...formData, leaveType: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select leave category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SICK">Sick / Medical</SelectItem>
+                        <SelectItem value="CASUAL">Personal / Casual</SelectItem>
+                        <SelectItem value="ANNUAL">Annual Base</SelectItem>
+                        <SelectItem value="EMERGENCY">Emergency Deployment Bypass</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-        {user?.role !== 'Agency Admin' && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Request Leave
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-8">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-black text-slate-900">Request Leave</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="leaveType" className="text-sm font-bold text-slate-700 ml-1">Leave Type</Label>
-                  <Select value={formData.leaveType} onValueChange={(value) => setFormData({ ...formData, leaveType: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select leave type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SICK">Sick Leave</SelectItem>
-                      <SelectItem value="CASUAL">Casual Leave</SelectItem>
-                      <SelectItem value="ANNUAL">Annual Leave</SelectItem>
-                      <SelectItem value="EMERGENCY">Emergency Leave</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Start Date</Label>
+                      <Input
+                        type="date"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">End Date</Label>
+                      <Input
+                        type="date"
+                        value={formData.endDate}
+                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="startDate" className="text-sm font-bold text-slate-700 ml-1">Start Date</Label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                      className="h-12 rounded-xl border-slate-200 focus:ring-primary/20 transition-all font-medium"
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Justification Reason</Label>
+                    <Textarea
+                      value={formData.reason}
+                      onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                      placeholder="Provide professional justification for this absence..."
+                      className="min-h-[120px] rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-primary/20 transition-all p-4 text-sm font-medium italic"
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate" className="text-sm font-bold text-slate-700 ml-1">End Date</Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                      className="h-12 rounded-xl border-slate-200 focus:ring-primary/20 transition-all font-medium"
-                      required
+
+                  <DialogFooter className="pt-4">
+                    <Button type="button" variant="ghost" className="h-14 rounded-2xl font-bold flex-1" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                    <SubmitButton
+                      label={submitting ? "Processing..." : "Submit Protocol"}
+                      loading={submitting}
+                      className="flex-[2] mt-0"
                     />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="reason" className="text-sm font-bold text-slate-700 ml-1">Reason</Label>
-                  <Textarea
-                    id="reason"
-                    value={formData.reason}
-                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                    placeholder="Briefly explain the reason for your leave..."
-                    className="rounded-2xl border-slate-200 focus:ring-primary/20 transition-all min-h-[120px] p-4 resize-none"
-                    required
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 font-black text-lg shadow-xl shadow-primary/20 transition-all active:scale-[0.98] mt-4"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Create Request"
-                  )}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
-
-      <div className="grid gap-4">
-        {leaveRequests.map((leave) => {
-          const StatusIcon = statusIcons[leave.status as keyof typeof statusIcons]
-          return (
-            <Card key={leave.id} className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-              <CardHeader className="bg-slate-50/50 border-b border-slate-100 px-8 py-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-black text-slate-900 tracking-tight">{leave.employee.name}</CardTitle>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{leave.employee.role} • {leave.employee.designation.name}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <Badge className={cn(
-                      "rounded-full px-4 py-1 font-black text-[10px] uppercase border-none shadow-none",
-                      leave.status === 'AGENCY_APPROVED' && leave.leaveType === 'EMERGENCY' && leave.agencyApprovedBy === 'SYSTEM_AUTO_EMERGENCY'
-                        ? "bg-blue-100 text-blue-800"
-                        : statusColors[leave.status as keyof typeof statusColors]
-                    )}>
-                      {StatusIcon && <StatusIcon className="h-3 w-3 mr-1.5" />}
-                      {leave.status === 'AGENCY_APPROVED' && leave.leaveType === 'EMERGENCY' && leave.agencyApprovedBy === 'SYSTEM_AUTO_EMERGENCY'
-                        ? "Protocol Bypass (System)"
-                        : leave.status.replace('_', ' ')}
-                    </Badge>
-                    {(leave.status !== 'AGENCY_APPROVED' || (leave.leaveType === 'EMERGENCY' && leave.agencyApprovedBy === 'SYSTEM_AUTO_EMERGENCY')) &&
-                      leave.status !== 'REJECTED' && leave.pendingWith && (
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                          Pending with: <span className="text-primary">{leave.pendingWith}</span>
-                        </span>
-                      )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="space-y-6">
-                  <div className="grid md:grid-cols-3 gap-6 text-sm">
-                    <div className="flex flex-col">
-                      <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-1">Leave Type</span>
-                      <span className="font-bold text-slate-900">{leave.leaveType}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-1">Timeframe</span>
-                      <span className="font-bold text-slate-900">{new Date(leave.startDate).toLocaleDateString()} — {new Date(leave.endDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-1">Submission Log</span>
-                      <span className="font-bold text-slate-900">{new Date(leave.appliedAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-slate-400 font-black uppercase text-[10px] tracking-widest block mb-2">Statement of Reason</span>
-                    <p className="text-sm font-medium text-slate-700 leading-relaxed bg-slate-50/50 p-4 rounded-2xl border border-slate-100 italic">"{leave.reason}"</p>
-                  </div>
-
-                  {leave.rejectionReason && (
-                    <div className="p-3 bg-red-50 rounded-xl text-sm text-red-800 border border-red-100">
-                      <span className="font-bold uppercase text-[10px] block mb-1">Rejection Reason</span>
-                      {leave.rejectionReason}
-                    </div>
-                  )}
-
-                  {canApprove(leave) && (
-                    <div className="flex space-x-2 pt-2">
-                      <Button
-                        size="sm"
-                        disabled={processingId === leave.id}
-                        onClick={() => handleApproval(leave.id, getNextStatus(leave)!)}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {processingId === leave.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Approve"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        disabled={processingId === leave.id}
-                        onClick={() => {
-                          const reason = prompt('Enter declination reason:')
-                          if (reason) {
-                            handleApproval(leave.id, 'REJECTED', reason)
-                          }
-                        }}
-                      >
-                        Decline
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           )
-        })}
+        }
+      />
 
-        {leaveRequests.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-8">
-              <CalendarDays className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 font-bold uppercase tracking-widest text-[10px]">No Leave Requests Found</p>
-            </CardContent>
-          </Card>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <StatCard title="Review Required" value={leaveRequests.filter(r => r.status === 'PENDING').length} icon={<Clock />} color="amber" />
+        <StatCard title="Active Leaves" value={leaveRequests.filter(r => r.status === 'AGENCY_APPROVED').length} icon={<CheckCircle2 />} color="emerald" />
+        <StatCard title="Protocol Log" value={leaveRequests.length} icon={<FileText />} color="blue" />
+        <StatCard title="Denied Requests" value={leaveRequests.filter(r => r.status === 'REJECTED').length} icon={<XCircle />} color="rose" />
       </div>
+
+      <DataTable columns={['Staff Member', 'Leave Parameters', 'Operational Window', 'Security Status', 'Actions']}>
+        {leaveRequests.length === 0 ? (
+          <TableRowEmpty colSpan={5} title="No Leave Protocols Found" icon={<CalendarDays />} />
+        ) : (
+          leaveRequests.map((leave, idx) => (
+            <TableRow key={leave.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+              <TableCell className="px-8 py-5">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 font-black group-hover:bg-primary/5 group-hover:text-primary transition-all">
+                    {leave.employee?.fullName?.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-extrabold text-slate-900 leading-tight group-hover:text-primary transition-colors">{leave.employee?.fullName}</div>
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{leave.employee?.employeeCode}</div>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-bold text-slate-700">{leave.leaveType.replace(/_/g, " ")}</span>
+                  <span className="text-[10px] text-slate-400 font-medium truncate max-w-[180px] italic">"{leave.reason}"</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="text-sm font-black text-slate-900">{formatDate(leave.startDate)} - {formatDate(leave.endDate)}</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{formatYear(leave.startDate)}</span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col gap-1.5">
+                  <StatusBadge status={leave.status} />
+                  {leave.status !== 'AGENCY_APPROVED' && leave.status !== 'REJECTED' && (
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest pl-1">Pending: {leave.pendingWith}</span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-right px-8">
+                {canApprove(leave) ? (
+                  <div className="flex items-center justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="success"
+                      className="h-10 px-5"
+                      onClick={() => handleApproval(leave.id, getNextStatus(leave)!)}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
+                      Authorize
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger-solid"
+                      className="h-10 px-5"
+                      onClick={() => {
+                        const reason = prompt("State reason for denial:");
+                        if (reason) handleApproval(leave.id, 'REJECTED', reason);
+                      }}
+                    >
+                      <XCircle className="h-3.5 w-3.5 mr-2" />
+                      Deny
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="pr-4 flex justify-end">
+                    <RowViewButton onClick={() => { }} className="opacity-50 cursor-not-allowed" />
+                  </div>
+                )}
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </DataTable>
     </div>
   )
 }
+

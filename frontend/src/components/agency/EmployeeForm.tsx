@@ -196,7 +196,6 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                 <FormControl>
                                     <Input
                                         placeholder="Name"
-                                        className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic"
                                         {...field}
                                     />
                                 </FormControl>
@@ -295,7 +294,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                     <FormControl>
                                         <Input
                                             type="number"
-                                            className="h-14 bg-slate-50 border-transparent rounded-2xl font-black"
+                                            className="font-black"
                                             {...field}
                                         />
                                     </FormControl>
@@ -314,7 +313,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                             <FormItem className="space-y-1">
                                 <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Email</FormLabel>
                                 <FormControl>
-                                    <Input type="email" placeholder="email@agency.com" {...field} className="h-14 rounded-2xl bg-slate-50" />
+                                    <Input type="email" placeholder="email@agency.com" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -332,7 +331,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                             type={showPassword ? "text" : "password"}
                                             placeholder={initialData ? "Enter only to change" : "Set password"}
                                             {...field}
-                                            className="h-14 rounded-2xl bg-slate-50 pr-12 font-black"
+                                            className="pr-12 font-black"
                                         />
                                         <button
                                             type="button"

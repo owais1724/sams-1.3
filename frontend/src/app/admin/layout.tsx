@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useAuthStore } from "@/store/authStore"
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
-import { Menu, Shield } from "lucide-react"
+import { Menu, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
@@ -97,38 +97,40 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="flex h-screen bg-gray-50 font-outfit overflow-hidden">
+        <div className="flex h-screen bg-slate-50 font-outfit overflow-hidden">
             {/* Desktop Sidebar */}
-            <div className="hidden lg:flex w-64 shrink-0 border-r border-slate-800 shadow-2xl z-20">
+            <div className="hidden lg:flex w-72 shrink-0 border-r border-white/5 shadow-2xl z-20">
                 <AdminSidebar />
             </div>
 
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Mobile Header */}
-                <header className="lg:hidden flex items-center justify-between px-6 h-20 bg-[#0f172a] text-white border-b border-white/[0.03] shrink-0 z-30 shadow-2xl">
+                <header className="lg:hidden flex items-center justify-between px-5 h-20 bg-[#0d5c56] text-white border-b border-white/5 shrink-0 z-30 shadow-xl shadow-black/10">
                     <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                            <Shield className="h-6 w-6 text-white" />
+                        <div className="h-10 w-10 bg-gradient-to-tr from-[#14B8A6] to-emerald-400 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
+                            <ShieldCheck className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-sm font-black tracking-[0.15em] uppercase leading-none">Sentinel</h1>
-                            <span className="text-[9px] text-blue-400 font-black uppercase tracking-[0.2em] mt-1 block opacity-80">Master Admin</span>
+                            <h1 className="text-sm font-black tracking-[0.1em] uppercase leading-none">Sentinel</h1>
+                            <span className="text-[9px] text-teal-300/60 font-black uppercase tracking-widest mt-1 block">Platform Admin</span>
                         </div>
                     </div>
                     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-2xl h-12 w-12 border border-white/[0.05] bg-white/[0.03]">
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-2xl h-12 w-12 border border-white/5 bg-white/5">
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0f172a] overflow-hidden">
+                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0d5c56] overflow-hidden">
                             <AdminSidebar onItemClick={() => setSidebarOpen(false)} />
                         </SheetContent>
                     </Sheet>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8">
-                    {children}
+                <main className="flex-1 overflow-y-auto">
+                    <div className="p-3 sm:p-6 md:p-10">
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>

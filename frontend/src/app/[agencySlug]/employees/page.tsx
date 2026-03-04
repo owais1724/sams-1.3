@@ -234,7 +234,7 @@ export default function EmployeesPage() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-hover:text-primary transition-colors" />
                             <Input
                                 placeholder="Search roster..."
-                                className="pl-11 pr-4 h-12 bg-white border-slate-200 rounded-2xl w-full md:w-[300px] focus:ring-primary shadow-sm hover:shadow-md transition-all font-medium"
+                                className="pl-11 pr-4 w-full md:w-[300px] shadow-sm hover:shadow-md transition-all font-medium"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -355,7 +355,7 @@ export default function EmployeesPage() {
                                 value={payrollAmount}
                                 onChange={(e) => setPayrollAmount(e.target.value)}
                                 placeholder="Enter specific amount"
-                                className="text-lg font-black h-14 rounded-2xl"
+                                className="text-lg font-black"
                             />
                             <p className="text-[10px] font-medium text-slate-400 ml-1 italic">Default base salary auto-filled.</p>
                         </div>
