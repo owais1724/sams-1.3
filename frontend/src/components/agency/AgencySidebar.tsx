@@ -53,12 +53,6 @@ export function AgencySidebar({ onItemClick }: { onItemClick?: () => void }) {
             icon: BarChart3
         },
         {
-            name: "Platform Agencies",
-            href: `/${agencySlug}/platform-agencies`,
-            icon: Building,
-            permissions: ["create_agency", "edit_agency", "delete_agency", "view_agencies"]
-        },
-        {
             name: "Clients",
             href: `/${agencySlug}/clients`,
             icon: Building,
