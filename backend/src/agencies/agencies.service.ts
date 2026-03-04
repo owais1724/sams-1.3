@@ -41,29 +41,32 @@ export class AgenciesService {
       });
 
       // 4. Create Agency Admin Role for this agency
+      const allOperationalPermissions = [
+        'view_clients', 'create_client', 'edit_client', 'delete_client',
+        'view_projects', 'create_project', 'edit_project', 'delete_project',
+        'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
+        'manage_roles', 'assign_staff', 'view_attendance', 'mark_attendance',
+        'approve_leave', 'apply_leave', 'view_leaves', 'manage_payroll',
+        'view_payroll', 'view_reports'
+      ];
+
+      // Ensure they exist in the DB
+      for (const action of allOperationalPermissions) {
+        await tx.permission.upsert({
+          where: { action },
+          update: {},
+          create: { action },
+        });
+      }
+
       const adminRole = await tx.role.create({
         data: {
           name: 'Agency Admin',
           description: 'Full control of the agency',
           isSystem: true,
           agencyId: agency.id,
-          // Connect all operational permissions to this role
           permissions: {
-            connect: await tx.permission
-              .findMany({
-                where: {
-                  action: {
-                    notIn: [
-                      'create_agency',
-                      'edit_agency',
-                      'delete_agency',
-                      'create_agency_admin',
-                      'view_platform_analytics',
-                    ],
-                  },
-                },
-              })
-              .then((perms) => perms.map((p) => ({ id: p.id }))),
+            connect: allOperationalPermissions.map(action => ({ action })),
           },
         },
       });
@@ -160,35 +163,11 @@ export class AgenciesService {
   }
 
   async remove(id: string) {
-    // Check if agency exists
     const agency = await this.prisma.agency.findUnique({ where: { id } });
     if (!agency) throw new NotFoundException('Agency not found');
 
-    // Use transaction to clean up all related data to prevent FK violations
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Operational Data
-      await tx.attendance.deleteMany({ where: { agencyId: id } });
-      await tx.leave.deleteMany({ where: { agencyId: id } });
-      await tx.payroll.deleteMany({ where: { agencyId: id } });
-      await tx.visitor.deleteMany({ where: { agencyId: id } });
-      await tx.auditLog.deleteMany({ where: { agencyId: id } });
-
-      // 2. Infrastructure Data
-      await tx.checkpoint.deleteMany({
-        where: { project: { agencyId: id } },
-      });
-      await tx.project.deleteMany({ where: { agencyId: id } });
-      await tx.client.deleteMany({ where: { agencyId: id } });
-      await tx.designation.deleteMany({ where: { agencyId: id } });
-
-      // 3. Identity Data
-      await tx.user.deleteMany({ where: { agencyId: id } });
-      await tx.role.deleteMany({ where: { agencyId: id } });
-      await tx.employee.deleteMany({ where: { agencyId: id } });
-
-      // 4. Finally Delete the Agency
-      return tx.agency.delete({ where: { id } });
-    });
+    // With cascade delete in the schema, we can simply delete the agency and Prisma/Postgres handles the rest
+    return this.prisma.agency.delete({ where: { id } });
   }
   async toggleStatus(id: string) {
     const agency = await this.prisma.agency.findUnique({ where: { id } });
