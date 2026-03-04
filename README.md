@@ -1,7 +1,7 @@
 # SAMS | Security Agency Management System
 
 
-**SAMS (Security Agency Management System)** is a production-grade, multi-tenant SaaS platform designed to streamline operations for security agencies. It provides a robust, secure, and premium experience for managing personnel, clients, projects, attendance, and payroll.
+**SAMS (Security Agency Management System)** is a production-grade, multi-tenant SaaS platform designed to streamline operations for security agencies. It provides a robust, secure, and premium experience for managing employees, clients, projects, attendance, and payroll.
 
 ---
 
@@ -15,7 +15,7 @@ SAMS is built with three core pillars: **Security**, **Scalability**, and **Simp
 - **Hierarchical RBAC**: Granular permission system based on designations (Guard, Supervisor, HR, etc.).
 
 ### 🏢 Agency Administration
-- **Personnel Onboarding**: Simplified staff registration with automatic role assignment.
+- **Employee Onboarding**: Simplified staff registration with automatic role assignment.
 - **Client & Project Management**: Manage institutional contracts and link them to operational sites.
 - **Dynamic RBAC Dashboard**: Real-time permission mapping for agency-specific roles.
 

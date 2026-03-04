@@ -11,6 +11,7 @@ import { PageHeader, CreateButton, DataTable, PageLoading, EmptyState } from "@/
 import { SearchBar } from "@/components/common/SearchBar"
 import { TableActionButtons } from "@/components/common/TableActionButtons"
 import { FormSheet } from "@/components/common/FormSheet"
+import { PermissionGuard } from "@/components/common/PermissionGuard"
 import { useApiData } from "@/hooks/useApiData"
 import { useDeleteConfirm } from "@/hooks/useDeleteConfirm"
 
@@ -43,11 +44,13 @@ export default function ClientsPage() {
                 titleHighlight="Portfolio"
                 subtitle="Manage institutional partners and project owners."
                 action={
-                    <CreateButton
-                        label="Create Client"
-                        icon={<Plus className="h-4 w-4" />}
-                        onClick={() => { setEditingClient(null); setOpen(true) }}
-                    />
+                    <PermissionGuard permission="create_client">
+                        <CreateButton
+                            label="Create Client"
+                            icon={<Plus className="h-4 w-4" />}
+                            onClick={() => { setEditingClient(null); setOpen(true) }}
+                        />
+                    </PermissionGuard>
                 }
             />
 
@@ -73,7 +76,11 @@ export default function ClientsPage() {
                     icon={<Building className="h-10 w-10" />}
                     title="No Clients Found"
                     description="Create your first client record to begin project management."
-                    action={<CreateButton label="Create Client" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)} />}
+                    action={
+                        <PermissionGuard permission="create_client">
+                            <CreateButton label="Create Client" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)} />
+                        </PermissionGuard>
+                    }
                 />
             ) : (
                 <DataTable columns={['Affiliated Client', 'Contact Node', 'Operational Projects', 'Actions']}>
@@ -113,10 +120,27 @@ export default function ClientsPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-right px-4 sm:px-8">
-                                    <TableActionButtons
-                                        onEdit={() => { setEditingClient(client); setOpen(true) }}
-                                        onDelete={() => openDelete(client.id, client.name)}
-                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <PermissionGuard permission="edit_client">
+                                            <TableActionButtons
+                                                onEdit={() => { setEditingClient(client); setOpen(true) }}
+                                                onDelete={null as any} // Hide delete if only edit
+                                                hideDelete
+                                            />
+                                        </PermissionGuard>
+                                        <PermissionGuard permission="delete_client">
+                                            <TableActionButtons
+                                                onEdit={null as any} // Hide edit if only delete
+                                                onDelete={() => openDelete(client.id, client.name)}
+                                                hideEdit
+                                            />
+                                        </PermissionGuard>
+                                        <PermissionGuard permission={[]} fallback={
+                                            (!clients || clients.length > 0) && (
+                                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">View Only</span>
+                                            )
+                                        } />
+                                    </div>
                                 </TableCell>
                             </motion.tr>
                         ))}

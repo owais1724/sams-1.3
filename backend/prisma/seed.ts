@@ -16,7 +16,7 @@ async function main() {
         // Agency Level - Operational
         'view_clients', 'create_client', 'edit_client', 'delete_client',
         'view_projects', 'create_project', 'edit_project', 'delete_project',
-        'view_personnel', 'create_personnel', 'edit_personnel', 'delete_personnel',
+        'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
         'manage_roles', // Create/Edit roles
         'assign_staff',
         'view_attendance', 'mark_attendance',

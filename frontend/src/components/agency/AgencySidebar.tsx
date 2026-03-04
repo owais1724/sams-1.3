@@ -20,7 +20,7 @@ import { useEffect, useState } from "react"
 import api from "@/lib/api"
 import { SidebarItem, SidebarLogout, SidebarSectionLabel } from "@/components/ui/design-system"
 
-export function AgencySidebar() {
+export function AgencySidebar({ onItemClick }: { onItemClick?: () => void }) {
     const { agencySlug } = useParams()
     const pathname = usePathname()
     const { user, login, logout } = useAuthStore()
@@ -69,7 +69,7 @@ export function AgencySidebar() {
             name: "Employees",
             href: `/${agencySlug}/employees`,
             icon: Users,
-            permissions: ["view_personnel", "create_personnel"]
+            permissions: ["view_employee", "create_employee"]
         },
         {
             name: "Access Control",
@@ -123,23 +123,27 @@ export function AgencySidebar() {
     }
 
     return (
-        <div className="flex h-full w-full flex-col bg-[#0d5c56] text-white border-r border-white/5 relative z-20 font-outfit">
+        <div className="flex h-full w-full flex-col bg-gradient-to-b from-[#0d5c56] to-[#06423d] text-white border-r border-white/5 relative z-20 font-outfit shadow-[10px_0_50px_-5px_rgba(0,0,0,0.3)]">
             {/* Logo Section */}
-            <div className="flex h-20 items-center px-6 border-b border-white/5 gap-3">
-                <div className="h-10 w-10 bg-[#14B8A6] rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
-                    <ShieldCheck className="h-6 w-6 text-white" />
+            <div className="flex h-24 items-center px-8 border-b border-white/5 gap-4 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-white/[0.02] transform skew-y-12 translate-y-12 group-hover:translate-y-10 transition-transform duration-700" />
+                <div className="h-12 w-12 bg-gradient-to-tr from-[#14B8A6] to-emerald-400 rounded-2xl flex items-center justify-center shadow-xl shadow-teal-500/30 transform rotate-3 group-hover:rotate-6 transition-transform">
+                    <ShieldCheck className="h-7 w-7 text-white" />
                 </div>
-                <div>
-                    <h1 className="text-lg font-black tracking-[0.1em] text-white leading-none">SENTINEL</h1>
-                    <span className="text-[10px] text-teal-300/60 font-black uppercase tracking-widest mt-1 block">Security SaaS</span>
+                <div className="relative z-10 font-outfit">
+                    <h1 className="text-xl font-black tracking-[0.15em] text-white leading-tight">SENTINEL</h1>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-[10px] text-teal-300/60 font-black uppercase tracking-[0.2em]">Security SaaS</span>
+                    </div>
                 </div>
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 overflow-y-auto pt-8 px-4 space-y-8">
+            <div className="flex-1 overflow-y-auto pt-10 px-5 space-y-10 scrollbar-hide">
                 <div>
-                    <SidebarSectionLabel>Management</SidebarSectionLabel>
-                    <nav className="space-y-1.5">
+                    <SidebarSectionLabel>Core Operations</SidebarSectionLabel>
+                    <nav className="space-y-2 mt-4">
                         {navItems.map((item) => (
                             <SidebarItem
                                 key={item.name}
@@ -147,7 +151,8 @@ export function AgencySidebar() {
                                 href={item.href}
                                 icon={item.icon}
                                 isActive={pathname === item.href}
-                                className="text-teal-100/60 hover:text-white"
+                                onClick={onItemClick}
+                                className="text-teal-100/60 hover:text-white hover:bg-white/5"
                             />
                         ))}
                     </nav>
@@ -155,23 +160,30 @@ export function AgencySidebar() {
             </div>
 
             {/* User Profile Section */}
-            <div className="p-4 bg-white/[0.03] border-t border-white/5 m-4 rounded-2xl">
-                <div className="mb-4 flex items-center gap-3 px-2">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-[#14B8A6] to-emerald-400 flex items-center justify-center text-sm font-black shadow-lg shadow-teal-500/10 border-2 border-white/10 uppercase">
-                        {user?.fullName?.charAt(0) || "U"}
+            <div className="p-6 bg-black/20 border-t border-white/5 mx-5 mb-5 rounded-[32px] shadow-inner">
+                <div className="mb-5 flex items-center gap-4 px-1">
+                    <div className="relative group/avatar">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#14B8A6] to-emerald-400 flex items-center justify-center text-base font-black shadow-xl shadow-teal-500/20 border-2 border-white/10 uppercase transition-transform group-hover/avatar:scale-105">
+                            {user?.fullName?.charAt(0) || "U"}
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-emerald-500 border-2 border-[#0d5c56] rounded-full shadow-lg" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-black text-white truncate leading-tight">{user?.fullName}</p>
-                        <p className="text-[10px] text-teal-300/60 font-black truncate tracking-wide mt-0.5">{user?.role?.toUpperCase()}</p>
+                        <p className="text-sm font-black text-white truncate leading-none">{user?.fullName}</p>
+                        <div className="px-2 py-0.5 rounded-full bg-white/5 w-fit mt-1.5 border border-white/5">
+                            <p className="text-[9px] text-teal-300/80 font-black truncate tracking-widest uppercase">{user?.role}</p>
+                        </div>
                     </div>
                 </div>
 
                 <SidebarLogout
                     onClick={async () => {
+                        if (onItemClick) onItemClick()
                         await api.post("/auth/logout")
                         logout()
                         window.location.replace(isStaff ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`)
                     }}
+                    className="h-12 bg-white/5 hover:bg-rose-500 text-teal-100 hover:text-white border border-white/5 font-black uppercase tracking-widest text-[10px]"
                 />
             </div>
         </div>

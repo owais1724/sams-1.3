@@ -63,7 +63,7 @@ export default function StaffLogin() {
             // STRICT MULTI-TENANCY CHECK: Verify user belongs to this specific agency
             const currentSlug = Array.isArray(agencySlug) ? agencySlug[0] : agencySlug
             if (user.agencySlug !== currentSlug) {
-                toast.error(`Deployment Mismatch: Identity detected for unit @${user.agencySlug?.toUpperCase()}. Access to this terminal is restricted to @${currentSlug?.toUpperCase()} personnel only.`, {
+                toast.error(`Deployment Mismatch: Identity detected for unit @${user.agencySlug?.toUpperCase()}. Access to this terminal is restricted to @${currentSlug?.toUpperCase()} employee only.`, {
                     duration: 5000,
                 })
                 await api.post("/auth/logout")
@@ -129,7 +129,7 @@ export default function StaffLogin() {
                 <Card className="border-none bg-white rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] overflow-hidden relative" suppressHydrationWarning>
                     <CardContent className="p-10 md:p-14" suppressHydrationWarning>
                         <div className="mb-10 text-center">
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Personnel</h2>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Employee</h2>
                             <p className="text-teal-600 font-bold text-[10px] mt-2 uppercase tracking-[0.3em] bg-teal-50 py-1 px-4 rounded-full inline-block italic">Unit: @{agencySlug}</p>
                         </div>
 

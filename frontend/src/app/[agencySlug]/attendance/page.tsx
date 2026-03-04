@@ -262,7 +262,7 @@ export default function AttendancePage() {
                     <Table className="min-w-[900px] lg:min-w-full">
                         <TableHeader className="bg-slate-50/50 border-b border-slate-100">
                             <TableRow className="h-14">
-                                <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Personnel Profile</TableHead>
+                                <TableHead className="px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Employee Profile</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Professional Rank</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Deployment Site</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Check-In</TableHead>

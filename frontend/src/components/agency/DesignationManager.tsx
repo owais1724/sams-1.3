@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Trash2, Building } from "lucide-react"
+import { cn } from "@/lib/utils"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -15,7 +16,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { RowDeleteButton } from "@/components/ui/design-system"
 import { useAuthStore } from "@/store/authStore"
+import { PermissionGuard } from "@/components/common/PermissionGuard"
 
 export function DesignationManager({ designations, onUpdate }: { designations: any[], onUpdate: () => void }) {
     const [loading, setLoading] = useState(false)
@@ -67,37 +70,42 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                     <p className="text-red-700 font-medium">⚠️ Authentication Issue: No agency context found. Please log out and log back in.</p>
                 </div>
             )}
-            <Card className="lg:col-span-1 shadow-sm border-slate-100">
-                <CardHeader>
-                    <CardTitle className="text-lg">Create Designation</CardTitle>
-                    <CardDescription>Define a functional role unique to your agency structure.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleAdd} className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Designation Name</label>
-                            <Input
-                                placeholder="e.g. Bodyguard"
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700">Description (Optional)</label>
-                            <Input
-                                placeholder="Responsibilities..."
-                                value={newDesc}
-                                onChange={(e) => setNewDesc(e.target.value)}
-                            />
-                        </div>
-                        <Button type="submit" className="w-full h-11 rounded-xl bg-slate-900 font-bold" disabled={loading || !user?.agencyId}>
-                            {loading ? "Creating..." : "Create Designation"}
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
+            <PermissionGuard permission="manage_roles">
+                <Card className="lg:col-span-1 shadow-sm border-slate-100">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Create Designation</CardTitle>
+                        <CardDescription>Define a functional role unique to your agency structure.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleAdd} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Designation Name</label>
+                                <Input
+                                    placeholder="e.g. Bodyguard"
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-700">Description (Optional)</label>
+                                <Input
+                                    placeholder="Responsibilities..."
+                                    value={newDesc}
+                                    onChange={(e) => setNewDesc(e.target.value)}
+                                />
+                            </div>
+                            <Button type="submit" className="w-full h-11 rounded-xl bg-slate-900 font-bold" disabled={loading || !user?.agencyId}>
+                                {loading ? "Creating..." : "Create Designation"}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            </PermissionGuard>
 
-            <Card className="lg:col-span-2 shadow-sm border-slate-100 overflow-hidden">
+            <Card className={cn(
+                "shadow-sm border-slate-100 overflow-hidden",
+                user?.permissions?.includes('manage_roles') || user?.role?.includes('Admin') ? "lg:col-span-2" : "lg:col-span-3"
+            )}>
                 <CardHeader className="bg-slate-50/50">
                     <CardTitle className="text-lg">Agency Structure</CardTitle>
                 </CardHeader>
@@ -131,14 +139,9 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                                onClick={() => handleDelete(des.id)}
-                                            >
-                                                <Trash2 className="h-4 w-4 text-red-500" />
-                                            </Button>
+                                            <PermissionGuard permission="manage_roles">
+                                                <RowDeleteButton onClick={() => handleDelete(des.id)} />
+                                            </PermissionGuard>
                                         </TableCell>
                                     </TableRow>
                                 ))

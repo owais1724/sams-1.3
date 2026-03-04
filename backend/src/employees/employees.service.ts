@@ -144,7 +144,7 @@ export class EmployeesService {
 
       const isProd = process.env.NODE_ENV === 'production';
       throw new InternalServerErrorException(
-        isProd ? 'Failed to create personnel' : `Failed to create personnel: ${error.message}`,
+        isProd ? 'Failed to create employee' : `Failed to create employee: ${error.message}`,
       );
     }
   }
@@ -206,8 +206,8 @@ export class EmployeesService {
         }
 
         await this.auditLogsService.create(agencyId, {
-          action: 'EDIT_PERSONNEL',
-          details: `Personnel record for ${employee.fullName} (${employee.employeeCode}) updated.`,
+          action: 'EDIT_EMPLOYEE',
+          details: `Employee record for ${employee.fullName} (${employee.employeeCode}) updated.`,
           entity: 'Employee',
           entityId: id,
           severity: 'INFO'
@@ -254,7 +254,7 @@ export class EmployeesService {
         where: { id, agencyId },
       });
 
-      if (!employee) throw new ConflictException('Personnel record not found.');
+      if (!employee) throw new ConflictException('Employee record not found.');
 
       await this.prisma.employee.delete({
         where: { id, agencyId },
@@ -264,8 +264,8 @@ export class EmployeesService {
       await this.auditLogsService.create(
         agencyId,
         {
-          action: 'TERMINATE_PERSONNEL',
-          details: `Personnel ${employee.fullName} (${employee.employeeCode}) was terminated and record expunged.`,
+          action: 'TERMINATE_EMPLOYEE',
+          details: `Employee ${employee.fullName} (${employee.employeeCode}) was terminated and record expunged.`,
           severity: 'CRITICAL',
           entity: 'Employee',
           entityId: id,
@@ -278,7 +278,7 @@ export class EmployeesService {
       this.logger.error('Remove Employee Error:', error);
       if (error instanceof ConflictException) throw error;
       throw new InternalServerErrorException(
-        `Failed to terminate personnel record. Please check for active assignments.`,
+        `Failed to terminate employee record. Please check for active assignments.`,
       );
     }
   }

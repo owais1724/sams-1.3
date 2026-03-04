@@ -43,7 +43,7 @@ export default function StaffDashboard() {
 
       // Parallel fetching with settled status to avoid blocking
       const [empRes, attRes, projRes, leaveRes] = await Promise.allSettled([
-        hasPerm('view_personnel') ? api.get('/employees') : Promise.reject('No permission'),
+        hasPerm('view_employee') ? api.get('/employees') : Promise.reject('No permission'),
         hasPerm('view_attendance') ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'), // Staff view own
         hasPerm('view_projects') ? api.get('/projects') : Promise.reject('No permission'),
         hasPerm('view_leaves') ? api.get('/leaves') : Promise.reject('No permission')
@@ -76,13 +76,13 @@ export default function StaffDashboard() {
       // Set recent activities
       const activities = attendance.slice(0, 4).map((record: any) => ({
         type: record.status === 'PRESENT' ? 'checkin' : 'absent',
-        title: `${record.employee?.fullName || 'Personnel'} ${record.status === 'PRESENT' ? 'checked in' : 'marked absent'}`,
+        title: `${record.employee?.fullName || 'Employee'} ${record.status === 'PRESENT' ? 'checked in' : 'marked absent'}`,
         time: new Date(record.checkIn || record.createdAt).toLocaleTimeString(),
         icon: record.status === 'PRESENT' ? 'green' : 'red'
       }))
       setRecentActivities(activities as any)
 
-      // Set personnel list
+      // Set employee list
       const performers = employees.slice(0, 5).map((emp: any) => ({
         name: emp.fullName,
         designation: emp.designation?.name || 'Staff',
@@ -266,10 +266,10 @@ export default function StaffDashboard() {
                 <span className="text-sm font-bold">Attendance</span>
               </Button>
             )}
-            {userPermissions.includes('view_personnel') && (
+            {userPermissions.includes('view_employee') && (
               <Button variant="outline" className="h-24 flex-col space-y-2 rounded-2xl border-slate-200 hover:border-teal-600 hover:text-teal-600 transition-all shadow-sm" onClick={() => router.push(`/${agencySlug}/employees`)}>
                 <Users className="h-6 w-6" />
-                <span className="text-sm font-bold">Personnel</span>
+                <span className="text-sm font-bold">Employee</span>
               </Button>
             )}
             {userPermissions.includes('view_projects') && (

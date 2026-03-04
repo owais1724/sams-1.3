@@ -27,14 +27,14 @@ export class EmployeesController {
   ) { }
 
   @Get()
-  @Permissions('view_personnel')
+  @Permissions('view_employee')
   findAll(@Request() req, @Query('agencyId') agencyId?: string) {
     const targetAgencyId = req.user.agencyId || agencyId;
     return this.employeesService.findAll(targetAgencyId);
   }
 
   @Post()
-  @Permissions('create_personnel')
+  @Permissions('create_employee')
   create(
     @Request() req,
     @Body() data: CreateEmployeeDto & { agencyId?: string },
@@ -47,7 +47,7 @@ export class EmployeesController {
   }
 
   @Patch(':id')
-  @Permissions('edit_personnel')
+  @Permissions('edit_employee')
   update(
     @Request() req,
     @Param('id') id: string,
@@ -57,7 +57,7 @@ export class EmployeesController {
   }
 
   @Delete(':id')
-  @Permissions('delete_personnel')
+  @Permissions('delete_employee')
   remove(@Request() req, @Param('id') id: string) {
     return this.employeesService.remove(req.user.agencyId, id, req.user.sub);
   }

@@ -56,7 +56,7 @@ export default function AgencyDashboard() {
                     } catch (err) { /* silent fail */ }
                 }
 
-                if (hasPerm('view_personnel')) {
+                if (hasPerm('view_employee')) {
                     try {
                         const res = await api.get("/employees")
                         employeesCount = res.data?.length || 0

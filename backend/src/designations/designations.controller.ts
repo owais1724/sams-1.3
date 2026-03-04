@@ -23,7 +23,7 @@ export class DesignationsController {
   constructor(private readonly designationsService: DesignationsService) { }
 
   @Post()
-  @Permissions('manage_roles', 'create_personnel')
+  @Permissions('manage_roles', 'create_employee')
   async create(@Request() req, @Body() data: any) {
     this.logger.log(`POST /designations - User: ${req.user?.userId}, Agency: ${req.user?.agencyId}`);
     const agencyId = req.user.agencyId || data.agencyId;
@@ -34,7 +34,7 @@ export class DesignationsController {
   }
 
   @Get()
-  @Permissions('manage_roles', 'create_personnel', 'edit_personnel', 'view_personnel')
+  @Permissions('manage_roles', 'create_employee', 'edit_employee', 'view_employee')
   async findAll(@Request() req, @Query('agencyId') agencyId?: string) {
     const targetAgencyId = req.user.agencyId || agencyId;
     return this.designationsService.findAll(targetAgencyId);

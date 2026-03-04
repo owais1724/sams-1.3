@@ -96,7 +96,7 @@ export default function PayrollPage() {
       }
 
       // Priority 3: Employees (Side data for targeting)
-      if (hasPerm('view_personnel')) {
+      if (hasPerm('view_employee')) {
         try {
           const res = await api.get('/employees')
           setEmployees(res.data || [])
@@ -327,7 +327,7 @@ export default function PayrollPage() {
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Personnel Select</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Employee Select</label>
                     <Select value={targetEmployeeId} onValueChange={(val) => {
                       setTargetEmployeeId(val);
                       const emp = employees.find(e => e.id === val);

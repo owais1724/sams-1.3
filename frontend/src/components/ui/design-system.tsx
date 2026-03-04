@@ -163,21 +163,21 @@ export function PageHeader({
     className,
 }: PageHeaderProps) {
     return (
-        <div className={cn("flex flex-col md:flex-row md:items-center justify-between gap-6", className)}>
+        <div className={cn("flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8", className)}>
             <div className="flex-1 min-w-0">
-                <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight truncate">
+                <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                     {title}{" "}
                     {titleHighlight && (
                         <span className="text-primary">{titleHighlight}</span>
                     )}
                 </h1>
                 {subtitle && (
-                    <p className="text-[10px] md:text-sm text-slate-500 font-medium mt-1 truncate">
+                    <p className="text-xs md:text-base text-slate-500 font-medium mt-2 leading-relaxed max-w-2xl">
                         {subtitle}
                     </p>
                 )}
             </div>
-            {action && <div className="w-full md:w-auto flex-shrink-0">{action}</div>}
+            {action && <div className="w-full md:w-auto flex-shrink-0 animate-in fade-in slide-in-from-right-4 duration-500">{action}</div>}
         </div>
     )
 }
@@ -429,12 +429,14 @@ interface SidebarItemProps {
     icon: any
     isActive: boolean
     className?: string
+    onClick?: () => void
 }
 
-export function SidebarItem({ name, href, icon: Icon, isActive, className }: SidebarItemProps) {
+export function SidebarItem({ name, href, icon: Icon, isActive, className, onClick }: SidebarItemProps) {
     return (
         <Link
             href={href}
+            onClick={onClick}
             className={cn(
                 "group flex items-center rounded-xl px-4 py-4 text-sm font-bold transition-all duration-300 relative overflow-hidden",
                 isActive
@@ -479,32 +481,82 @@ export function SidebarSectionLabel({ children }: { children: React.ReactNode })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 11. CONFIRM DELETE BUTTON
+// 11. ROW ACTION BUTTONS (Uniform Edit / Delete / View)
+//     Used inside table rows to perform specific record actions.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Trash2 } from "lucide-react"
+import { Edit3, Trash2, Eye } from "lucide-react"
 
-export function ConfirmDeleteButton({ onClick, disabled, title = "Delete", className }: {
+interface RowButtonProps {
+    onClick: () => void
+    disabled?: boolean
+    title?: string
+    className?: string
+    label?: string
+}
+
+export function RowEditButton({ onClick, disabled, label = "Modify", className }: RowButtonProps) {
+    return (
+        <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClick}
+            disabled={disabled}
+            className={cn(
+                "h-10 px-5 rounded-xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all group/btn",
+                className
+            )}
+        >
+            <Edit3 className="h-3.5 w-3.5 mr-2 group-hover/btn:translate-x-0.5 transition-transform" />
+            {label}
+        </Button>
+    )
+}
+
+export function RowDeleteButton({ onClick, disabled, label = "Delete", className }: RowButtonProps) {
+    return (
+        <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClick}
+            disabled={disabled}
+            className={cn(
+                "h-10 px-5 rounded-xl font-bold text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all group/btn",
+                className
+            )}
+        >
+            <Trash2 className="h-3.5 w-3.5 mr-2 group-hover/btn:scale-110 transition-transform" />
+            {label}
+        </Button>
+    )
+}
+
+export function RowViewButton({ onClick, disabled, label = "View", className }: RowButtonProps) {
+    return (
+        <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClick}
+            disabled={disabled}
+            className={cn(
+                "h-10 px-5 rounded-xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all group/btn",
+                className
+            )}
+        >
+            <Eye className="h-3.5 w-3.5 mr-2 group-hover/btn:scale-110 transition-transform" />
+            {label}
+        </Button>
+    )
+}
+
+// Deprecated: Use RowDeleteButton instead for uniformity
+export function ConfirmDeleteButton({ onClick, disabled, className }: {
     onClick: () => void,
     disabled?: boolean,
     title?: string,
     className?: string
 }) {
-    return (
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClick}
-            disabled={disabled}
-            title={title}
-            className={cn(
-                "h-10 w-10 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all",
-                className
-            )}
-        >
-            <Trash2 className="h-4 w-4" />
-        </Button>
-    )
+    return <RowDeleteButton onClick={onClick} disabled={disabled} className={className} label="" />
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

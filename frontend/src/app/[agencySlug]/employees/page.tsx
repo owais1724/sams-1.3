@@ -10,9 +10,13 @@ import {
     PageLoading,
     StatusBadge,
     TableRowLoading,
-    TableRowEmpty
+    TableRowEmpty,
+    RowViewButton,
+    RowEditButton
 } from "@/components/ui/design-system"
 import { useAuthStore } from "@/store/authStore"
+import { usePermission } from "@/hooks/usePermission"
+import { PermissionGuard } from "@/components/common/PermissionGuard"
 import { motion, AnimatePresence } from "framer-motion"
 import { FormSheet } from "@/components/common/FormSheet"
 import { TableCell, TableRow } from "@/components/ui/table"
@@ -71,21 +75,20 @@ export default function EmployeesPage() {
     const [deleting, setDeleting] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-    const isAdmin = user?.role === 'Super Admin' || user?.role === 'Agency Admin'
-    const hasPerm = (p: string) => isAdmin || user?.permissions?.includes(p)
+    const { hasPermission, isAdmin } = usePermission();
 
     const fetchData = async () => {
         if (!user) return
 
         try {
             // Priority 1: Employees list
-            if (hasPerm('view_personnel')) {
+            if (hasPermission('view_employee')) {
                 const empRes = await api.get("/employees")
                 setEmployees(empRes.data)
             }
 
             // Priority 2: Designations (Side data)
-            if (hasPerm('view_designations') || isAdmin || hasPerm('manage_roles')) {
+            if (hasPermission(['view_designations', 'manage_roles'])) {
                 try {
                     const desRes = await api.get("/designations")
                     setDesignations(desRes.data)
@@ -170,13 +173,13 @@ export default function EmployeesPage() {
                 titleHighlight="Directory"
                 subtitle="Lifecycle management and deployment of security staff."
                 action={
-                    hasPerm('create_personnel') && (
+                    <PermissionGuard permission="create_employee">
                         <CreateButton
                             label="Create Employee"
                             icon={<Plus className="h-4 w-4" />}
                             onClick={() => { setEditingEmployee(null); setOpenEnroll(true) }}
                         />
-                    )
+                    </PermissionGuard>
                 }
             />
 
@@ -245,7 +248,7 @@ export default function EmployeesPage() {
                             {filteredEmployees.length === 0 ? (
                                 <TableRowEmpty
                                     colSpan={5}
-                                    title="No Personnel Found"
+                                    title="No Employees Found"
                                     description="Register new staff members to build your operational team."
                                     icon={<Users className="h-10 w-10 text-slate-300" />}
                                 />
@@ -289,27 +292,15 @@ export default function EmployeesPage() {
                                             <StatusBadge status={emp.status || "ACTIVE"} />
                                         </TableCell>
                                         <TableCell className="text-right px-8">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    title="Employee Profile"
-                                                    className="h-10 w-10 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 transition-all"
+                                            <div className="flex items-center justify-end gap-2 pr-4">
+                                                <RowViewButton
                                                     onClick={() => setProfileDialog({ open: true, employee: emp })}
-                                                >
-                                                    <ExternalLink className="h-4 w-4" />
-                                                </Button>
-                                                {hasPerm('edit_personnel') && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        title="Modify Record"
-                                                        className="h-10 w-10 rounded-xl text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all"
+                                                />
+                                                <PermissionGuard permission="edit_employee">
+                                                    <RowEditButton
                                                         onClick={() => { setEditingEmployee(emp); setOpenEnroll(true) }}
-                                                    >
-                                                        <Edit3 className="h-4 w-4" />
-                                                    </Button>
-                                                )}
+                                                    />
+                                                </PermissionGuard>
                                             </div>
                                         </TableCell>
                                     </motion.tr>
@@ -382,7 +373,7 @@ export default function EmployeesPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Personnel Profile Dialog */}
+            {/* Employee Profile Dialog */}
             <Dialog open={profileDialog.open} onOpenChange={(v) => !v && setProfileDialog({ open: false, employee: null })}>
                 <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] p-0 overflow-hidden shadow-2xl bg-white">
                     <DialogHeader className="sr-only">
@@ -401,7 +392,7 @@ export default function EmployeesPage() {
                             <div>
                                 <div className="px-3 py-1 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-widest w-fit mb-3">Professional Profile</div>
                                 <h2 className="text-3xl font-black tracking-tight leading-none">{profileDialog.employee?.fullName}</h2>
-                                <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">{profileDialog.employee?.employeeCode || 'VERIFIED PERSONNEL'}</p>
+                                <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">{profileDialog.employee?.employeeCode || 'VERIFIED EMPLOYEE'}</p>
                             </div>
                         </div>
                     </div>
@@ -439,7 +430,7 @@ export default function EmployeesPage() {
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Administrative Control</p>
                                 <p className="text-[11px] text-slate-500 font-medium">Record purge requires clearance.</p>
                             </div>
-                            {hasPerm('delete_personnel') && (
+                            <PermissionGuard permission="delete_employee">
                                 <Button
                                     variant="destructive"
                                     disabled={deleting}
@@ -449,7 +440,7 @@ export default function EmployeesPage() {
                                     <Trash2 className="h-3.5 w-3.5 mr-2" />
                                     {deleting ? "PURGING..." : "PURGE RECORD"}
                                 </Button>
-                            )}
+                            </PermissionGuard>
                         </div>
                     </div>
                 </DialogContent>
@@ -460,7 +451,7 @@ export default function EmployeesPage() {
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={confirmDeleteEmployee}
                 loading={deleting}
-                title="PURGE PERSONNEL RECORD"
+                title="PURGE EMPLOYEE RECORD"
                 variant="danger"
                 description={`Are you sure you want to permanently delete ${profileDialog.employee?.fullName}? This action is irreversible and will remove all deployment history.`}
                 confirmText="Confirm Purge"

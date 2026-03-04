@@ -14,12 +14,14 @@ import {
     StatusBadge,
     TableRowLoading,
     TableRowEmpty,
-    StatCard
+    StatCard,
+    RowEditButton
 } from "@/components/ui/design-system"
 import { FormSheet } from "@/components/common/FormSheet"
 import { useAuthStore } from "@/store/authStore"
 import { toast } from "@/components/ui/sonner"
 import { motion, AnimatePresence } from "framer-motion"
+import { PermissionGuard } from "@/components/common/PermissionGuard"
 
 export default function ProjectsPage() {
     const { user: authUser } = useAuthStore()
@@ -29,10 +31,8 @@ export default function ProjectsPage() {
     const [open, setOpen] = useState(false)
     const [editingProject, setEditingProject] = useState<any>(null)
 
-    // Permission flags — Strictly following the database matrix
+    // Permission flags are now handled by PermissionGuard in the UI
     const canViewClients = authUser?.role === 'Super Admin' || authUser?.permissions?.includes('view_clients')
-    const canCreate = authUser?.role === 'Super Admin' || authUser?.permissions?.includes('create_project')
-    const canEdit = authUser?.role === 'Super Admin' || authUser?.permissions?.includes('edit_project')
 
     const fetchData = async () => {
         try {
@@ -75,13 +75,15 @@ export default function ProjectsPage() {
                 title="Operational"
                 titleHighlight="Projects"
                 subtitle="High-level management of security sites and strategic assets."
-                action={canCreate ? (
-                    <CreateButton
-                        label="Initialize Project"
-                        icon={<Plus className="h-4 w-4" />}
-                        onClick={openCreate}
-                    />
-                ) : null}
+                action={
+                    <PermissionGuard permission="create_project">
+                        <CreateButton
+                            label="Initialize Project"
+                            icon={<Plus className="h-4 w-4" />}
+                            onClick={openCreate}
+                        />
+                    </PermissionGuard>
+                }
             />
 
             {/* ── Stats ──────────────────────────────────────────────── */}
@@ -98,12 +100,14 @@ export default function ProjectsPage() {
                     icon={<Activity />}
                     color="emerald"
                 />
-                <StatCard
-                    title="Clients Managed"
-                    value={clients.length}
-                    icon={<Shield />}
-                    color="blue"
-                />
+                <PermissionGuard permission="view_clients">
+                    <StatCard
+                        title="Clients Managed"
+                        value={clients.length}
+                        icon={<Shield />}
+                        color="blue"
+                    />
+                </PermissionGuard>
             </div>
 
             {/* ── Content ────────────────────────────────────────────── */}
@@ -115,9 +119,11 @@ export default function ProjectsPage() {
                             icon={<Briefcase className="h-10 w-10 text-slate-300" />}
                             title="No Projects Found"
                             description="Initialize your first security project to begin operational tracking."
-                            action={canCreate && (
-                                <CreateButton label="Start New Project" icon={<Plus className="h-4 w-4" />} onClick={openCreate} />
-                            )}
+                            action={
+                                <PermissionGuard permission="create_project">
+                                    <CreateButton label="Start New Project" icon={<Plus className="h-4 w-4" />} onClick={openCreate} />
+                                </PermissionGuard>
+                            }
                         />
                     ) : (
                         projects.map((project, idx) => (
@@ -158,19 +164,12 @@ export default function ProjectsPage() {
                                     <StatusBadge status={project.isActive ? "ACTIVE" : "INACTIVE"} />
                                 </TableCell>
                                 <TableCell className="text-right px-8">
-                                    {canEdit ? (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-10 px-5 rounded-xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all group/btn"
-                                            onClick={() => openEdit(project)}
-                                        >
-                                            <Edit3 className="h-3.5 w-3.5 mr-2 group-hover/btn:translate-x-0.5 transition-transform" />
-                                            Modify
-                                        </Button>
-                                    ) : (
-                                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">View Only</span>
-                                    )}
+                                    <PermissionGuard
+                                        permission="edit_project"
+                                        fallback={<span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">View Only</span>}
+                                    >
+                                        <RowEditButton onClick={() => openEdit(project)} />
+                                    </PermissionGuard>
                                 </TableCell>
                             </motion.tr>
                         ))

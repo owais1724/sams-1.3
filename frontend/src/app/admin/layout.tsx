@@ -21,6 +21,8 @@ export default function AdminLayout({
 
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login')
 
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+
     useEffect(() => {
         let isActive = true;
 
@@ -103,21 +105,24 @@ export default function AdminLayout({
 
             <div className="flex-1 flex flex-col h-screen overflow-hidden">
                 {/* Mobile Header */}
-                <header className="lg:hidden flex items-center justify-between px-6 h-16 bg-[#0f172a] text-white border-b border-slate-800 shrink-0 z-30 shadow-md">
-                    <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-                            <Shield className="h-5 w-5 text-white" />
+                <header className="lg:hidden flex items-center justify-between px-6 h-20 bg-[#0f172a] text-white border-b border-white/[0.03] shrink-0 z-30 shadow-2xl">
+                    <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                            <Shield className="h-6 w-6 text-white" />
                         </div>
-                        <h1 className="text-sm font-black tracking-tight uppercase">SAMS Admin</h1>
+                        <div>
+                            <h1 className="text-sm font-black tracking-[0.15em] uppercase leading-none">Sentinel</h1>
+                            <span className="text-[9px] text-blue-400 font-black uppercase tracking-[0.2em] mt-1 block opacity-80">Master Admin</span>
+                        </div>
                     </div>
-                    <Sheet>
+                    <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-xl">
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-2xl h-12 w-12 border border-white/[0.05] bg-white/[0.03]">
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0f172a]">
-                            <AdminSidebar />
+                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0f172a] overflow-hidden">
+                            <AdminSidebar onItemClick={() => setSidebarOpen(false)} />
                         </SheetContent>
                     </Sheet>
                 </header>
