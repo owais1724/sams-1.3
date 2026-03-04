@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useParams } from "next/navigation"
 import {
   PageHeader,
@@ -10,11 +10,15 @@ import {
   PageLoading,
   TableRowEmpty,
   StatusBadge,
-  SubmitButton
+  SubmitButton,
+  SectionHeading,
+  FormLabelBase,
+  inputVariants,
+  selectVariants
 } from "@/components/ui/design-system"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Wallet, Download, Eye, Calculator, CheckCircle2, AlertCircle, Receipt, Database, Activity, CreditCard } from "lucide-react"
+import { Wallet, Download, Eye, Calculator, CheckCircle2, AlertCircle, Receipt, Database, Activity, CreditCard, Filter } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import api from "@/lib/api"
@@ -30,7 +34,7 @@ import {
   SheetTitle,
   SheetTrigger
 } from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface Payroll {
   id: string
@@ -63,6 +67,7 @@ export default function PayrollPage() {
   const { agencySlug } = useParams()
   const [payrolls, setPayrolls] = useState<Payroll[]>([])
   const [designations, setDesignations] = useState<Designation[]>([])
+  const [activeTab, setActiveTab] = useState("ALL")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
@@ -127,14 +132,25 @@ export default function PayrollPage() {
     return new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' })
   }
 
-  if (loading) return <PageLoading message="Synchronizing Financial Node..." />
+  // Filter unique designation names for tabs to avoid "diff diff hr hr"
+  const tabCategories = useMemo(() => {
+    const names = designations.map(d => d.name)
+    return ["ALL", ...Array.from(new Set(names))]
+  }, [designations])
+
+  const filteredPayrolls = useMemo(() => {
+    if (activeTab === "ALL") return payrolls
+    return payrolls.filter(p => p.employee?.designation?.name === activeTab)
+  }, [payrolls, activeTab])
+
+  if (loading) return <PageLoading message="Synchronizing Financial Nodes..." />
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-12 pb-20">
       <PageHeader
-        title="Payroll"
-        titleHighlight="Ledger"
-        subtitle="Regulate and authorize institutional salary disbursements and tax deductions."
+        title="Institutional"
+        titleHighlight="Payroll"
+        subtitle="Regulate and authorize high-fidelity salary disbursements and fiscal compensations."
         action={
           <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <SheetTrigger asChild>
@@ -143,47 +159,49 @@ export default function PayrollPage() {
             <SheetContent className="sm:max-w-[700px] border-none shadow-2xl p-0 overflow-hidden bg-white">
               <div className="p-10 md:p-14 overflow-y-auto h-full">
                 <SheetHeader className="mb-12">
-                  <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+                  <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
                     <Receipt className="h-7 w-7 text-primary" />
                   </div>
                   <SheetTitle className="text-3xl font-black tracking-tight leading-none text-slate-900 uppercase">
                     Initialize Payroll Cycle
                   </SheetTitle>
-                  <SheetDescription className="font-bold text-slate-500 uppercase tracking-widest text-[10px] pt-1">
-                    Authorization for system-wide salary calculation and disbursement.
+                  <SheetDescription className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[10px] pt-3">
+                    Authorization for system-wide fiscal calculation and node disbursement.
                   </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-8">
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">Target Disbursement Month</Label>
+                <div className="space-y-10">
+                  <div className="space-y-0">
+                    <FormLabelBase label="Target Disbursment Month" required />
                     <Input
                       type="month"
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(e.target.value)}
-                      className="h-14 rounded-2xl bg-slate-50 border-slate-100 focus:bg-white transition-all font-black text-slate-900"
+                      className={inputVariants}
                     />
                   </div>
 
-                  <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">Operational Filter (Designation)</Label>
+                  <div className="space-y-0">
+                    <FormLabelBase label="Operational Node Scope" required />
                     <Select value={generateDesignationId} onValueChange={setGenerateDesignationId}>
-                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-slate-100 font-bold text-slate-900">
+                      <SelectTrigger className={selectVariants}>
                         <SelectValue placeholder="Select designation scope" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
-                        <SelectItem value="all" className="py-3 font-bold">ALL PERSONNEL NODES</SelectItem>
+                      <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2">
+                        <SelectItem value="all" className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">ALL PERSONNEL NODES</SelectItem>
                         {designations.map(d => (
-                          <SelectItem key={d.id} value={d.id} className="py-3 font-bold uppercase text-[11px] tracking-wider">{d.name}</SelectItem>
+                          <SelectItem key={d.id} value={d.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">{d.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100/50 flex gap-4">
-                    <AlertCircle className="h-6 w-6 text-amber-600 shrink-0" />
-                    <p className="text-xs font-semibold text-amber-800 leading-relaxed">
-                      Generating payroll will calculate Net Pay for all employees in the selected scope based on their active contracts and attendance data.
+                  <div className="bg-amber-50 rounded-[32px] p-8 border border-amber-100/50 flex gap-5">
+                    <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                      <AlertCircle className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <p className="text-[13px] font-bold text-amber-900 leading-relaxed italic">
+                      Commencing this protocol will calculate Net Compensation for the selected roster based on active contracts and verified attendance matrix.
                     </p>
                   </div>
                 </div>
@@ -202,68 +220,87 @@ export default function PayrollPage() {
         }
       />
 
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard title="Total Disbursed" value={formatCurrency(payrolls.filter(p => p.status === 'PAID').reduce((sum, p) => sum + p.netPay, 0))} icon={<CreditCard />} color="blue" />
         <StatCard title="Pending Payouts" value={formatCurrency(payrolls.filter(p => p.status !== 'PAID').reduce((sum, p) => sum + p.netPay, 0))} icon={<Wallet />} color="amber" />
-        <StatCard title="Staff Coverage" value={payrolls.length} icon={<Database />} color="emerald" />
+        <StatCard title="Roster Coverage" value={payrolls.length} icon={<Database />} color="emerald" />
         <StatCard title="Processed Nodes" value={payrolls.filter(p => p.status === 'PAID').length} icon={<Activity />} color="violet" />
       </div>
 
-      <div className="mt-12">
-        <div className="flex items-center justify-between mb-6 px-2">
-          <div>
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Disbursement Ledger</h2>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Immutable record of institutional financial activities.</p>
+      <div className="space-y-8 pt-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
+          <SectionHeading title="Disbursement Ledger" subtitle="Immutable record of institutional financial transactions and roster compensation." />
+
+          <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto no-scrollbar max-w-full">
+            {tabCategories.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300",
+                  activeTab === tab
+                    ? "bg-white text-primary shadow-sm ring-1 ring-slate-100"
+                    : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                {tab === "ALL" ? "All Payrolls" : tab}
+              </button>
+            ))}
           </div>
-          <Button variant="outline" className="rounded-2xl h-12 border-slate-100 shadow-sm font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">
-            <Download className="h-4 w-4 mr-2" /> Export CSV
-          </Button>
         </div>
 
-        <DataTable columns={['Personnel Node', 'Pay Period', 'Fiscal Summary', 'Status', 'Actions']}>
-          {payrolls.length === 0 ? (
-            <TableRowEmpty colSpan={5} title="No Financial Records Logged" icon={<Receipt />} />
-          ) : (
-            payrolls.map((payroll) => (
-              <TableRow key={payroll.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                <TableCell className="px-8 py-6">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-slate-300 font-black group-hover:border-primary/20 transition-all">
-                      {payroll.employee?.fullName?.charAt(0)}
+        <DataTable columns={['Personnel Node', 'Pay Cycle', 'Fiscal Summary', 'Status', 'Actions']}>
+          <AnimatePresence mode="popLayout">
+            {filteredPayrolls.length === 0 ? (
+              <TableRowEmpty colSpan={5} title="No Fiscal Records" icon={<Receipt />} />
+            ) : (
+              filteredPayrolls.map((payroll, idx) => (
+                <motion.tr
+                  key={payroll.id}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2, delay: idx * 0.02 }}
+                  className="group hover:bg-slate-50/50 transition-colors"
+                >
+                  <TableCell className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 font-black group-hover:border-primary/20 group-hover:text-primary group-hover:scale-110 transition-all shadow-sm">
+                        {payroll.employee?.fullName?.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-extrabold text-slate-900 leading-tight group-hover:text-primary transition-colors truncate">{payroll.employee?.fullName}</div>
+                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{payroll.employee?.designation?.name || "STAFF-NODE"}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-extrabold text-slate-900 leading-tight group-hover:text-primary transition-colors">{payroll.employee?.fullName}</div>
-                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{payroll.employee?.designation?.name || "STAFF-NODE"}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-black text-slate-900 text-[13px] tracking-tight">{getMonthName(payroll.month)}</span>
+                      <span className="text-[9px] text-slate-300 font-black uppercase tracking-widest mt-1 italic">Verified Cycle</span>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-black text-slate-900">{getMonthName(payroll.month)}</span>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic pt-0.5">Verified Protocol</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-black text-emerald-600">{formatCurrency(payroll.netPay)}</span>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Net Compensation</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={payroll.status} />
-                </TableCell>
-                <TableCell className="text-right px-8">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 rounded-xl hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 transition-all"
-                  >
-                    <Eye className="h-4 w-4 text-slate-400" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-black text-emerald-600 italic">{formatCurrency(payroll.netPay)}</span>
+                      <span className="text-[9px] text-slate-300 font-black uppercase tracking-widest mt-1">Net Compensation</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={payroll.status} />
+                  </TableCell>
+                  <TableCell className="text-right px-8">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 rounded-2xl hover:bg-white hover:text-primary hover:shadow-xl hover:shadow-slate-200/50 transition-all"
+                    >
+                      <Eye className="h-4.5 w-4.5" />
+                    </Button>
+                  </TableCell>
+                </motion.tr>
+              ))
+            )}
+          </AnimatePresence>
         </DataTable>
       </div>
     </div>
