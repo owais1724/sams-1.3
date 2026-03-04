@@ -9,13 +9,12 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
-import { SubmitButton } from "@/components/ui/design-system"
+import { SubmitButton, inputVariants, FormLabelBase } from "@/components/ui/design-system"
 
 const formSchema = z.object({
     name: z.string().min(2, "Client name is required"),
@@ -42,7 +41,6 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
         },
     })
 
-    // Re-populate when switching between clients
     useEffect(() => {
         form.reset({
             name: initialData?.name || "",
@@ -50,7 +48,7 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
             email: initialData?.email || "",
             address: initialData?.address || "",
         })
-    }, [initialData]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [initialData, form])
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
@@ -72,21 +70,21 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
-                        <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Name <span className="text-red-500">*</span></FormLabel>
+                        <FormItem className="space-y-0">
+                            <FormLabelBase label="Institutional Name" required />
                             <FormControl>
                                 <Input
-                                    placeholder="Name"
-                                    className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
+                                    placeholder="Enter full legal name"
+                                    className={inputVariants}
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                         </FormItem>
                     )}
                 />
@@ -94,16 +92,16 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     control={form.control}
                     name="contact"
                     render={({ field }) => (
-                        <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Contact Person <span className="text-red-500">*</span></FormLabel>
+                        <FormItem className="space-y-0">
+                            <FormLabelBase label="Primary Contact Node" required />
                             <FormControl>
                                 <Input
-                                    placeholder="Contact person name"
-                                    className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
+                                    placeholder="Liaison officer name"
+                                    className={inputVariants}
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                         </FormItem>
                     )}
                 />
@@ -111,17 +109,17 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     control={form.control}
                     name="email"
                     render={({ field }) => (
-                        <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Email <span className="text-red-500">*</span></FormLabel>
+                        <FormItem className="space-y-0">
+                            <FormLabelBase label="Communication Path (Email)" required />
                             <FormControl>
                                 <Input
                                     type="email"
-                                    placeholder="Email"
-                                    className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
+                                    placeholder="liaison@institution.com"
+                                    className={inputVariants}
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                         </FormItem>
                     )}
                 />
@@ -129,24 +127,26 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     control={form.control}
                     name="address"
                     render={({ field }) => (
-                        <FormItem className="space-y-2">
-                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Address</FormLabel>
+                        <FormItem className="space-y-0">
+                            <FormLabelBase label="Operational Headquarters" />
                             <FormControl>
                                 <Input
-                                    placeholder="Address"
-                                    className="h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
+                                    placeholder="Full institutional address"
+                                    className={inputVariants}
                                     {...field}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                         </FormItem>
                     )}
                 />
 
-                <SubmitButton
-                    label={initialData?.id ? "Update Client" : "Register Client"}
-                    loading={loading}
-                />
+                <div className="pt-4">
+                    <SubmitButton
+                        label={initialData?.id ? "Update Dossier" : "Register Institutional Partner"}
+                        loading={loading}
+                    />
+                </div>
             </form>
         </Form>
     )

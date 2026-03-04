@@ -9,7 +9,6 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -25,7 +24,15 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { FormCard, FormHeader, SubmitButton, GhostAction } from "@/components/ui/design-system"
+import {
+    FormCard,
+    FormHeader,
+    SubmitButton,
+    GhostAction,
+    inputVariants,
+    selectVariants,
+    FormLabelBase
+} from "@/components/ui/design-system"
 
 const formSchema = z.object({
     name: z.string().min(2, "Project name is required"),
@@ -68,14 +75,14 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData 
         try {
             if (isEditing) {
                 await api.patch(`/projects/${initialData.id}`, values)
-                toast.success("Project updated")
+                toast.success("Project intelligence updated")
             } else {
                 await api.post("/projects", values)
-                toast.success("Project launched")
+                toast.success("Project deployment launched")
             }
             onSuccess()
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to save project")
+            toast.error(error.response?.data?.message || "Operational failure during save")
         } finally {
             setLoading(false)
         }
@@ -83,23 +90,23 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData 
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormCard>
-                    <FormHeader title="Project Details" color="blue" />
+                    <FormHeader title="Project Intelligence" color="blue" />
                     <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Project Name <span className="text-red-500">*</span></FormLabel>
+                            <FormItem className="space-y-0">
+                                <FormLabelBase label="Project Designation" required />
                                 <FormControl>
                                     <Input
-                                        placeholder="e.g. Corporate HQ Patrol"
-                                        className="h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
+                                        placeholder="e.g. Sector-7 Perimeter Control"
+                                        className={inputVariants}
                                         {...field}
                                     />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
@@ -108,30 +115,30 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData 
                         control={form.control}
                         name="clientId"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <div className="flex items-center justify-between">
-                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Client Contract <span className="text-red-500">*</span></FormLabel>
+                            <FormItem className="space-y-0">
+                                <div className="flex items-center justify-between mb-2">
+                                    <FormLabelBase label="Verified Client Contract" required className="mb-0" />
                                     {!isEditing && (
                                         <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
                                             <DialogTrigger asChild>
-                                                <GhostAction size="sm" className="text-[9px]">
-                                                    Quick Add Client
+                                                <GhostAction size="sm" className="text-[9px] h-6 px-3 bg-slate-50 border-slate-100 uppercase font-black tracking-widest">
+                                                    Quick Register Partner
                                                 </GhostAction>
                                             </DialogTrigger>
-                                            <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden">
+                                            <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
                                                 <div className="p-10">
                                                     <DialogHeader>
-                                                        <DialogTitle className="text-2xl font-bold font-outfit">Add New Client</DialogTitle>
-                                                        <DialogDescription className="font-medium text-slate-500 font-outfit">
-                                                            Quickly register a new client for this project.
+                                                        <DialogTitle className="text-2xl font-black font-outfit uppercase tracking-tight">Add New Partner</DialogTitle>
+                                                        <DialogDescription className="font-bold text-slate-400 font-outfit text-xs uppercase tracking-widest mt-2">
+                                                            Register a new institutional identity.
                                                         </DialogDescription>
                                                     </DialogHeader>
-                                                    <div className="mt-8">
+                                                    <div className="mt-10">
                                                         <ClientForm
                                                             onSuccess={() => {
                                                                 setIsClientDialogOpen(false)
                                                                 onRefreshClients()
-                                                                toast.success("Client added")
+                                                                toast.success("Identity verified")
                                                             }}
                                                         />
                                                     </div>
@@ -141,34 +148,34 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData 
                                     )}
                                 </div>
                                 <FormControl>
-                                    <SelectInput {...field} placeholder="Choose a client...">
+                                    <SelectInput {...field} placeholder="Link to institutional partner..." className={selectVariants}>
                                         {clients.map(client => (
                                             <option key={client.id} value={client.id}>{client.name}</option>
                                         ))}
                                     </SelectInput>
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
                 </FormCard>
 
                 <FormCard>
-                    <FormHeader title="Operational Deployment" color="amber" />
+                    <FormHeader title="Operational Deployment" color="rose" />
                     <FormField
                         control={form.control}
                         name="location"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Deployment Site <span className="text-red-500">*</span></FormLabel>
+                            <FormItem className="space-y-0">
+                                <FormLabelBase label="Deployment Site Address" required />
                                 <FormControl>
                                     <Input
-                                        placeholder="Full address or site name"
-                                        className="h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
+                                        placeholder="Full mission location"
+                                        className={inputVariants}
                                         {...field}
                                     />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
@@ -176,29 +183,31 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData 
                         control={form.control}
                         name="description"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Scope of Work</FormLabel>
+                            <FormItem className="space-y-0">
+                                <FormLabelBase label="Scope of Protocol" />
                                 <FormControl>
                                     <Input
-                                        placeholder="Deployment notes or requirements"
-                                        className="h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4"
+                                        placeholder="Specific mission directives"
+                                        className={inputVariants}
                                         {...field}
                                     />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
                 </FormCard>
 
-                <SubmitButton
-                    label={isEditing ? "Update Deployment" : "Launch Project"}
-                    loading={loading}
-                    disabled={!isEditing && clients.length === 0}
-                />
+                <div className="pt-4">
+                    <SubmitButton
+                        label={isEditing ? "Update Mission Specs" : "Launch Operational Project"}
+                        loading={loading}
+                        disabled={!isEditing && clients.length === 0}
+                    />
+                </div>
                 {!isEditing && clients.length === 0 && (
-                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest text-center mt-2 animate-pulse">
-                        ⚠ You must register a client before launching a project.
+                    <p className="text-[10px] text-rose-500 font-black uppercase tracking-[0.2em] text-center mt-4 animate-pulse">
+                        ⚠ Identity verification required before mission launch.
                     </p>
                 )}
             </form>

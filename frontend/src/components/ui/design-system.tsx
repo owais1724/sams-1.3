@@ -11,7 +11,8 @@
  *   <StatCard title="Total Clients" value={12} icon={<Users />} color="teal" />
  *   <DataTable columns={['Name', 'Status']} rows={...} />
  *   <EmptyState title="No clients yet" description="Add your first client" action={...} />
- *   <SectionLabel>Active Projects</SectionLabel>
+ *   <ControlPanel count={12} totalLabel="Active Clients" search={...} filter={...} />
+ *   <SectionHeading title="Core Protocol" icon={<Shield />} />
  *   <StatusBadge status="ACTIVE" />
  */
 
@@ -635,3 +636,76 @@ export function PageLoading({ message = "Loading System Data..." }: { message?: 
         </div>
     )
 }
+// ─────────────────────────────────────────────────────────────────────────────
+// 15. SECTION HEADING
+//     Uniform header for subsections within a page or dashboard.
+// ─────────────────────────────────────────────────────────────────────────────
+interface SectionHeadingProps {
+    title: string
+    icon?: React.ReactNode
+    action?: React.ReactNode
+    className?: string
+}
+
+export function SectionHeading({ title, icon, action, className }: SectionHeadingProps) {
+    return (
+        <div className={cn("flex items-center justify-between mb-8 px-2", className)}>
+            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                {icon && <span className="text-primary">{icon}</span>}
+                {title}
+            </h2>
+            {action && action}
+        </div>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 16. CONTROL PANEL (Search + Count)
+//     Standardized bar shown above data tables for searching and record counting.
+// ─────────────────────────────────────────────────────────────────────────────
+interface ControlPanelProps {
+    count: number
+    totalLabel: string
+    children?: React.ReactNode // Usually the SearchBar and Filters
+    className?: string
+}
+
+export function ControlPanel({ count, totalLabel, children, className }: ControlPanelProps) {
+    return (
+        <div className={cn(
+            "flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-[32px] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 mb-8",
+            className
+        )}>
+            <div className="flex items-center gap-4 px-2">
+                <div className="h-10 w-10 bg-primary/10 text-primary rounded-2xl flex items-center justify-center font-black text-sm">
+                    {count}
+                </div>
+                <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
+                    {totalLabel}
+                </span>
+            </div>
+            <div className="flex flex-1 items-center gap-2 max-w-2xl">
+                {children}
+            </div>
+        </div>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 17. FORM GROUP LABELS
+//     Standardized label style for form fields.
+// ─────────────────────────────────────────────────────────────────────────────
+export function FormLabelBase({ label, required, className }: { label: string, required?: boolean, className?: string }) {
+    return (
+        <label className={cn("text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2 block", className)}>
+            {label} {required && <span className="text-rose-500 font-bold ml-0.5">*</span>}
+        </label>
+    )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 18. PREMIUM INPUT CLASSES
+// ─────────────────────────────────────────────────────────────────────────────
+export const inputVariants = "h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-6"
+
+export const selectVariants = "h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-6 w-full appearance-none"

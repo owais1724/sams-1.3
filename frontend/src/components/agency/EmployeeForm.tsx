@@ -10,7 +10,6 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -19,7 +18,15 @@ import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { SelectInput } from "@/components/ui/select-input"
-import { FormCard, FormHeader, SubmitButton, GhostAction } from "@/components/ui/design-system"
+import {
+    FormCard,
+    FormHeader,
+    SubmitButton,
+    GhostAction,
+    inputVariants,
+    selectVariants,
+    FormLabelBase
+} from "@/components/ui/design-system"
 import { Button } from "@/components/ui/button"
 
 const knownCountries = [
@@ -169,14 +176,14 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
             if (initialData) {
                 if (!payload.password) delete payload.password;
                 await api.patch(`/employees/${initialData.id}`, payload)
-                toast.success("Employee updated")
+                toast.success("Personnel update successful")
             } else {
                 await api.post("/employees", { ...payload, agencyId: user?.agencyId })
-                toast.success("Employee created")
+                toast.success("Personnel enrollment successful")
             }
             onSuccess()
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to save employee")
+            toast.error(error.response?.data?.message || "Operational failure during save")
         } finally {
             setLoading(false)
         }
@@ -184,22 +191,23 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormCard>
-                    <FormHeader title="Personal Information" color="blue" />
+                    <FormHeader title="Personal Intelligence" color="blue" />
                     <FormField
                         control={form.control}
                         name="fullName"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Name <span className="text-red-500">*</span></FormLabel>
+                            <FormItem className="space-y-0">
+                                <FormLabelBase label="Personnel Full Name" required />
                                 <FormControl>
                                     <Input
-                                        placeholder="Name"
+                                        placeholder="Full legal name"
+                                        className={inputVariants}
                                         {...field}
                                     />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
@@ -207,77 +215,77 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                         control={form.control}
                         name="phone"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Phone <span className="text-red-500">*</span></FormLabel>
+                            <FormItem className="space-y-0">
+                                <FormLabelBase label="Primary Contact Node (Phone)" required />
                                 <FormControl>
                                     <PhoneInput
                                         value={field.value}
                                         onChange={(value) => field.onChange(value)}
-                                        placeholder="Phone number"
+                                        placeholder="Mobile communication line"
                                     />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
                 </FormCard>
 
                 <FormCard>
-                    <FormHeader title="Professional Role" color="emerald" />
+                    <FormHeader title="Institutional Assignment" color="emerald" />
                     <FormField
                         control={form.control}
                         name="designationId"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <div className="flex items-center justify-between">
-                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Designation <span className="text-red-500">*</span></FormLabel>
+                            <FormItem className="space-y-0">
+                                <div className="flex items-center justify-between mb-2">
+                                    <FormLabelBase label="Institutional Rank" required className="mb-0" />
                                     {!showQuickAdd && (
-                                        <GhostAction onClick={() => setShowQuickAdd(true)} className="text-[9px]">
-                                            Quick Add
+                                        <GhostAction onClick={() => setShowQuickAdd(true)} className="text-[9px] h-6 px-3 bg-slate-50 border-slate-100">
+                                            Quick Assign
                                         </GhostAction>
                                     )}
                                 </div>
 
                                 {showQuickAdd ? (
-                                    <div className="flex gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div className="flex gap-2 p-4 bg-slate-50/50 rounded-3xl border border-slate-100 mb-2">
                                         <Input
-                                            placeholder="e.g. Supervisor"
+                                            placeholder="e.g. Tactical Lead"
                                             value={newDesignationName}
                                             onChange={(e) => setNewDesignationName(e.target.value)}
-                                            className="h-10 rounded-xl"
+                                            className="h-12 rounded-2xl bg-white"
                                         />
                                         <Button
                                             type="button"
                                             onClick={handleQuickAddDesignation}
                                             disabled={designationLoading || !newDesignationName}
-                                            className="h-10 rounded-xl bg-slate-900 text-white"
+                                            className="h-12 rounded-2xl bg-slate-900 text-white font-black text-xs px-6"
                                         >
-                                            {designationLoading ? "..." : "Add"}
+                                            {designationLoading ? "..." : "ADD"}
                                         </Button>
-                                        <GhostAction onClick={() => setShowQuickAdd(false)} className="h-10">Cancel</GhostAction>
+                                        <GhostAction onClick={() => setShowQuickAdd(false)} className="h-12 rounded-2xl">X</GhostAction>
                                     </div>
                                 ) : (
                                     <FormControl>
-                                        <SelectInput {...field} placeholder="Choose designation...">
+                                        <SelectInput {...field} placeholder="Choose operational rank..." className={selectVariants}>
                                             {designations.map(d => (
                                                 <option key={d.id} value={d.id}>{d.name}</option>
                                             ))}
                                         </SelectInput>
                                     </FormControl>
                                 )}
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-6">
                         <FormField
                             control={form.control}
                             name="salaryCurrency"
                             render={({ field }) => (
-                                <FormItem className="space-y-1">
-                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Currency</FormLabel>
-                                    <SelectInput {...field}>
+                                <FormItem className="space-y-0">
+                                    <FormLabelBase label="Currency" />
+                                    <SelectInput {...field} className={selectVariants}>
                                         {currencies.map(c => (
                                             <option key={c.value} value={c.value}>{c.label}</option>
                                         ))}
@@ -289,12 +297,12 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                             control={form.control}
                             name="basicSalary"
                             render={({ field }) => (
-                                <FormItem className="space-y-1">
-                                    <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Salary</FormLabel>
+                                <FormItem className="space-y-0">
+                                    <FormLabelBase label="Monthly Protocol" />
                                     <FormControl>
                                         <Input
                                             type="number"
-                                            className="font-black"
+                                            className={cn(inputVariants, "font-black italic")}
                                             {...field}
                                         />
                                     </FormControl>
@@ -305,17 +313,17 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                 </FormCard>
 
                 <FormCard>
-                    <FormHeader title="Security Controls" color="rose" />
+                    <FormHeader title="Security & Authentication" color="rose" />
                     <FormField
                         control={form.control}
                         name="email"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Email</FormLabel>
+                            <FormItem className="space-y-0">
+                                <FormLabelBase label="Institutional Email" />
                                 <FormControl>
-                                    <Input type="email" placeholder="email@agency.com" {...field} />
+                                    <Input type="email" placeholder="node@agency-hq.com" {...field} className={inputVariants} />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
@@ -323,35 +331,37 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                         control={form.control}
                         name="password"
                         render={({ field }) => (
-                            <FormItem className="space-y-1">
-                                <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Password {!initialData && <span className="text-red-500">*</span>}</FormLabel>
+                            <FormItem className="space-y-0">
+                                <FormLabelBase label="Access Credential" required={!initialData} />
                                 <FormControl>
                                     <div className="relative">
                                         <Input
                                             type={showPassword ? "text" : "password"}
-                                            placeholder={initialData ? "Enter only to change" : "Set password"}
+                                            placeholder={initialData ? "RETAIN EXISTING" : "SET ACCESS KEY"}
                                             {...field}
-                                            className="pr-12 font-black"
+                                            className={cn(inputVariants, "pr-14 font-black")}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-primary transition-colors"
                                         >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                         </button>
                                     </div>
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[10px] font-bold mt-2 ml-1" />
                             </FormItem>
                         )}
                     />
                 </FormCard>
 
-                <SubmitButton
-                    label={initialData ? "Update Employee" : "Register Employee"}
-                    loading={loading}
-                />
+                <div className="pt-4">
+                    <SubmitButton
+                        label={initialData ? "Update Personnel Dossier" : "Enroll Personnel Record"}
+                        loading={loading}
+                    />
+                </div>
             </form>
         </Form>
     )

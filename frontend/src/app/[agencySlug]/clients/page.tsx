@@ -3,13 +3,22 @@
 import { useState } from "react"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Plus, Building, Filter, Mail, Activity } from "lucide-react"
+import { Plus, Building, Filter, Mail, Activity, Eye, Edit3, Trash2 } from "lucide-react"
 import { ClientForm } from "@/components/agency/ClientForm"
 import { motion, AnimatePresence } from "framer-motion"
 import { AlertModal } from "@/components/ui/alert-modal"
-import { PageHeader, CreateButton, DataTable, PageLoading, EmptyState } from "@/components/ui/design-system"
+import {
+    PageHeader,
+    CreateButton,
+    DataTable,
+    PageLoading,
+    EmptyState,
+    ControlPanel,
+    RowEditButton,
+    RowDeleteButton,
+    StatusBadge
+} from "@/components/ui/design-system"
 import { SearchBar } from "@/components/common/SearchBar"
-import { TableActionButtons } from "@/components/common/TableActionButtons"
 import { FormSheet } from "@/components/common/FormSheet"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
 import { useApiData } from "@/hooks/useApiData"
@@ -33,20 +42,18 @@ export default function ClientsPage() {
         client.email?.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
-    if (loading) return <PageLoading message="Synchronizing Client Data..." />
+    if (loading) return <PageLoading message="Synchronizing Client Intelligence..." />
 
     return (
-        <div className="space-y-8 sm:space-y-10 pb-20">
-
-            {/* ── Page Header ── */}
+        <div className="space-y-10 pb-20">
             <PageHeader
                 title="Client"
                 titleHighlight="Portfolio"
-                subtitle="Manage institutional partners and project owners."
+                subtitle="Manage institutional partners and global project owners."
                 action={
                     <PermissionGuard permission="create_client">
                         <CreateButton
-                            label="Create Client"
+                            label="Register Client"
                             icon={<Plus className="h-4 w-4" />}
                             onClick={() => { setEditingClient(null); setOpen(true) }}
                         />
@@ -54,92 +61,73 @@ export default function ClientsPage() {
                 }
             />
 
-            {/* ── Search Bar ── */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-3 sm:p-4 rounded-2xl sm:rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
-                <div className="flex items-center gap-4 px-2">
-                    <div className="h-9 w-9 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-bold text-sm">
-                        {clients.length}
-                    </div>
-                    <span className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-widest">Active Clients</span>
-                </div>
-                <div className="flex flex-1 gap-2">
-                    <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find partner..." />
-                    <Button variant="outline" className="px-4 sm:px-6 rounded-2xl border-slate-100 hover:bg-slate-50 shadow-sm">
-                        <Filter className="h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
+            <ControlPanel count={clients.length} totalLabel="Active Partners">
+                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find institutional partner..." />
+                <Button variant="outline" className="h-14 px-6 rounded-2xl border-slate-100 hover:bg-slate-50 shadow-sm shrink-0">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Filter</span>
+                </Button>
+            </ControlPanel>
 
-            {/* ── Content ── */}
             {filteredClients.length === 0 ? (
                 <EmptyState
                     icon={<Building className="h-10 w-10" />}
-                    title="No Clients Found"
-                    description="Create your first client record to begin project management."
+                    title="No Records Found"
+                    description="The client database is currently empty. Initialize a new partnership record to begin."
                     action={
                         <PermissionGuard permission="create_client">
-                            <CreateButton label="Create Client" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)} />
+                            <CreateButton label="Initialize Client" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)} />
                         </PermissionGuard>
                     }
                 />
             ) : (
-                <DataTable columns={['Affiliated Client', 'Contact Node', 'Operational Projects', 'Actions']}>
+                <DataTable columns={['Institutional Partner', 'Communication Node', 'Assigned Units', 'Actions']}>
                     <AnimatePresence mode="popLayout">
                         {filteredClients.map((client, idx) => (
                             <motion.tr
                                 key={client.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.05 }}
-                                className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                transition={{ duration: 0.2, delay: idx * 0.03 }}
+                                className="group hover:bg-slate-50/50 transition-colors"
                             >
-                                <TableCell className="px-4 sm:px-8 py-5 sm:py-7">
-                                    <div className="flex items-center gap-3 sm:gap-4">
-                                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-slate-100 to-white border border-slate-200 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all shrink-0">
-                                            <Building className="h-5 w-5 sm:h-6 sm:w-6 text-slate-400 group-hover:text-primary transition-colors" />
+                                <TableCell className="px-8 py-7">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-110 group-hover:border-primary/20 transition-all shrink-0">
+                                            <Building className="h-6 w-6 text-slate-300 group-hover:text-primary transition-colors" />
                                         </div>
-                                        <div>
-                                            <div className="font-extrabold text-slate-900 text-sm sm:text-lg tracking-tight group-hover:text-primary transition-colors">{client.name}</div>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Client</span>
+                                        <div className="min-w-0">
+                                            <div className="font-black text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors truncate">{client.name}</div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Node</span>
                                             </div>
                                         </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-2 text-slate-600 font-medium text-sm">
-                                        <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                        <span className="truncate max-w-[120px] sm:max-w-none">{client.email || "N/A"}</span>
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
+                                            <Mail className="h-3.5 w-3.5 text-slate-400" />
+                                            {client.email || "NO_DATA"}
+                                        </div>
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-5">Primary Contact</p>
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="px-2 sm:px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black flex items-center gap-1 w-fit">
-                                        <Activity className="h-3 w-3 text-primary" />
-                                        {client.projects?.length || 0} ACTIVE
-                                    </div>
+                                    <StatusBadge status="ACTIVE" className="bg-slate-50 border-slate-100 text-slate-500">
+                                        {client.projects?.length || 0} Projects
+                                    </StatusBadge>
                                 </TableCell>
-                                <TableCell className="text-right px-4 sm:px-8">
-                                    <div className="flex justify-end gap-2">
+                                <TableCell className="text-right px-8">
+                                    <div className="flex justify-end gap-2 opactiy-0 group-hover:opacity-100 transition-opacity">
                                         <PermissionGuard permission="edit_client">
-                                            <TableActionButtons
-                                                onEdit={() => { setEditingClient(client); setOpen(true) }}
-                                                onDelete={null as any} // Hide delete if only edit
-                                                hideDelete
-                                            />
+                                            <RowEditButton onClick={() => { setEditingClient(client); setOpen(true) }} />
                                         </PermissionGuard>
                                         <PermissionGuard permission="delete_client">
-                                            <TableActionButtons
-                                                onEdit={null as any} // Hide edit if only delete
-                                                onDelete={() => openDelete(client.id, client.name)}
-                                                hideEdit
-                                            />
+                                            <RowDeleteButton onClick={() => openDelete(client.id, client.name)} />
                                         </PermissionGuard>
-                                        <PermissionGuard permission={[]} fallback={
-                                            (!clients || clients.length > 0) && (
-                                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">View Only</span>
-                                            )
-                                        } />
                                     </div>
                                 </TableCell>
                             </motion.tr>
@@ -148,14 +136,13 @@ export default function ClientsPage() {
                 </DataTable>
             )}
 
-            {/* ── Form Drawer ── */}
             <FormSheet
                 open={open}
                 onOpenChange={(v) => { setOpen(v); if (!v) setEditingClient(null) }}
-                title={editingClient ? "Modify Client Record" : "Create Client Record"}
+                title={editingClient ? "Modify Partner dossier" : "Register Institutional Partner"}
                 description={editingClient
-                    ? "Update existing partner credentials and operational details."
-                    : "Register a new institutional client to initialize security operations."}
+                    ? "Update and re-verify client credentials within the operational network."
+                    : "Initialize a new institutional identity for security project deployment."}
             >
                 <ClientForm
                     initialData={editingClient}
@@ -163,16 +150,15 @@ export default function ClientsPage() {
                 />
             </FormSheet>
 
-            {/* ── Delete Confirm ── */}
             <AlertModal
                 isOpen={deleteModal.open}
                 onClose={closeDelete}
                 onConfirm={handleDelete}
                 loading={isDeleting}
-                title="PURGE CLIENT RECORD"
+                title="TERMINATE PARTNER PROTOCOL"
                 variant="danger"
-                description={`Are you sure you want to permanently delete ${deleteModal.name}? This will remove all associated project links and operational history.`}
-                confirmText="Confirm Purge"
+                description={`Acknowledge termination of ${deleteModal.name}. This is an irreversible forensic action that will purge all associated institutional links.`}
+                confirmText="Execute Termination"
             />
         </div>
     )
