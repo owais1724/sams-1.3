@@ -60,7 +60,7 @@ model Role {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   agencyId    String?
-  agency      Agency?      @relation(fields: [agencyId], references: [id])
+  agency      Agency?      @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   users       User[]
   permissions Permission[] @relation("PermissionToRole")
 
@@ -85,7 +85,7 @@ model Client {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   agencyId  String
-  agency    Agency    @relation(fields: [agencyId], references: [id])
+  agency    Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   projects  Project[]
 
   @@index([agencyId])
@@ -103,8 +103,8 @@ model Project {
   clientId          String
   attendances       Attendance[]
   checkpoints       Checkpoint[]
-  agency            Agency       @relation(fields: [agencyId], references: [id])
-  client            Client       @relation(fields: [clientId], references: [id])
+  agency            Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  client            Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
   assignedEmployees Employee[]   @relation("EmployeeToProject")
 
   @@index([agencyId])
@@ -117,7 +117,7 @@ model Designation {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   agencyId    String
-  agency      Agency     @relation(fields: [agencyId], references: [id])
+  agency      Agency     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   employees   Employee[]
 
   @@index([agencyId])
@@ -138,7 +138,7 @@ model Employee {
   basicSalary      Float        @default(0)
   salaryCurrency   String       @default("USD")
   attendances      Attendance[]
-  agency           Agency       @relation(fields: [agencyId], references: [id])
+  agency           Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   designation      Designation? @relation(fields: [designationId], references: [id])
   leaves           Leave[]
   payrolls         Payroll[]
@@ -173,9 +173,9 @@ model Attendance {
   agencyId   String
   employeeId String
   projectId  String?
-  agency     Agency    @relation(fields: [agencyId], references: [id])
+  agency     Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  project    Project?  @relation(fields: [projectId], references: [id])
+  project    Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([agencyId])
   @@index([date])
@@ -195,7 +195,7 @@ model Payroll {
   agencyId      String
   employeeId    String?
   currency      String    @default("USD")
-  agency        Agency    @relation(fields: [agencyId], references: [id])
+  agency        Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   employee      Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([agencyId])
@@ -213,7 +213,7 @@ model Visitor {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   agencyId     String
-  agency       Agency    @relation(fields: [agencyId], references: [id])
+  agency       Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
 
   @@index([agencyId])
 }
@@ -255,8 +255,8 @@ model AuditLog {
   createdAt DateTime @default(now())
   agencyId  String?
   userId    String?
-  agency    Agency?  @relation(fields: [agencyId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
+  agency    Agency?  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([agencyId])
   @@index([userId])

@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AttendanceService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async findAll(agencyId: string, todayOnly: boolean, employeeId?: string) {
     if (!agencyId) return [];
@@ -59,6 +59,26 @@ export class AttendanceService {
         where: { id: data.projectId, agencyId },
       });
       if (!project) throw new Error('Unauthorized project selection');
+    }
+
+    // ── DUPLICATE PROTECTION: Check if already checked in today ────────────────
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const existingAttendance = await this.prisma.attendance.findFirst({
+      where: {
+        employeeId: user.employee.id,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+    });
+
+    if (existingAttendance) {
+      throw new Error(`Already checked in for today at ${new Date(existingAttendance.checkIn!).toLocaleTimeString()}`);
     }
 
     return this.prisma.attendance.create({

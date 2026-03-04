@@ -5,11 +5,11 @@ import { PrismaService } from '../prisma/prisma.service';
 export class DesignationsService {
   private readonly logger = new Logger(DesignationsService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(agencyId: string, data: { name: string; description?: string }) {
     this.logger.log(`Creating designation for agency: ${agencyId}, data: ${JSON.stringify(data)}`);
-    
+
     try {
       const result = await this.prisma.designation.create({
         data: {
@@ -17,7 +17,7 @@ export class DesignationsService {
           agencyId,
         },
       });
-      
+
       this.logger.log(`Successfully created designation: ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
@@ -39,6 +39,17 @@ export class DesignationsService {
   }
 
   async remove(agencyId: string, id: string) {
+    const designation = await this.prisma.designation.findFirst({
+      where: { id, agencyId },
+      include: { _count: { select: { employees: true } } }
+    });
+
+    if (!designation) throw new Error('Designation not found');
+
+    if (designation._count.employees > 0) {
+      throw new Error(`Cannot delete designation "${designation.name}" because it is currently assigned to ${designation._count.employees} employees.`);
+    }
+
     return this.prisma.designation.delete({
       where: { id, agencyId },
     });

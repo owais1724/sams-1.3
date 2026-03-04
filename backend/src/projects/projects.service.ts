@@ -80,4 +80,35 @@ export class ProjectsService {
 
     return updatedProject;
   }
+
+  async remove(agencyId: string, id: string) {
+    const project = await this.prisma.project.findFirst({
+      where: { id, agencyId },
+      include: {
+        _count: {
+          select: { attendances: true, assignedEmployees: true }
+        }
+      }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    if (project._count.attendances > 0) {
+      throw new ForbiddenException(`Cannot delete project "${project.name}" with existing attendance records. Consider deactivating it instead.`);
+    }
+
+    await this.prisma.project.delete({
+      where: { id },
+    });
+
+    await this.auditLogsService.create(agencyId, {
+      action: 'DELETE_PROJECT',
+      details: `Project "${project.name}" has been permanently removed.`,
+      entity: 'Project',
+      entityId: id,
+      severity: 'WARNING'
+    });
+
+    return { success: true };
+  }
 }

@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   UseGuards,
@@ -36,5 +37,11 @@ export class ProjectsController {
   @Permissions('edit_project')
   async update(@Request() req, @Param('id') id: string, @Body() data: any) {
     return this.projectsService.update(req.user.agencyId, id, data);
+  }
+
+  @Delete(':id')
+  @Permissions('delete_project')
+  async remove(@Request() req, @Param('id') id: string) {
+    return this.projectsService.remove(req.user.agencyId, id);
   }
 }

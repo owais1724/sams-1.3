@@ -10,7 +10,7 @@ import { LeaveApprovalDto } from './dto/approve-leave.dto';
 
 @Injectable()
 export class LeavesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async createLeaveRequest(
     createLeaveDto: CreateLeaveRequestDto,
@@ -27,6 +27,40 @@ export class LeavesService {
 
     const isEmergency =
       createLeaveDto.leaveType?.toString().toUpperCase() === 'EMERGENCY';
+
+    const startDate = new Date(createLeaveDto.startDate);
+    const endDate = new Date(createLeaveDto.endDate);
+
+    // ── OVERLAP PROTECTION: Check if leave already exists for these dates ──────
+    const overlappingLeave = await this.prisma.leave.findFirst({
+      where: {
+        employeeId: createLeaveDto.employeeId,
+        status: { in: [LeaveStatus.PENDING, LeaveStatus.SUPERVISOR_APPROVED, LeaveStatus.HR_APPROVED, LeaveStatus.AGENCY_APPROVED] },
+        OR: [
+          {
+            // New startDate is between existing leave dates
+            startDate: { lte: startDate },
+            endDate: { gte: startDate },
+          },
+          {
+            // New endDate is between existing leave dates
+            startDate: { lte: endDate },
+            endDate: { gte: endDate },
+          },
+          {
+            // Existing leave is completely inside new leave dates
+            startDate: { gte: startDate },
+            endDate: { lte: endDate },
+          },
+        ],
+      },
+    });
+
+    if (overlappingLeave) {
+      throw new ForbiddenException(
+        `Leave already requested for part of this timeframe (${new Date(overlappingLeave.startDate).toLocaleDateString()} to ${new Date(overlappingLeave.endDate).toLocaleDateString()}). Status: ${overlappingLeave.status}`,
+      );
+    }
 
     const leaveRequest = await this.prisma.leave.create({
       data: {
