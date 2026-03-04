@@ -307,13 +307,13 @@ export default function PayrollPage() {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Rank Filter</label>
                     <Select value={generateDesignationId} onValueChange={setGenerateDesignationId}>
-                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all px-6">
+                      <SelectTrigger>
                         <SelectValue placeholder="All Designations" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-slate-200">
-                        <SelectItem value="all" className="font-bold">Entire Agency Roster</SelectItem>
+                      <SelectContent>
+                        <SelectItem value="all">Entire Agency Roster</SelectItem>
                         {designations.map(d => (
-                          <SelectItem key={d.id} value={d.id} className="font-bold">{d.name}</SelectItem>
+                          <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -333,12 +333,12 @@ export default function PayrollPage() {
                       const emp = employees.find(e => e.id === val);
                       if (emp) setCustomAmount(emp.basicSalary?.toString() || "");
                     }}>
-                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all px-6">
+                      <SelectTrigger>
                         <SelectValue placeholder="Identify officer..." />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-slate-200">
+                      <SelectContent>
                         {employees.map(e => (
-                          <SelectItem key={e.id} value={e.id} className="font-bold">{e.fullName} <span className="text-slate-400 text-[10px] ml-2">[{e.designation?.name}]</span></SelectItem>
+                          <SelectItem key={e.id} value={e.id}>{e.fullName} <span className="text-slate-400 text-[10px] ml-2">[{e.designation?.name}]</span></SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

@@ -136,12 +136,12 @@ export default function AttendancePage() {
                                     <div className="w-full md:w-80">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block ml-1">Select Work Site</label>
                                         <Select onValueChange={setSelectedProject}>
-                                            <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-white">
+                                            <SelectTrigger>
                                                 <SelectValue placeholder="Identification Required" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-2xl border-slate-200">
+                                            <SelectContent>
                                                 {projects.map(p => (
-                                                    <SelectItem key={p.id} value={p.id} className="rounded-xl font-bold">{p.name}</SelectItem>
+                                                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>

@@ -257,10 +257,10 @@ export default function LeavesPage() {
                 <div className="space-y-2">
                   <Label htmlFor="leaveType" className="text-sm font-bold text-slate-700 ml-1">Leave Type</Label>
                   <Select value={formData.leaveType} onValueChange={(value) => setFormData({ ...formData, leaveType: value })}>
-                    <SelectTrigger className="h-12 rounded-xl border-slate-200 focus:ring-primary/20 transition-all">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select leave type" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-slate-200">
+                    <SelectContent>
                       <SelectItem value="SICK">Sick Leave</SelectItem>
                       <SelectItem value="CASUAL">Casual Leave</SelectItem>
                       <SelectItem value="ANNUAL">Annual Leave</SelectItem>
