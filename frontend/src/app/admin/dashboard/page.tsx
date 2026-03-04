@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Building2, Shield, Users, Edit3, Power, PowerOff } from "lucide-react"
+import { RowEditButton, RowDeleteButton } from "@/components/ui/design-system"
 import { cn } from "@/lib/utils"
 import {
     Sheet,
@@ -255,25 +256,9 @@ export default function AdminDashboard() {
                                                     }
                                                 </Button>
                                                 {/* Edit Button */}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-11 px-5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-blue-100/50"
-                                                    onClick={() => { setEditingAgency(agency); setOpen(true) }}
-                                                >
-                                                    <Edit3 className="h-4 w-4 mr-2" />
-                                                    EDIT
-                                                </Button>
+                                                <RowEditButton onClick={() => { setEditingAgency(agency); setOpen(true) }} />
                                                 {/* Remove Button */}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-11 px-5 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white font-black rounded-2xl transition-all active:scale-95 shadow-sm shadow-red-100/50"
-                                                    onClick={() => setDeleteModal({ open: true, id: agency.id, name: agency.name })}
-                                                >
-                                                    <Trash2 className="h-4 w-4 mr-2" />
-                                                    REMOVE
-                                                </Button>
+                                                <RowDeleteButton onClick={() => setDeleteModal({ open: true, id: agency.id, name: agency.name })} label="REMOVE" />
                                             </div>
                                         </TableCell>
                                     </TableRow>

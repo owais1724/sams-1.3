@@ -12,7 +12,8 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Shield, Plus, Key, Users, Trash2, Edit3 } from "lucide-react"
+import { Shield, Plus, Key, Users } from "lucide-react"
+import { RowEditButton, RowDeleteButton } from "@/components/ui/design-system"
 import {
     Sheet,
     SheetContent,
@@ -283,27 +284,12 @@ export default function RBACPage() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             {!role.isSystem ? (
-                                                <div className="flex justify-end space-x-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-primary hover:bg-primary/5"
-                                                        onClick={() => {
-                                                            setSelectedRole(role)
-                                                            setOpen(true)
-                                                        }}
-                                                    >
-                                                        <Edit3 className="h-3.5 w-3.5 mr-1.5" />
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-red-500 hover:bg-red-50"
-                                                        onClick={() => setDeleteModal({ open: true, id: role.id, name: role.name })}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
+                                                <div className="flex justify-end gap-2">
+                                                    <RowEditButton onClick={() => {
+                                                        setSelectedRole(role)
+                                                        setOpen(true)
+                                                    }} />
+                                                    <RowDeleteButton onClick={() => setDeleteModal({ open: true, id: role.id, name: role.name })} />
                                                 </div>
                                             ) : (
                                                 <Badge variant="outline" className="text-[10px] uppercase font-bold text-slate-400">Fixed System Role</Badge>

@@ -495,7 +495,7 @@ interface RowButtonProps {
     label?: string
 }
 
-export function RowEditButton({ onClick, disabled, label = "Modify", className }: RowButtonProps) {
+export function RowEditButton({ onClick, disabled, label = "Edit", className }: RowButtonProps) {
     return (
         <Button
             variant="ghost"
