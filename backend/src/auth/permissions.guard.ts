@@ -22,12 +22,15 @@ export class PermissionsGuard implements CanActivate {
     const userRole = typeof user.role === 'string' ? user.role.toLowerCase().trim() : '';
     const isProd = process.env.NODE_ENV === 'production';
 
-    // ── Tier 1: Platform Super Admin bypasses everything ─────────────────────
-    // Note: We check against common variations of the role name
-    const isPlatformAdmin = ['super admin', 'superadmin', 'platform admin'].includes(userRole);
+    // ── Tier 1: Super Admins and Agency Admins bypass all permission checks ───
+    // Agency Admins own their agency — they should never be blocked by a
+    // missing permission in their JWT token (e.g. after fresh deployment).
+    const isBypassRole = [
+      'super admin', 'superadmin', 'platform admin', 'agency admin'
+    ].includes(userRole);
 
-    if (isPlatformAdmin) {
-      if (!isProd) console.log(`[RBAC] Platform Bypass Active for ${user.email}`);
+    if (isBypassRole) {
+      if (!isProd) console.log(`[RBAC] Admin Bypass Active for ${user.email} (role: ${userRole})`);
       return true;
     }
 
