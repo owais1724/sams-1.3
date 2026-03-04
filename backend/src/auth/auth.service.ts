@@ -106,6 +106,7 @@ export class AuthService {
         permissions: payload.permissions,
         agencyId: userWithPermissions.agencyId,
         agencySlug: userWithPermissions.agency?.slug,
+        agencyName: userWithPermissions.agency?.name,
         employeeId: userWithPermissions.employeeId,
       },
     };

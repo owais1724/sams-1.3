@@ -103,7 +103,7 @@ export default function AgencyDashboard() {
             <PageHeader
                 title="Agency"
                 titleHighlight="Command"
-                subtitle={`High-level operational governance and intelligence monitoring for ${agencySlug}.`}
+                subtitle={`High-level operational governance and intelligence monitoring for ${authUser?.agencyName || agencySlug}.`}
                 action={
                     <div className="flex items-center gap-3">
                         <Badge className="bg-emerald-500/10 text-emerald-600 border-none font-black text-[10px] uppercase tracking-widest px-4 py-2 animate-pulse">

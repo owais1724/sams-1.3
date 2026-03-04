@@ -131,6 +131,7 @@ export class AuthController {
       permissions,
       agencyId: user.agencyId,
       agencySlug: user.agency?.slug,
+      agencyName: user.agency?.name,
       employeeId: user.employeeId,
     };
   }

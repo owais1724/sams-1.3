@@ -129,7 +129,7 @@ export default function StaffDashboard() {
             Command <span className="text-primary">Center</span>
           </h1>
           <p className="text-slate-500 font-bold text-sm mt-4 uppercase tracking-widest max-w-lg leading-relaxed">
-            Initialize and regulate high-level security permissions and role hierarchies for <span className="text-primary italic font-black">SAMS Operations</span>.
+            Initialize and regulate high-level security permissions and role hierarchies for <span className="text-primary italic font-black">{userData?.agencyName || 'SAMS Operations'}</span>.
           </p>
         </div>
 

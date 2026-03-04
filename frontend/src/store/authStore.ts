@@ -7,6 +7,8 @@ interface User {
     fullName: string;
     role: string | null;
     agencyId: string | null;
+    agencySlug?: string | null;
+    agencyName?: string | null;
     employeeId: string | null;
     permissions: string[];
 }

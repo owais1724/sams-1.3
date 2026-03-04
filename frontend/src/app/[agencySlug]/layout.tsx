@@ -128,9 +128,13 @@ export default function AgencyLayout({
                         <div className="h-10 w-10 bg-gradient-to-tr from-[#14B8A6] to-emerald-400 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
                             <ShieldCheck className="h-5 w-5 text-white" />
                         </div>
-                        <div>
-                            <h1 className="text-sm font-black tracking-[0.1em] uppercase leading-none">Sentinel</h1>
-                            <span className="text-[9px] text-teal-300/60 font-black uppercase tracking-widest mt-1 block">Security SaaS</span>
+                        <div className="min-w-0">
+                            <h1 className="text-sm font-black tracking-[0.1em] uppercase leading-none truncate max-w-[150px]">
+                                {user?.agencyName || 'Sentinel'}
+                            </h1>
+                            <span className="text-[9px] text-teal-300/60 font-black uppercase tracking-widest mt-1 block">
+                                {user?.agencyName ? 'Institutional Node' : 'Security SaaS'}
+                            </span>
                         </div>
                     </div>
                     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
