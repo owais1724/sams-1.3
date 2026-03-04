@@ -78,6 +78,8 @@ export default function LeavesPage() {
     reason: ""
   })
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [processingId, setProcessingId] = useState<string | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -108,6 +110,8 @@ export default function LeavesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (submitting) return
+    setSubmitting(true)
 
     if (!user?.employeeId) {
       toast.error('Only staff members can apply for leave')
@@ -128,10 +132,14 @@ export default function LeavesPage() {
       fetchLeaveRequests()
     } catch (error) {
       toast.error('Failed to submit leave request')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   const handleApproval = async (leaveId: string, status: string, rejectionReason?: string) => {
+    if (processingId) return
+    setProcessingId(leaveId)
     try {
       await api.put(`/leaves/${leaveId}/approve`, {
         status,
@@ -143,6 +151,8 @@ export default function LeavesPage() {
       fetchLeaveRequests()
     } catch (error) {
       toast.error('Failed to update leave request')
+    } finally {
+      setProcessingId(null)
     }
   }
 
@@ -296,8 +306,19 @@ export default function LeavesPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 font-black text-lg shadow-xl shadow-primary/20 transition-all active:scale-[0.98] mt-4">
-                  Create Request
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 font-black text-lg shadow-xl shadow-primary/20 transition-all active:scale-[0.98] mt-4"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Create Request"
+                  )}
                 </Button>
               </form>
             </DialogContent>
@@ -370,14 +391,16 @@ export default function LeavesPage() {
                     <div className="flex space-x-2 pt-2">
                       <Button
                         size="sm"
+                        disabled={processingId === leave.id}
                         onClick={() => handleApproval(leave.id, getNextStatus(leave)!)}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        Approve
+                        {processingId === leave.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Approve"}
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
+                        disabled={processingId === leave.id}
                         onClick={() => {
                           const reason = prompt('Enter declination reason:')
                           if (reason) {
