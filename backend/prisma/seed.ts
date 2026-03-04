@@ -101,12 +101,12 @@ async function main() {
         create: {
             email: 'admin@sams.com',
             password,
-            fullName: 'Platform Super Admin',
+            fullName: 'SAMS GLOBAL ADMIN',
             roleId: 'super-admin-role',
         }
     });
 
-    console.log('Seeding complete. Super Admin created:', superAdmin.email);
+    console.log('Seeding complete. Master Admin created:', superAdmin.email);
 }
 
 main()
