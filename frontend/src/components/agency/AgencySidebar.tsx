@@ -38,12 +38,11 @@ export function AgencySidebar({ onItemClick }: { onItemClick?: () => void }) {
             }
         }
 
-        if (!user) {
-            fetchProfile()
-        } else {
-            setLoading(false)
-        }
-    }, [user, login, logout])
+        // ALWAYS fetch fresh permissions from DB on mount.
+        // This ensures role changes made by admin are reflected immediately
+        // without requiring staff to log out and back in.
+        fetchProfile()
+    }, [login])
 
     const isStaff = user?.role && !user.role.toLowerCase().includes('admin');
 
