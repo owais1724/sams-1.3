@@ -66,7 +66,7 @@ export default function RBACPage() {
             setPermissions(permsRes.data)
             setEmployees(empRes.data)
         } catch (error: any) {
-            toast.error("Security matrix synchronization failed")
+            toast.error("Failed to sync permissions")
         } finally {
             setLoading(false)
         }
@@ -77,11 +77,11 @@ export default function RBACPage() {
         setIsDeleting(true)
         try {
             await api.delete(`/roles/${deleteModal.id}`)
-            toast.success("Security node terminated")
+            toast.success("Role deleted")
             setDeleteModal({ open: false, id: "", name: "" })
             fetchData()
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Termination failure")
+            toast.error(error.response?.data?.message || "Failed to delete role")
         } finally {
             setIsDeleting(false)
         }
@@ -91,21 +91,21 @@ export default function RBACPage() {
         if (user) fetchData()
     }, [user])
 
-    if (loading) return <PageLoading message="Synchronizing Security Intelligence..." />
+    if (loading) return <PageLoading message="Loading Access Control..." />
 
     return (
         <div className="space-y-12 pb-20">
             <PageHeader
-                title="Security"
-                titleHighlight="Governance"
-                subtitle="Initialize and regulate high-fidelity institutional authorization nodes and role hierarchies."
+                title="Access"
+                titleHighlight="Control"
+                subtitle="Manage user roles and permissions for your agency."
                 action={
                     <Sheet open={open} onOpenChange={(val) => {
                         setOpen(val)
                         if (!val) setSelectedRole(null)
                     }}>
                         <SheetTrigger asChild>
-                            <CreateButton label="Define Role" icon={<Plus className="h-4 w-4" />} />
+                            <CreateButton label="Add Role" icon={<Plus className="h-4 w-4" />} />
                         </SheetTrigger>
                         <SheetContent className="sm:max-w-[700px] border-none shadow-2xl p-0 overflow-hidden bg-white">
                             <div className="p-10 md:p-14 overflow-y-auto h-full">
@@ -114,10 +114,10 @@ export default function RBACPage() {
                                         <Lock className="h-7 w-7 text-primary" />
                                     </div>
                                     <SheetTitle className="text-3xl font-black tracking-tight leading-none text-slate-900 uppercase">
-                                        {selectedRole ? "Modify Privilege Matrix" : "Register Security Node"}
+                                        {selectedRole ? "Edit Role" : "Create New Role"}
                                     </SheetTitle>
                                     <SheetDescription className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[10px] pt-2">
-                                        precision structural authorization protocols.
+                                        Define permissions and access levels.
                                     </SheetDescription>
                                 </SheetHeader>
                                 <RoleForm
@@ -136,17 +136,17 @@ export default function RBACPage() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Security Nodes" value={roles.length} icon={<ShieldCheck />} color="blue" />
-                <StatCard title="Active Grants" value={permissions.length} icon={<Database />} color="emerald" />
-                <StatCard title="Operational Users" value={employees.length} icon={<Users />} color="amber" />
+                <StatCard title="Total Roles" value={roles.length} icon={<ShieldCheck />} color="blue" />
+                <StatCard title="Permissions" value={permissions.length} icon={<Database />} color="emerald" />
+                <StatCard title="Total Users" value={employees.length} icon={<Users />} color="amber" />
             </div>
 
             <div className="space-y-6">
-                <SectionHeading title="Identity Access Roster" />
-                <DataTable columns={['Personnel Node', 'Security Protocol', 'Actions']}>
+                <SectionHeading title="Employee Access" />
+                <DataTable columns={['Employee', 'Role', 'Actions']}>
                     <AnimatePresence mode="popLayout">
                         {employees.length === 0 ? (
-                            <TableRowEmpty colSpan={3} title="Roster Terminated" icon={<Users />} />
+                            <TableRowEmpty colSpan={3} title="No users found" icon={<Users />} />
                         ) : (
                             employees.map((emp, idx) => (
                                 <motion.tr
@@ -170,7 +170,7 @@ export default function RBACPage() {
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant="outline" className="bg-slate-900/5 text-slate-900 border-none px-4 py-1.5 font-black text-[9px] uppercase tracking-[0.15em] rounded-full">
-                                            {emp.user?.role?.name || emp.designation?.name || "UNRANKED_NODE"}
+                                            {emp.user?.role?.name || emp.designation?.name || "EMPLOYEE"}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right px-8">
@@ -188,7 +188,7 @@ export default function RBACPage() {
                                                 }
                                             }}
                                         >
-                                            RECONF PRIVILEGES
+                                            RECONF ROLE
                                         </Button>
                                     </TableCell>
                                 </motion.tr>
@@ -199,8 +199,8 @@ export default function RBACPage() {
             </div>
 
             <div className="space-y-6 pt-10">
-                <SectionHeading title="Structural Privilege Matrix" />
-                <DataTable columns={['Node Identifier', 'Protocol Context', 'Grant Intensity', 'Network Load', 'Actions']}>
+                <SectionHeading title="Roles & Permissions" />
+                <DataTable columns={['Role Name', 'Description', 'Permissions', 'Users Assigned', 'Actions']}>
                     <AnimatePresence mode="popLayout">
                         {roles.map((role, idx) => (
                             <motion.tr
@@ -226,18 +226,18 @@ export default function RBACPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-[13px] font-medium text-slate-400 italic font-outfit max-w-[200px] truncate">
-                                    {role.description || "Operational access node"}
+                                    {role.description || "Access level for employees"}
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex flex-col">
-                                        <span className="font-black text-slate-900 text-xs italic">{role.permissions?.length || 0} GRANTS</span>
-                                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mt-0.5">Active Rights</span>
+                                        <span className="font-black text-slate-900 text-xs italic">{role.permissions?.length || 0} Permissions</span>
+                                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mt-0.5">Assigned</span>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center text-[11px] font-black text-slate-500 uppercase tracking-widest">
                                         <Users className="h-4 w-4 mr-2.5 text-slate-200" />
-                                        {role._count?.users || 0} DEPLOYED
+                                        {role._count?.users || 0} USERS
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-right px-8">
@@ -264,10 +264,10 @@ export default function RBACPage() {
                 onClose={() => setDeleteModal({ ...deleteModal, open: false })}
                 onConfirm={handleDelete}
                 loading={isDeleting}
-                title="TERMINATE SECURITY NODE"
+                title="DELETE ROLE"
                 variant="danger"
-                description={`Acknowledge termination of security node: ${deleteModal.name}. All associated rights will be immediately purged across the institutional grid.`}
-                confirmText="Execute Purge"
+                description={`Are you sure you want to delete the role: ${deleteModal.name}? This action cannot be undone.`}
+                confirmText="Delete Role"
             />
         </div>
     )

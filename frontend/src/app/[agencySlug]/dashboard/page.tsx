@@ -86,7 +86,7 @@ export default function AgencyDashboard() {
                 activeDeployments: attendance.filter((a: any) => a.status === 'PRESENT').length
             })
         } catch (error) {
-            toast.error("Dashboard synchronization protocol failed.")
+            toast.error("Failed to load dashboard.")
         } finally {
             setLoading(false)
         }
@@ -96,14 +96,14 @@ export default function AgencyDashboard() {
         if (authUser) fetchData()
     }, [authUser])
 
-    if (loading) return <PageLoading message="Synchronizing Operational Command..." />
+    if (loading) return <PageLoading message="Loading Dashboard..." />
 
     return (
         <div className="space-y-10 pb-20">
             <PageHeader
                 title="Agency"
-                titleHighlight="Command"
-                subtitle={`High-level operational governance and intelligence monitoring for ${authUser?.agencyName || agencySlug}.`}
+                titleHighlight="Overview"
+                subtitle={`Quick overview and monitoring for ${authUser?.agencyName || agencySlug}.`}
                 action={
                     <div className="flex items-center gap-3">
                         <Badge className="bg-emerald-500/10 text-emerald-600 border-none font-black text-[10px] uppercase tracking-widest px-4 py-2 animate-pulse">
@@ -116,9 +116,9 @@ export default function AgencyDashboard() {
             <div className="grid gap-6 md:grid-cols-4 lg:grid-cols-5">
                 <StatCard title="Total Clients" value={stats.clients} icon={<Building2 />} color="teal" />
                 <StatCard title="Active Sites" value={stats.projects} icon={<Target />} color="violet" />
-                <StatCard title="On-Site Roster" value={stats.activeDeployments} icon={<Zap />} color="emerald" />
-                <StatCard title="Total Personnel" value={stats.employees} icon={<Users />} color="blue" />
-                <StatCard title="Pending Actions" value={stats.pendingLeaves} icon={<CalendarDays />} color="amber" />
+                <StatCard title="Staff on Duty" value={stats.activeDeployments} icon={<Zap />} color="emerald" />
+                <StatCard title="Total Employees" value={stats.employees} icon={<Users />} color="blue" />
+                <StatCard title="Pending Leaves" value={stats.pendingLeaves} icon={<CalendarDays />} color="amber" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -127,7 +127,7 @@ export default function AgencyDashboard() {
                         <div className="flex items-center justify-between mb-8 px-2">
                             <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
                                 <Activity className="h-5 w-5 text-primary" />
-                                Operational Deployment
+                                Recent Projects
                             </h2>
                             <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-all" asChild>
                                 <Link href={`/${agencySlug}/projects`}>Full Portfolio <ArrowRight className="h-3 w-3 ml-2" /></Link>
@@ -140,10 +140,10 @@ export default function AgencyDashboard() {
                                     <div className="h-20 w-20 bg-white rounded-full flex items-center justify-center shadow-lg border border-slate-100 mb-6">
                                         <Briefcase className="h-8 w-8 text-slate-300" />
                                     </div>
-                                    <h4 className="text-xl font-black text-slate-900">Intelligence Stream Offline</h4>
+                                    <h4 className="text-xl font-black text-slate-900">No Projects Found</h4>
                                     <p className="text-slate-500 font-medium max-w-xs text-center mt-2">Initialize your first security project to begin monitoring.</p>
                                     <Button className="mt-8 bg-slate-950 rounded-2xl h-12 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl" onClick={() => router.push(`/${agencySlug}/projects`)}>
-                                        Launch Project
+                                        Add Project
                                     </Button>
                                 </div>
                             ) : (
@@ -182,14 +182,14 @@ export default function AgencyDashboard() {
                                     <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/10 backdrop-blur-md">
                                         <ShieldCheck className="h-5 w-5 text-primary" />
                                     </div>
-                                    <h3 className="text-xl font-black text-white uppercase tracking-tight">Security Integrity Protocol</h3>
+                                    <h3 className="text-xl font-black text-white uppercase tracking-tight">System Audit Logs</h3>
                                 </div>
                                 <p className="text-slate-400 font-medium max-w-md leading-relaxed">
-                                    Access immutable forensic logs and institutional audit history to ensure zero-breach operational standards.
+                                    View detailed audit logs and activity history to ensure operational standards.
                                 </p>
                             </div>
                             <Button className="h-14 px-10 rounded-2xl bg-white text-slate-950 hover:bg-primary hover:text-white font-black uppercase tracking-widest transition-all shadow-2xl" onClick={() => router.push(`/${agencySlug}/audit-logs`)}>
-                                Run Audit Log
+                                View Logs
                             </Button>
                         </div>
                     </div>
@@ -198,7 +198,7 @@ export default function AgencyDashboard() {
                 <div className="space-y-10">
                     <div>
                         <div className="flex items-center justify-between mb-8 px-2">
-                            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Intelligence Log</h2>
+                            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Recent Activity</h2>
                         </div>
                         <div className="space-y-4">
                             {recentLogs.map((log, idx) => (
@@ -211,13 +211,13 @@ export default function AgencyDashboard() {
                                             <p className="text-[10px] font-black text-slate-900 group-hover:text-primary transition-colors uppercase tracking-tight truncate pr-4">{log.action}</p>
                                             <span className="text-[9px] font-bold text-slate-400 uppercase whitespace-nowrap">{new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{log.user?.fullName || "SYSTEM DAEMON"}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{log.user?.fullName || "SYSTEM"}</p>
                                     </div>
                                 </div>
                             ))}
                             {recentLogs.length === 0 && (
                                 <div className="text-center py-10">
-                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] italic">No forensic activity logged.</p>
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] italic">No recent activity found.</p>
                                 </div>
                             )}
                         </div>
@@ -229,16 +229,16 @@ export default function AgencyDashboard() {
                                 <Target className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Active Pulse</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase">Operational Threshold</p>
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">System Status</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Operational Stats</p>
                             </div>
                         </div>
 
                         <div className="space-y-6">
                             {[
-                                { label: 'Node Activity', value: 85, color: 'bg-emerald-500' },
-                                { label: 'System Integrity', value: 98, color: 'bg-primary' },
-                                { label: 'Roster Capacity', value: 62, color: 'bg-amber-500' },
+                                { label: 'Site Activity', value: 85, color: 'bg-emerald-500' },
+                                { label: 'System Status', value: 98, color: 'bg-primary' },
+                                { label: 'Staff Capacity', value: 62, color: 'bg-amber-500' },
                             ].map((metric) => (
                                 <div key={metric.label} className="space-y-2">
                                     <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest px-1">

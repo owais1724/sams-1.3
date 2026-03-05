@@ -91,7 +91,7 @@ export default function PayrollPage() {
       setPayrolls(payrollRes.data || [])
       setDesignations(desRes.data || [])
     } catch (err) {
-      toast.error("Financial node communication failure.")
+      toast.error("Failed to connect to payroll service.")
     } finally {
       setLoading(false)
     }
@@ -112,7 +112,7 @@ export default function PayrollPage() {
       setIsDialogOpen(false)
       fetchData()
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Generation protocol failure.")
+      toast.error(error.response?.data?.message || "Generation failed.")
     } finally {
       setGenerating(false)
     }
@@ -143,14 +143,14 @@ export default function PayrollPage() {
     return payrolls.filter(p => p.employee?.designation?.name === activeTab)
   }, [payrolls, activeTab])
 
-  if (loading) return <PageLoading message="Synchronizing Financial Nodes..." />
+  if (loading) return <PageLoading message="Loading Payroll Data..." />
 
   return (
     <div className="space-y-12 pb-20">
       <PageHeader
-        title="Institutional"
+        title="Agency"
         titleHighlight="Payroll"
-        subtitle="Regulate and authorize high-fidelity salary disbursements and fiscal compensations."
+        subtitle="Manage and authorize salary payments for employees."
         action={
           <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <SheetTrigger asChild>
@@ -163,16 +163,16 @@ export default function PayrollPage() {
                     <Receipt className="h-7 w-7 text-primary" />
                   </div>
                   <SheetTitle className="text-3xl font-black tracking-tight leading-none text-slate-900 uppercase">
-                    Initialize Payroll Cycle
+                    Create Payroll
                   </SheetTitle>
                   <SheetDescription className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[10px] pt-3">
-                    Authorization for system-wide fiscal calculation and node disbursement.
+                    Calculate and process salary payments for the agency.
                   </SheetDescription>
                 </SheetHeader>
 
                 <div className="space-y-10">
                   <div className="space-y-0">
-                    <FormLabelBase label="Target Disbursment Month" required />
+                    <FormLabelBase label="Payroll Month" required />
                     <Input
                       type="month"
                       value={selectedMonth}
@@ -182,13 +182,13 @@ export default function PayrollPage() {
                   </div>
 
                   <div className="space-y-0">
-                    <FormLabelBase label="Operational Node Scope" required />
+                    <FormLabelBase label="Employee Scope" required />
                     <Select value={generateDesignationId} onValueChange={setGenerateDesignationId}>
                       <SelectTrigger className={selectVariants}>
                         <SelectValue placeholder="Select designation scope" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2">
-                        <SelectItem value="all" className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">ALL PERSONNEL NODES</SelectItem>
+                        <SelectItem value="all" className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">ALL EMPLOYEES</SelectItem>
                         {designations.map(d => (
                           <SelectItem key={d.id} value={d.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">{d.name}</SelectItem>
                         ))}
@@ -201,7 +201,7 @@ export default function PayrollPage() {
                       <AlertCircle className="h-5 w-5 text-amber-600" />
                     </div>
                     <p className="text-[13px] font-bold text-amber-900 leading-relaxed italic">
-                      Commencing this protocol will calculate Net Compensation for the selected roster based on active contracts and verified attendance matrix.
+                      Generating payroll will calculate salary for the selected employees based on their attendance and contracts.
                     </p>
                   </div>
                 </div>
@@ -210,7 +210,7 @@ export default function PayrollPage() {
                   <SubmitButton
                     onClick={handleGeneratePayroll}
                     loading={generating}
-                    label="Execute Financial Protocol"
+                    label="Generate Payroll"
                     icon={<CheckCircle2 className="h-4 w-4" />}
                   />
                 </div>
@@ -223,13 +223,13 @@ export default function PayrollPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard title="Total Disbursed" value={formatCurrency(payrolls.filter(p => p.status === 'PAID').reduce((sum, p) => sum + p.netPay, 0))} icon={<CreditCard />} color="blue" />
         <StatCard title="Pending Payouts" value={formatCurrency(payrolls.filter(p => p.status !== 'PAID').reduce((sum, p) => sum + p.netPay, 0))} icon={<Wallet />} color="amber" />
-        <StatCard title="Roster Coverage" value={payrolls.length} icon={<Database />} color="emerald" />
-        <StatCard title="Processed Nodes" value={payrolls.filter(p => p.status === 'PAID').length} icon={<Activity />} color="violet" />
+        <StatCard title="Total Staff" value={payrolls.length} icon={<Database />} color="emerald" />
+        <StatCard title="Employees Paid" value={payrolls.filter(p => p.status === 'PAID').length} icon={<Activity />} color="violet" />
       </div>
 
       <div className="space-y-8 pt-4">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
-          <SectionHeading title="Disbursement Ledger" />
+          <SectionHeading title="Payroll History" />
 
           <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto no-scrollbar max-w-full">
             {tabCategories.map((tab) => (
@@ -249,7 +249,7 @@ export default function PayrollPage() {
           </div>
         </div>
 
-        <DataTable columns={['Personnel Node', 'Pay Cycle', 'Fiscal Summary', 'Status', 'Actions']}>
+        <DataTable columns={['Employee', 'Month', 'Salary Details', 'Status', 'Actions']}>
           <AnimatePresence mode="popLayout">
             {filteredPayrolls.length === 0 ? (
               <TableRowEmpty colSpan={5} title="No Fiscal Records" icon={<Receipt />} />
@@ -269,7 +269,7 @@ export default function PayrollPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="font-extrabold text-slate-900 leading-tight group-hover:text-primary transition-colors truncate">{payroll.employee?.fullName}</div>
-                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{payroll.employee?.designation?.name || "STAFF-NODE"}</div>
+                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{payroll.employee?.designation?.name || "EMPLOYEE"}</div>
                       </div>
                     </div>
                   </TableCell>
@@ -282,7 +282,7 @@ export default function PayrollPage() {
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="text-sm font-black text-emerald-600 italic">{formatCurrency(payroll.netPay)}</span>
-                      <span className="text-[9px] text-slate-300 font-black uppercase tracking-widest mt-1">Net Compensation</span>
+                      <span className="text-[9px] text-slate-300 font-black uppercase tracking-widest mt-1">Net Salary</span>
                     </div>
                   </TableCell>
                   <TableCell>

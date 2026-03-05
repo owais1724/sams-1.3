@@ -105,7 +105,7 @@ export default function StaffDashboard() {
       })) as any)
 
     } catch (error: any) {
-      toast.error("Dashboard synchronization protocol offline.")
+      toast.error("Failed to load dashboard.")
     } finally {
       setLoading(false)
     }
@@ -115,21 +115,21 @@ export default function StaffDashboard() {
     fetchDashboardData()
   }, [])
 
-  if (loading) return <PageLoading message="Initializing Command Center..." />
+  if (loading) return <PageLoading message="Loading Dashboard..." />
 
   return (
     <div className="space-y-10 pb-20">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-primary/10">Operational Terminal</div>
+            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-primary/10">Staff Dashboard</div>
             <Badge className="bg-emerald-500 text-white border-none text-[9px] font-black tracking-widest px-2 py-0.5 animate-pulse">SYSTEM LIVE</Badge>
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
-            Command <span className="text-primary">Center</span>
+            Staff <span className="text-primary">Dashboard</span>
           </h1>
           <p className="text-slate-500 font-bold text-sm mt-4 uppercase tracking-widest max-w-lg leading-relaxed">
-            Initialize and regulate high-level security permissions and role hierarchies for <span className="text-primary italic font-black">{userData?.agencyName || 'SAMS Operations'}</span>.
+            Overview of your activity and status within <span className="text-primary italic font-black">{userData?.agencyName || 'SAMS Operations'}</span>.
           </p>
         </div>
 
@@ -138,21 +138,21 @@ export default function StaffDashboard() {
             <AvatarFallback className="bg-slate-900 text-white font-black">{userData?.fullName?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Operator</div>
+            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">User Profile</div>
             <div className="text-lg font-black text-slate-900 leading-tight">{userData?.fullName}</div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{userData?.role || 'Personnel Node'}</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{userData?.role || 'Employee'}</span>
             </div>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-4">
-        <StatCard title="Active Roster" value={userStats.totalStaff} icon={<Users />} color="blue" />
-        <StatCard title="On-Site Deployment" value={userStats.presentToday} icon={<Zap />} color="emerald" />
-        <StatCard title="Authorized Projects" value={userStats.activeProjects} icon={<Target />} color="violet" />
-        <StatCard title="Pending Approvals" value={userStats.onLeave} icon={<CalendarDays />} color="amber" />
+        <StatCard title="Total Staff" value={userStats.totalStaff} icon={<Users />} color="blue" />
+        <StatCard title="Present Today" value={userStats.presentToday} icon={<Zap />} color="emerald" />
+        <StatCard title="Active Projects" value={userStats.activeProjects} icon={<Target />} color="violet" />
+        <StatCard title="Pending Leaves" value={userStats.onLeave} icon={<CalendarDays />} color="amber" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -161,13 +161,13 @@ export default function StaffDashboard() {
             <div className="flex items-center justify-between mb-8 px-2">
               <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
                 <Zap className="h-5 w-5 text-primary" />
-                Operational Quick-Links
+                Quick Access
               </h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
                 { label: 'Attendance', icon: Clock, path: '/attendance', perm: 'mark_attendance', color: 'slate' },
-                { label: 'Roster', icon: Users, path: '/employees', perm: 'view_employee', color: 'teal' },
+                { label: 'Employees', icon: Users, path: '/employees', perm: 'view_employee', color: 'teal' },
                 { label: 'Projects', icon: Briefcase, path: '/projects', perm: 'view_projects', color: 'emerald' },
                 { label: 'Clients', icon: Building2, path: '/clients', perm: 'view_clients', color: 'blue' },
                 { label: 'Payroll', icon: Wallet, path: '/payroll', perm: 'view_payroll', color: 'amber' },
@@ -192,7 +192,7 @@ export default function StaffDashboard() {
               <ShieldCheck className="h-40 w-40" />
             </div>
             <div className="relative z-10">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Security Privilege Authorization</h3>
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Permissions & Access</h3>
               <div className="flex flex-wrap gap-2">
                 {userPermissions.map(p => (
                   <Badge key={p} className="bg-white text-slate-600 border border-slate-100 shadow-sm px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-wider">
@@ -208,7 +208,7 @@ export default function StaffDashboard() {
         <div className="space-y-10">
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Intelligence Log</h2>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Activity Log</h2>
             </div>
             <div className="space-y-4">
               {recentActivities.map((activity: any, idx) => (
@@ -228,7 +228,7 @@ export default function StaffDashboard() {
 
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Active Roster</h2>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Agency Staff</h2>
             </div>
             <div className="space-y-4">
               {topPerformers.map((performer: any, idx) => (
@@ -245,7 +245,7 @@ export default function StaffDashboard() {
                   <div className="h-2 w-2 rounded-full bg-emerald-500 mr-2" />
                 </div>
               ))}
-              {topPerformers.length === 0 && <p className="text-center py-10 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Personnel roster offline.</p>}
+              {topPerformers.length === 0 && <p className="text-center py-10 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No staff members found.</p>}
             </div>
           </div>
         </div>

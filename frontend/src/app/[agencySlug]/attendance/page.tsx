@@ -75,7 +75,7 @@ export default function AttendancePage() {
 
     const handleCheckIn = async () => {
         if (!selectedProject) {
-            toast.error("Operational site identification required.")
+            toast.error("Project site selection required.")
             return
         }
 
@@ -85,10 +85,10 @@ export default function AttendancePage() {
                 projectId: selectedProject,
                 method: 'WEB'
             })
-            toast.success("Operational deployment recorded.")
+            toast.success("Check-in recorded.")
             fetchData()
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Check-in protocol rejected.")
+            toast.error(error.response?.data?.message || "Check-in failed.")
         } finally {
             setIsChecking(false)
         }
@@ -98,10 +98,10 @@ export default function AttendancePage() {
         setIsChecking(true)
         try {
             await api.post('/attendance/check-out', {})
-            toast.success("Shift termination logged.")
+            toast.success("Check-out recorded.")
             fetchData()
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Check-out protocol rejected.")
+            toast.error(error.response?.data?.message || "Check-out failed.")
         } finally {
             setIsChecking(false)
         }
@@ -114,14 +114,14 @@ export default function AttendancePage() {
         total: attendanceData.length
     }
 
-    if (loading && attendanceData.length === 0) return <PageLoading message="Synchronizing Attendance Matrix..." />
+    if (loading && attendanceData.length === 0) return <PageLoading message="Synchronizing Attendance..." />
 
     return (
         <div className="space-y-12 pb-20">
             <PageHeader
-                title="Personnel"
-                titleHighlight="Deployment"
-                subtitle="High-fidelity monitoring and authorization of institutional operational rosters."
+                title="Employee"
+                titleHighlight="Attendance"
+                subtitle="Monitor and manage employee attendance and deployments."
             />
 
             {/* Attendance Matrix Controls */}
@@ -135,12 +135,12 @@ export default function AttendancePage() {
                                     <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/20 backdrop-blur-md">
                                         <Clock className="h-5 w-5 text-primary" />
                                     </div>
-                                    <h2 className="text-2xl font-black text-white tracking-tight uppercase">Operational Protocol</h2>
+                                    <h2 className="text-2xl font-black text-white tracking-tight uppercase">Attendance Protocol</h2>
                                 </div>
                                 <p className="text-slate-400 text-sm font-bold pr-10 leading-relaxed italic opacity-80">
                                     {myStatus?.checkOut
-                                        ? "Shift cycle completed. Deployment status offline. All metrics logged."
-                                        : (!myStatus ? "Verification required for site deployment. Please identify your mission site." : "Active duty cycle in progress. Monitoring node signal.")}
+                                        ? "Shift completed. All metrics logged."
+                                        : (!myStatus ? "Please select your project site to check in." : "Active shift in progress.")}
                                 </p>
                             </div>
 
@@ -150,7 +150,7 @@ export default function AttendancePage() {
                                         <div className="w-full md:w-72">
                                             <Select onValueChange={setSelectedProject}>
                                                 <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
-                                                    <SelectValue placeholder="IDENTIFY MISSION SITE" />
+                                                    <SelectValue placeholder="SELECT PROJECT SITE" />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 text-white shadow-2xl p-2">
                                                     {projects.map(p => (
@@ -164,13 +164,13 @@ export default function AttendancePage() {
                                             disabled={isChecking}
                                             className="h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white px-12 font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl shadow-primary/30 transition-all w-full md:w-auto active:scale-95"
                                         >
-                                            {isChecking ? "AUTHENTICATING..." : "EXECUTE CHECK-IN"}
+                                            {isChecking ? "CHECKING..." : "CHECK IN"}
                                         </Button>
                                     </>
                                 ) : !myStatus.checkOut ? (
                                     <div className="flex items-center gap-8">
                                         <div className="text-right hidden md:block border-r border-white/10 pr-8">
-                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-0.5">Entry Protocol</div>
+                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-0.5">Checked In At</div>
                                             <div className="text-xl font-black text-white italic">{new Date(myStatus.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                         </div>
                                         <Button
@@ -178,7 +178,7 @@ export default function AttendancePage() {
                                             disabled={isChecking}
                                             className="h-14 rounded-2xl bg-white text-slate-900 hover:bg-rose-600 hover:text-white px-12 font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl transition-all w-full md:w-auto active:scale-95 border-none"
                                         >
-                                            {isChecking ? "LOGGING..." : "TERMINATE SHIFT"}
+                                            {isChecking ? "LOADING..." : "CHECK OUT"}
                                         </Button>
                                     </div>
                                 ) : (
@@ -187,7 +187,7 @@ export default function AttendancePage() {
                                             <CheckCircle2 className="h-6 w-6 text-emerald-500" />
                                         </div>
                                         <div className="text-left">
-                                            <div className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.2em]">Protocol Secured</div>
+                                            <div className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.2em]">Shift Completed</div>
                                             <div className="text-lg font-black text-white italic">{new Date(myStatus.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} EXIT_LOG</div>
                                         </div>
                                     </div>
@@ -200,19 +200,19 @@ export default function AttendancePage() {
 
             {/* Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <StatCard title="Active Deployments" value={stats.present} icon={<CheckCircle2 />} color="emerald" />
-                <StatCard title="Delayed Entries" value={stats.late} icon={<Clock />} color="amber" />
-                <StatCard title="Missing Nodes" value={stats.absent} icon={<XCircle />} color="rose" />
-                <StatCard title="Institutional Roster" value={stats.total} icon={<Users />} color="blue" />
+                <StatCard title="Present" value={stats.present} icon={<CheckCircle2 />} color="emerald" />
+                <StatCard title="Late" value={stats.late} icon={<Clock />} color="amber" />
+                <StatCard title="Absent" value={stats.absent} icon={<XCircle />} color="rose" />
+                <StatCard title="Total Staff" value={stats.total} icon={<Users />} color="blue" />
             </div>
 
             {/* List */}
             <div className="space-y-6 pt-4">
                 <SectionHeading
-                    title="Operational Status Matrix"
+                    title="Attendance History"
                 />
 
-                <DataTable columns={['Personnel Node', 'Mission Site', 'Entry Matrix', 'Exit Matrix', 'Operational Status']}>
+                <DataTable columns={['Employee', 'Project Site', 'Check In', 'Check Out', 'Status']}>
                     <AnimatePresence mode="popLayout">
                         {attendanceData.length === 0 ? (
                             <TableRowEmpty colSpan={5} title="No Operations Logged" icon={<Activity />} />
@@ -234,7 +234,7 @@ export default function AttendancePage() {
                                             </Avatar>
                                             <div className="min-w-0">
                                                 <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors truncate">{record.employee?.fullName}</div>
-                                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">RANK: {record.employee?.designation?.name || "STAFF-NODE"}</div>
+                                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">DESIGNATION: {record.employee?.designation?.name || "EMPLOYEE"}</div>
                                             </div>
                                         </div>
                                     </TableCell>

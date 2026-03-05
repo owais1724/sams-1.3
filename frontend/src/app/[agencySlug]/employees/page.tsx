@@ -99,7 +99,7 @@ export default function EmployeesPage() {
         setDeleting(true)
         try {
             await api.delete(`/employees/${profileDialog.employee.id}`)
-            toast.success("Personnel record terminated.")
+            toast.success("Employee record deleted.")
             setProfileDialog({ open: false, employee: null })
             fetchData()
         } catch (error) {
@@ -115,7 +115,7 @@ export default function EmployeesPage() {
         emp.employeeCode?.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
-    if (loading) return <PageLoading message="Synchronizing Personnel Intelligence..." />
+    if (loading) return <PageLoading message="Synchronizing Employees..." />
 
     return (
         <div className="space-y-10 pb-20">
@@ -126,7 +126,7 @@ export default function EmployeesPage() {
                 action={
                     <PermissionGuard permission="create_employee">
                         <CreateButton
-                            label="Enroll Personnel"
+                            label="Add Employee"
                             icon={<Plus className="h-4 w-4" />}
                             onClick={() => { setEditingEmployee(null); setOpenEnroll(true) }}
                         />
@@ -135,9 +135,9 @@ export default function EmployeesPage() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Active Roster" value={employees.length} icon={<Users />} color="teal" />
-                <StatCard title="On Mission" value={0} icon={<UserCheck />} color="emerald" />
-                <StatCard title="Institutional Ranks" value={designations.length} icon={<Shield />} color="blue" />
+                <StatCard title="Total Employees" value={employees.length} icon={<Users />} color="teal" />
+                <StatCard title="On Duty" value={0} icon={<UserCheck />} color="emerald" />
+                <StatCard title="Designations" value={designations.length} icon={<Shield />} color="blue" />
             </div>
 
             <Tabs defaultValue="staff" className="space-y-10">
@@ -145,27 +145,27 @@ export default function EmployeesPage() {
                     <TabsList className="bg-slate-100/50 p-2 rounded-3xl border border-slate-200/50 w-fit">
                         <TabsTrigger value="staff" className="rounded-2xl px-8 py-3 data-[state=active]:bg-white data-[state=active]:shadow-2xl data-[state=active]:text-primary font-black uppercase text-[10px] tracking-widest transition-all">
                             <Users className="h-4 w-4 mr-2" />
-                            Active Roster
+                            Active Employees
                         </TabsTrigger>
                         <TabsTrigger value="designations" className="rounded-2xl px-8 py-3 data-[state=active]:bg-white data-[state=active]:shadow-2xl data-[state=active]:text-primary font-black uppercase text-[10px] tracking-widest transition-all">
                             <Settings2 className="h-4 w-4 mr-2" />
-                            Rank Hierarchy
+                            Designations
                         </TabsTrigger>
                     </TabsList>
 
-                    <ControlPanel count={filteredEmployees.length} totalLabel="Operational Units" className="mb-0 flex-1 md:max-w-xl">
-                        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Locate personnel by name or ID..." />
+                    <ControlPanel count={filteredEmployees.length} totalLabel="Registered Employees" className="mb-0 flex-1 md:max-w-xl">
+                        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search employee by name or ID..." />
                     </ControlPanel>
                 </div>
 
                 <TabsContent value="staff" className="mt-0 outline-none">
-                    <DataTable columns={['Personnel Profile', 'Professional Rank', 'Base Compensation', 'Current Status', 'Actions']}>
+                    <DataTable columns={['Employee Profile', 'Designation', 'Monthly Salary', 'Status', 'Actions']}>
                         <AnimatePresence mode="popLayout">
                             {filteredEmployees.length === 0 ? (
                                 <TableRowEmpty
                                     colSpan={5}
                                     title="No Record Identified"
-                                    description="Register new personnel to initialize the operational unit database."
+                                    description="Register new employee to initialize the database."
                                     icon={<Users className="h-10 w-10 text-slate-300" />}
                                 />
                             ) : (
@@ -198,14 +198,14 @@ export default function EmployeesPage() {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-black text-slate-900 text-[13px] tracking-tight truncate">{emp.designation?.name || "UNRANKED"}</p>
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Formal Rank</p>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Designation</p>
                                                 </div>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
                                                 <span className="font-black text-slate-900 text-sm italic">{emp.salaryCurrency} {emp.basicSalary?.toLocaleString()}</span>
-                                                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Monthly Protocol</span>
+                                                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Monthly Salary</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -237,10 +237,10 @@ export default function EmployeesPage() {
             <FormSheet
                 open={openEnroll}
                 onOpenChange={(v) => { setOpenEnroll(v); if (!v) setEditingEmployee(null) }}
-                title={editingEmployee ? `Modify Personnel dossier` : "Initialize Personnel Enrollment"}
+                title={editingEmployee ? `Edit Employee Profile` : "Add New Employee"}
                 description={editingEmployee
-                    ? "Update institutional credentials and operational profiles for this staff node."
-                    : "Establish a new personnel record. Administrative credentials and mission profiles will be generated."}
+                    ? "Update employee credentials and profile information."
+                    : "Register a new employee record. Administrative credentials will be generated."}
             >
                 <EmployeeForm
                     designations={designations}
@@ -258,8 +258,8 @@ export default function EmployeesPage() {
             <Dialog open={profileDialog.open} onOpenChange={(v) => !v && setProfileDialog({ open: false, employee: null })}>
                 <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] p-0 overflow-hidden shadow-2xl bg-white focus:outline-none">
                     <DialogHeader className="sr-only">
-                        <DialogTitle>Personnel Dossier - {profileDialog.employee?.fullName}</DialogTitle>
-                        <DialogDescription>Full institutional profile and administrative control center.</DialogDescription>
+                        <DialogTitle>Employee Profile - {profileDialog.employee?.fullName}</DialogTitle>
+                        <DialogDescription>Full employee profile and management center.</DialogDescription>
                     </DialogHeader>
 
                     <div className="bg-slate-900 p-10 text-white relative overflow-hidden">
@@ -281,10 +281,10 @@ export default function EmployeesPage() {
                     <div className="p-10 space-y-10 bg-white">
                         <div className="grid grid-cols-2 gap-10">
                             {[
-                                { icon: <ShieldCheck />, label: 'Verified Rank', value: profileDialog.employee?.designation?.name || "UNRANKED" },
-                                { icon: <Wallet />, label: 'Base Compensation', value: `${profileDialog.employee?.salaryCurrency} ${profileDialog.employee?.basicSalary?.toLocaleString()}` },
-                                { icon: <Mail />, label: 'Comm Node', value: profileDialog.employee?.email, truncate: true },
-                                { icon: <Phone />, label: 'Contact Node', value: profileDialog.employee?.phoneNumber || "NOT_SET" },
+                                { icon: <ShieldCheck />, label: 'Designation', value: profileDialog.employee?.designation?.name || "UNSET" },
+                                { icon: <Wallet />, label: 'Monthly Salary', value: `${profileDialog.employee?.salaryCurrency} ${profileDialog.employee?.basicSalary?.toLocaleString()}` },
+                                { icon: <Mail />, label: 'Email', value: profileDialog.employee?.email, truncate: true },
+                                { icon: <Phone />, label: 'Phone Number', value: profileDialog.employee?.phoneNumber || "NOT_SET" },
                             ].map((item) => (
                                 <div key={item.label} className="space-y-2">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -297,8 +297,8 @@ export default function EmployeesPage() {
 
                         <div className="pt-10 border-t border-slate-50 flex items-center justify-between">
                             <div className="flex flex-col">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Institutional Control</p>
-                                <p className="text-[11px] text-slate-400 font-medium font-italic">Record termination requires clearance.</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Management</p>
+                                <p className="text-[11px] text-slate-400 font-medium font-italic">Record deletion requires confirmation.</p>
                             </div>
                             <PermissionGuard permission="delete_employee">
                                 <Button
@@ -308,7 +308,7 @@ export default function EmployeesPage() {
                                     className="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-none rounded-2xl font-black text-[10px] px-8 h-12 shadow-xl shadow-rose-100 transition-all active:scale-95"
                                 >
                                     <Trash2 className="h-4 w-4 mr-2" />
-                                    {deleting ? "TERMINATING..." : "TERMINATE RECORD"}
+                                    {deleting ? "DELETING..." : "DELETE RECORD"}
                                 </Button>
                             </PermissionGuard>
                         </div>
@@ -321,10 +321,10 @@ export default function EmployeesPage() {
                 onClose={() => setShowDeleteModal(false)}
                 onConfirm={confirmDeleteEmployee}
                 loading={deleting}
-                title="TERMINATE PERSONNEL RECORD"
+                title="DELETE EMPLOYEE RECORD"
                 variant="danger"
-                description={`Acknowledge termination of ${profileDialog.employee?.fullName}. This institutional action is irreversible and will purge all mission history.`}
-                confirmText="Execute Termination"
+                description={`Are you sure you want to delete ${profileDialog.employee?.fullName}? This action is irreversible and will remove all employment history.`}
+                confirmText="Delete Record"
             />
         </div>
     )
