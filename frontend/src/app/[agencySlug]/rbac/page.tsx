@@ -164,7 +164,7 @@ export default function RBACPage() {
                                             </div>
                                             <div className="min-w-0">
                                                 <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors truncate">{emp.fullName}</div>
-                                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">NODE_{emp.id.slice(-6).toUpperCase()}</div>
+                                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {emp.id.slice(-6).toUpperCase()}</div>
                                             </div>
                                         </div>
                                     </TableCell>
@@ -188,7 +188,7 @@ export default function RBACPage() {
                                                 }
                                             }}
                                         >
-                                            RECONF ROLE
+                                            ROLE ACCESS
                                         </Button>
                                     </TableCell>
                                 </motion.tr>
@@ -221,7 +221,7 @@ export default function RBACPage() {
                                         </div>
                                         <div>
                                             <div className="font-black text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors">{role.name}</div>
-                                            {role.isSystem && <div className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Core System Node</div>}
+                                            {role.isSystem && <div className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-0.5">System Role</div>}
                                         </div>
                                     </div>
                                 </TableCell>

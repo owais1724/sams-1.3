@@ -111,7 +111,7 @@ export default function ClientsPage() {
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
                                             <Mail className="h-3.5 w-3.5 text-slate-400" />
-                                            {client.email || "NO_DATA"}
+                                            {client.email || "N/A"}
                                         </div>
                                         <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-5">Primary Contact</p>
                                     </div>

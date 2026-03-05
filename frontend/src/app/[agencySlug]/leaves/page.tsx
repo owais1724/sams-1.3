@@ -277,7 +277,7 @@ export default function LeavesPage() {
       </div>
 
       <div className="space-y-6 pt-4">
-        <SectionHeading title="Employee Leave Matrix" />
+        <SectionHeading title="Employee Leave Records" />
 
         <DataTable columns={['Employee', 'Leave Details', 'Duration', 'Status', 'Actions']}>
           <AnimatePresence mode="popLayout">

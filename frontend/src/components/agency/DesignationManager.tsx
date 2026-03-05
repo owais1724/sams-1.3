@@ -68,7 +68,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                 <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/20">
                                     <ShieldCheck className="h-5 w-5 text-primary" />
                                 </div>
-                                <h3 className="text-lg font-black text-white uppercase tracking-tight">Init Rank</h3>
+                                <h3 className="text-lg font-black text-white uppercase tracking-tight">Add Designation</h3>
                             </div>
 
                             <form onSubmit={handleAdd} className="space-y-6">
@@ -91,7 +91,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                     />
                                 </div>
                                 <Button type="submit" className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all mt-4" disabled={loading}>
-                                    {loading ? "PROCESSING..." : "REGISTER RANK"}
+                                    {loading ? "PROCESSING..." : "ADD DESIGNATION"}
                                 </Button>
                             </form>
                         </div>
@@ -106,7 +106,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                 <div className="flex items-center justify-between mb-4 px-2">
                     <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
                         <Briefcase className="h-5 w-5 text-primary" />
-                        Structural Hierarchy
+                        Hierarchy
                     </h3>
                 </div>
 
@@ -121,7 +121,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                         </TableHeader>
                         <TableBody>
                             {designations.length === 0 ? (
-                                <TableRowEmpty colSpan={3} title="Structural Nodes Offline" icon={<Building />} />
+                                <TableRowEmpty colSpan={3} title="No Designations Found" icon={<Building />} />
                             ) : (
                                 designations.map((des) => (
                                     <TableRow key={des.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">

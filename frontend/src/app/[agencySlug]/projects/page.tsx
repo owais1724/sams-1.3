@@ -142,7 +142,7 @@ export default function ProjectsPage() {
                                             <div className="font-black text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors truncate">{project.name}</div>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">PROJECT_{project.id.slice(-6).toUpperCase()}</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">ID: {project.id.slice(-6).toUpperCase()}</span>
                                             </div>
                                         </div>
                                     </div>

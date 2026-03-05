@@ -187,7 +187,7 @@ export default function EmployeesPage() {
                                                 </Avatar>
                                                 <div className="min-w-0">
                                                     <div className="font-black text-slate-900 leading-tight group-hover:text-primary transition-colors truncate">{emp.fullName}</div>
-                                                    <div className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">{emp.employeeCode || `NODE_${emp.id.slice(-6).toUpperCase()}`}</div>
+                                                    <div className="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1">{emp.employeeCode || `ID: ${emp.id.slice(-6).toUpperCase()}`}</div>
                                                 </div>
                                             </div>
                                         </TableCell>
