@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ShieldCheck, LayoutDashboard, Building, Users, Key, Wallet, Shield } from "lucide-react"
+import { ShieldCheck, LayoutDashboard, Building, Users, Key, Wallet, Shield, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
@@ -20,17 +20,27 @@ export function AdminSidebar({ onItemClick }: { onItemClick?: () => void }) {
     return (
         <div className="flex h-full w-full flex-col bg-gradient-to-b from-[#0d5c56] to-[#06423d] text-white relative z-20 font-outfit shadow-[10px_0_50px_-5px_rgba(0,0,0,0.3)]">
             {/* Logo Section */}
-            <div className="flex h-24 items-center px-8 border-b border-white/5 gap-4 relative overflow-hidden group shrink-0">
+            <div className="flex h-24 items-center justify-between px-6 lg:px-8 border-b border-white/5 gap-3 relative overflow-hidden group shrink-0">
                 <div className="absolute inset-0 bg-white/[0.02] transform skew-y-12 translate-y-12 group-hover:translate-y-10 transition-transform duration-700" />
-                <div className="h-12 w-12 bg-gradient-to-tr from-[#14B8A6] to-emerald-400 rounded-2xl flex items-center justify-center shadow-xl shadow-teal-500/30 transform rotate-3 group-hover:rotate-6 transition-transform shrink-0">
-                    <ShieldCheck className="h-7 w-7 text-white" />
-                </div>
-                <div className="relative z-10 font-outfit truncate">
-                    <h1 className="text-xl font-black tracking-[0.15em] text-white leading-tight">SAMS GLOBAL</h1>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                        <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-[10px] text-teal-300/60 font-black uppercase tracking-[0.2em] truncate">System Infrastructure</span>
+                <div className="flex items-center gap-3 relative z-10 w-full">
+                    <div className="h-10 w-10 lg:h-12 lg:w-12 bg-gradient-to-tr from-[#14B8A6] to-emerald-400 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-xl shadow-teal-500/30 transform rotate-3 group-hover:rotate-6 transition-transform shrink-0">
+                        <ShieldCheck className="h-6 w-6 lg:h-7 lg:w-7 text-white" />
                     </div>
+                    <div className="font-outfit truncate flex-1 min-w-0">
+                        <h1 className="text-lg lg:text-xl font-black tracking-[0.15em] text-white leading-tight truncate">SAMS GLOBAL</h1>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                            <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-[9px] text-teal-300/60 font-black uppercase tracking-[0.2em] truncate">System Infrastructure</span>
+                        </div>
+                    </div>
+                    {onItemClick && (
+                        <button
+                            onClick={onItemClick}
+                            className="lg:hidden relative z-20 flex items-center justify-center h-8 w-8 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all shrink-0 ml-2"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    )}
                 </div>
             </div>
 
