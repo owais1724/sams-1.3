@@ -76,7 +76,7 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="name"
                     render={({ field }) => (
                         <FormItem className="space-y-0">
-                            <FormLabelBase label="Institutional Name" required />
+                            <FormLabelBase label="Client Name" required />
                             <FormControl>
                                 <Input
                                     placeholder="Enter full legal name"
@@ -93,10 +93,10 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="contact"
                     render={({ field }) => (
                         <FormItem className="space-y-0">
-                            <FormLabelBase label="Primary Contact Node" required />
+                            <FormLabelBase label="Primary Contact Person" required />
                             <FormControl>
                                 <Input
-                                    placeholder="Liaison officer name"
+                                    placeholder="Contact person name"
                                     className={inputVariants}
                                     {...field}
                                 />
@@ -110,11 +110,11 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="email"
                     render={({ field }) => (
                         <FormItem className="space-y-0">
-                            <FormLabelBase label="Communication Path (Email)" required />
+                            <FormLabelBase label="Email Address" required />
                             <FormControl>
                                 <Input
                                     type="email"
-                                    placeholder="liaison@institution.com"
+                                    placeholder="contact@client.com"
                                     className={inputVariants}
                                     {...field}
                                 />
@@ -128,10 +128,10 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     name="address"
                     render={({ field }) => (
                         <FormItem className="space-y-0">
-                            <FormLabelBase label="Operational Headquarters" />
+                            <FormLabelBase label="Address" />
                             <FormControl>
                                 <Input
-                                    placeholder="Full institutional address"
+                                    placeholder="Full office address"
                                     className={inputVariants}
                                     {...field}
                                 />
@@ -143,7 +143,7 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
 
                 <div className="pt-4">
                     <SubmitButton
-                        label={initialData?.id ? "Update Dossier" : "Register Institutional Partner"}
+                        label={initialData?.id ? "Update Client" : "Add New Client"}
                         loading={loading}
                     />
                 </div>

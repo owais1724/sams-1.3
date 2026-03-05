@@ -50,11 +50,11 @@ export default function ClientsPage() {
             <PageHeader
                 title="Client"
                 titleHighlight="Portfolio"
-                subtitle="Manage institutional partners and global project owners."
+                subtitle="Manage clients and project owners."
                 action={
                     <PermissionGuard permission="create_client">
                         <CreateButton
-                            label="Register Client"
+                            label="Add Client"
                             icon={<Plus className="h-4 w-4" />}
                             onClick={() => { setEditingClient(null); setOpen(true) }}
                         />
@@ -62,8 +62,8 @@ export default function ClientsPage() {
                 }
             />
 
-            <ControlPanel count={clients.length} totalLabel="Active Partners">
-                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find institutional partner..." />
+            <ControlPanel count={clients.length} totalLabel="Active Clients">
+                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find client..." />
                 <Button variant="outline" className="h-14 px-6 rounded-2xl border-slate-100 hover:bg-slate-50 shadow-sm shrink-0">
                     <Filter className="h-4 w-4 mr-2" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Filter</span>
@@ -74,15 +74,15 @@ export default function ClientsPage() {
                 <EmptyState
                     icon={<Building className="h-10 w-10" />}
                     title="No Records Found"
-                    description="The client database is currently empty. Initialize a new partnership record to begin."
+                    description="The client database is currently empty. Initialize a new client record to begin."
                     action={
                         <PermissionGuard permission="create_client">
-                            <CreateButton label="Initialize Client" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)} />
+                            <CreateButton label="Add Client" icon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)} />
                         </PermissionGuard>
                     }
                 />
             ) : (
-                <DataTable columns={['Institutional Partner', 'Communication Node', 'Assigned Units', 'Actions']}>
+                <DataTable columns={['Client', 'Communication Node', 'Assigned Projects', 'Actions']}>
                     <AnimatePresence mode="popLayout">
                         {filteredClients.map((client, idx) => (
                             <motion.tr
@@ -135,15 +135,16 @@ export default function ClientsPage() {
                         ))}
                     </AnimatePresence>
                 </DataTable>
-            )}
+            )
+            }
 
             <FormSheet
                 open={open}
                 onOpenChange={(v) => { setOpen(v); if (!v) setEditingClient(null) }}
-                title={editingClient ? "Modify Partner dossier" : "Register Institutional Partner"}
+                title={editingClient ? "Modify Client Record" : "Add New Client"}
                 description={editingClient
-                    ? "Update and re-verify client credentials within the operational network."
-                    : "Initialize a new institutional identity for security project deployment."}
+                    ? "Update client details and contact information."
+                    : "Initialize a new client identity for project deployment."}
             >
                 <ClientForm
                     initialData={editingClient}
@@ -156,11 +157,11 @@ export default function ClientsPage() {
                 onClose={closeDelete}
                 onConfirm={handleDelete}
                 loading={isDeleting}
-                title="TERMINATE PARTNER PROTOCOL"
+                title="DELETE CLIENT"
                 variant="danger"
-                description={`Acknowledge termination of ${deleteModal.name}. This is an irreversible forensic action that will purge all associated institutional links.`}
-                confirmText="Execute Termination"
+                description={`Are you sure you want to delete ${deleteModal.name}? This action will permanently remove the client and all associated projects.`}
+                confirmText="Delete Client"
             />
-        </div>
+        </div >
     )
 }
