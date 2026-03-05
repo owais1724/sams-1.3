@@ -271,8 +271,18 @@ export default function LeavesPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Review Required" value={leaveRequests.filter(r => r.status === 'PENDING').length} icon={<Clock />} color="amber" />
-        <StatCard title="Approved" value={leaveRequests.filter(r => r.status === 'AGENCY_APPROVED').length} icon={<CheckCircle2 />} color="emerald" />
+        <StatCard
+          title="Review Required"
+          value={leaveRequests.filter(canApprove).length}
+          icon={<Clock />}
+          color="amber"
+        />
+        <StatCard
+          title="Approved"
+          value={leaveRequests.filter(r => ['SUPERVISOR_APPROVED', 'HR_APPROVED', 'AGENCY_APPROVED'].includes(r.status)).length}
+          icon={<CheckCircle2 />}
+          color="emerald"
+        />
         <StatCard title="All Records" value={leaveRequests.length} icon={<FileText />} color="blue" />
         <StatCard title="Rejected" value={leaveRequests.filter(r => r.status === 'REJECTED').length} icon={<XCircle />} color="rose" />
       </div>
