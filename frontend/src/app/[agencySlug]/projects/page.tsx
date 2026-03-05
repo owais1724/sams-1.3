@@ -66,11 +66,11 @@ export default function ProjectsPage() {
         setIsDeleting(true)
         try {
             await api.delete(`/projects/${deleteModal.id}`)
-            toast.success("Project protocol terminated")
+            toast.success("Project deleted successfully")
             setDeleteModal({ open: false, id: "", name: "" })
             fetchData()
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Operational failure during termination")
+            toast.error(error.response?.data?.message || "Failed to delete project")
         } finally {
             setIsDeleting(false)
         }
@@ -83,18 +83,18 @@ export default function ProjectsPage() {
 
     const activeProjectCount = projects.filter(p => p.isActive).length
 
-    if (loading) return <PageLoading message="Synchronizing Operational Missions..." />
+    if (loading) return <PageLoading message="Synchronizing Projects..." />
 
     return (
         <div className="space-y-10 pb-20">
             <PageHeader
                 title="Operational"
-                titleHighlight="Missions"
-                subtitle="Mission-critical management of security sites and strategic institutional assets."
+                titleHighlight="Projects"
+                subtitle="Manage your projects, security sites and strategic assets."
                 action={
                     <PermissionGuard permission="create_project">
                         <CreateButton
-                            label="Launch Mission"
+                            label="New Project"
                             icon={<Plus className="h-4 w-4" />}
                             onClick={() => { setEditingProject(null); setOpen(true) }}
                         />
@@ -103,7 +103,7 @@ export default function ProjectsPage() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Total Missions" value={projects.length} icon={<Briefcase />} color="teal" />
+                <StatCard title="Total Projects" value={projects.length} icon={<Briefcase />} color="teal" />
                 <StatCard title="Active Deployments" value={activeProjectCount} icon={<Activity />} color="emerald" />
                 <PermissionGuard permission="view_clients">
                     <StatCard title="Client Contracts" value={clients.length} icon={<Shield />} color="blue" />
@@ -111,17 +111,17 @@ export default function ProjectsPage() {
             </div>
 
             <ControlPanel count={projects.length} totalLabel="Registered Projects">
-                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Locate mission by site name or location..." />
+                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search project by name or location..." />
             </ControlPanel>
 
-            <DataTable columns={['Mission / Site Designation', 'Contract Holder', 'Deployment Site', 'Mission Status', 'Actions']}>
+            <DataTable columns={['Project / Site Designation', 'Contract Holder', 'Deployment Site', 'Project Status', 'Actions']}>
                 <AnimatePresence mode="popLayout">
                     {filteredProjects.length === 0 ? (
                         <TableRowEmpty
                             colSpan={5}
                             icon={<Briefcase className="h-10 w-10 text-slate-300" />}
                             title="No Results Identified"
-                            description="No missions match your current search parameters."
+                            description="No projects match your current search parameters."
                         />
                     ) : (
                         filteredProjects.map((project, idx) => (
@@ -142,7 +142,7 @@ export default function ProjectsPage() {
                                             <div className="font-black text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors truncate">{project.name}</div>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">MISSION_{project.id.slice(-6).toUpperCase()}</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">PROJECT_{project.id.slice(-6).toUpperCase()}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -182,10 +182,10 @@ export default function ProjectsPage() {
             <FormSheet
                 open={open}
                 onOpenChange={(v) => { setOpen(v); if (!v) setEditingProject(null) }}
-                title={editingProject ? "Modify Mission Parameters" : "Launch Operational Mission"}
+                title={editingProject ? "Modify Project Parameters" : "Create New Project"}
                 description={editingProject
-                    ? "Update and re-verify mission specs within the operational grid."
-                    : "Initialize a new security mission and deploy assets to a site."}
+                    ? "Update and modify project specifications."
+                    : "Initialize a new project and deploy assets to a site."}
             >
                 <ProjectForm
                     clients={clients}
@@ -200,10 +200,10 @@ export default function ProjectsPage() {
                 onClose={() => setDeleteModal({ ...deleteModal, open: false })}
                 onConfirm={handleDelete}
                 loading={isDeleting}
-                title="TERMINATE MISSION PROTOCOL"
+                title="DELETE PROJECT"
                 variant="danger"
-                description={`Acknowledge termination of mission protocol: ${deleteModal.name}. Irreversible action will purge all deployment metrics.`}
-                confirmText="Execute Termination"
+                description={`Are you sure you want to delete the project: ${deleteModal.name}? This action cannot be undone and will remove all associated data.`}
+                confirmText="Delete Project"
             />
         </div>
     )
