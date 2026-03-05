@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 const navItems = [
     { name: "Platform Control", href: "/admin/dashboard", icon: LayoutDashboard },
     { name: "Global Agencies", href: "/admin/agencies", icon: Building },
-    { name: "System Integrity", href: "/admin/audit-logs", icon: Shield },
 ]
 
 export function AdminSidebar({ onItemClick }: { onItemClick?: () => void }) {
