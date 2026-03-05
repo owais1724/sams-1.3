@@ -166,8 +166,33 @@ export class AgenciesService {
     const agency = await this.prisma.agency.findUnique({ where: { id } });
     if (!agency) throw new NotFoundException('Agency not found');
 
-    // With cascade delete in the schema, we can simply delete the agency and Prisma/Postgres handles the rest
-    return this.prisma.agency.delete({ where: { id } });
+    return this.prisma.$transaction(async (tx) => {
+      // Find all project IDs associated with this agency to manually delete nested Checkpoints
+      const projects = await tx.project.findMany({ where: { agencyId: id }, select: { id: true } });
+      const projectIds = projects.map(p => p.id);
+
+      if (projectIds.length > 0) {
+        await tx.checkpoint.deleteMany({ where: { projectId: { in: projectIds } } });
+      }
+
+      // Explicitly delete dependencies top-level down to avoid P2003 foreign key constraints on older databases
+      await tx.auditLog.deleteMany({ where: { agencyId: id } });
+      await tx.attendance.deleteMany({ where: { agencyId: id } });
+      await tx.leave.deleteMany({ where: { agencyId: id } });
+      await tx.payroll.deleteMany({ where: { agencyId: id } });
+      await tx.visitor.deleteMany({ where: { agencyId: id } });
+
+      await tx.project.deleteMany({ where: { agencyId: id } });
+      await tx.client.deleteMany({ where: { agencyId: id } });
+
+      await tx.user.deleteMany({ where: { agencyId: id } });
+      await tx.employee.deleteMany({ where: { agencyId: id } });
+      await tx.designation.deleteMany({ where: { agencyId: id } });
+      await tx.role.deleteMany({ where: { agencyId: id } });
+
+      // Lastly, delete the top-level agency
+      return tx.agency.delete({ where: { id } });
+    });
   }
   async toggleStatus(id: string) {
     const agency = await this.prisma.agency.findUnique({ where: { id } });
