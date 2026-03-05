@@ -162,6 +162,7 @@ export class AgenciesService {
     });
   }
 
+  // DELETE AGENCY — manual transaction cascade (v2 — 2026-03-05)
   async remove(id: string) {
     const agency = await this.prisma.agency.findUnique({ where: { id } });
     if (!agency) throw new NotFoundException('Agency not found');
