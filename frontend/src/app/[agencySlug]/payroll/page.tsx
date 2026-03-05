@@ -85,7 +85,7 @@ export default function PayrollPage() {
     try {
       const [payrollRes, desRes] = await Promise.all([
         hasPerm('view_payroll') ? api.get('/payrolls') : Promise.resolve({ data: [] }),
-        (hasPerm('view_designations') || isAdmin) ? api.get('/designations') : Promise.resolve({ data: [] })
+        (hasPerm('view_payroll') || hasPerm('manage_payroll') || isAdmin) ? api.get('/designations') : Promise.resolve({ data: [] })
       ])
 
       setPayrolls(payrollRes.data || [])

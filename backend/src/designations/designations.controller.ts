@@ -34,7 +34,7 @@ export class DesignationsController {
   }
 
   @Get()
-  @Permissions('manage_roles', 'create_employee', 'edit_employee', 'view_employee')
+  @Permissions('manage_roles', 'create_employee', 'edit_employee', 'view_employee', 'manage_payroll', 'view_payroll')
   async findAll(@Request() req, @Query('agencyId') agencyId?: string) {
     const targetAgencyId = req.user.agencyId || agencyId;
     return this.designationsService.findAll(targetAgencyId);

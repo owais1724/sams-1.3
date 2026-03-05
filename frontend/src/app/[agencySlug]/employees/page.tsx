@@ -73,7 +73,7 @@ export default function EmployeesPage() {
         try {
             const [empRes, desRes] = await Promise.allSettled([
                 hasPermission('view_employee') ? api.get("/employees") : Promise.resolve({ data: [] }),
-                hasPermission(['view_designations', 'manage_roles']) ? api.get("/designations") : Promise.resolve({ data: [] })
+                hasPermission(['view_employee', 'create_employee', 'edit_employee', 'manage_roles']) ? api.get("/designations") : Promise.resolve({ data: [] })
             ])
 
             if (empRes.status === 'fulfilled') setEmployees(empRes.value.data)
