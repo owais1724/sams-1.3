@@ -82,7 +82,7 @@ export default function ClientsPage() {
                     }
                 />
             ) : (
-                <DataTable columns={['Client', 'Communication Node', 'Assigned Projects', 'Actions']}>
+                <DataTable columns={['Client', 'Contact Info', 'Assigned Projects', 'Actions']}>
                     <AnimatePresence mode="popLayout">
                         {filteredClients.map((client, idx) => (
                             <motion.tr
@@ -102,7 +102,7 @@ export default function ClientsPage() {
                                             <div className="font-black text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors truncate">{client.name}</div>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Node</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Client</span>
                                             </div>
                                         </div>
                                     </div>
@@ -122,7 +122,7 @@ export default function ClientsPage() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right px-8">
-                                    <div className="flex justify-end gap-2 opactiy-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex justify-end gap-2">
                                         <PermissionGuard permission="edit_client">
                                             <RowEditButton onClick={() => { setEditingClient(client); setOpen(true) }} />
                                         </PermissionGuard>
@@ -144,7 +144,7 @@ export default function ClientsPage() {
                 title={editingClient ? "Modify Client Record" : "Add New Client"}
                 description={editingClient
                     ? "Update client details and contact information."
-                    : "Initialize a new client identity for project deployment."}
+                    : "Add new client and project information."}
             >
                 <ClientForm
                     initialData={editingClient}

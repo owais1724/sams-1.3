@@ -63,7 +63,7 @@ export default function AttendancePage() {
                 setMyStatus(myRecord)
             }
         } catch (error: any) {
-            toast.error("Roster synchronization protocol failed.")
+            toast.error("Failed to load attendance data.")
         } finally {
             setLoading(false)
         }
@@ -75,7 +75,7 @@ export default function AttendancePage() {
 
     const handleCheckIn = async () => {
         if (!selectedProject) {
-            toast.error("Project site selection required.")
+            toast.error("Please select a project site.")
             return
         }
 
@@ -135,7 +135,7 @@ export default function AttendancePage() {
                                     <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/20 backdrop-blur-md">
                                         <Clock className="h-5 w-5 text-primary" />
                                     </div>
-                                    <h2 className="text-2xl font-black text-white tracking-tight uppercase">Attendance Protocol</h2>
+                                    <h2 className="text-2xl font-black text-white tracking-tight uppercase">Check-In / Out</h2>
                                 </div>
                                 <p className="text-slate-400 text-sm font-bold pr-10 leading-relaxed italic opacity-80">
                                     {myStatus?.checkOut
@@ -188,7 +188,7 @@ export default function AttendancePage() {
                                         </div>
                                         <div className="text-left">
                                             <div className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.2em]">Shift Completed</div>
-                                            <div className="text-lg font-black text-white italic">{new Date(myStatus.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} EXIT_LOG</div>
+                                            <div className="text-lg font-black text-white italic">{new Date(myStatus.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} Logged</div>
                                         </div>
                                     </div>
                                 )}
@@ -215,7 +215,7 @@ export default function AttendancePage() {
                 <DataTable columns={['Employee', 'Project Site', 'Check In', 'Check Out', 'Status']}>
                     <AnimatePresence mode="popLayout">
                         {attendanceData.length === 0 ? (
-                            <TableRowEmpty colSpan={5} title="No Operations Logged" icon={<Activity />} />
+                            <TableRowEmpty colSpan={5} title="No Records For Today" icon={<Activity />} />
                         ) : (
                             attendanceData.map((record, idx) => (
                                 <motion.tr
@@ -243,7 +243,7 @@ export default function AttendancePage() {
                                             <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center shadow-sm">
                                                 <Building2 className="h-3.5 w-3.5 text-slate-300" />
                                             </div>
-                                            <span className="text-[13px] font-black text-slate-900 tracking-tight">{record.project?.name || "GLOBAL_OPS"}</span>
+                                            <span className="text-[13px] font-black text-slate-900 tracking-tight">{record.project?.name || "General"}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>

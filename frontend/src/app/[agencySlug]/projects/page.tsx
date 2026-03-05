@@ -114,7 +114,7 @@ export default function ProjectsPage() {
                 <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search project by name or location..." />
             </ControlPanel>
 
-            <DataTable columns={['Project / Site Designation', 'Contract Holder', 'Deployment Site', 'Project Status', 'Actions']}>
+            <DataTable columns={['Project Name', 'Client', 'Location', 'Status', 'Actions']}>
                 <AnimatePresence mode="popLayout">
                     {filteredProjects.length === 0 ? (
                         <TableRowEmpty
@@ -150,21 +150,21 @@ export default function ProjectsPage() {
                                 <TableCell>
                                     <div className="flex items-center gap-2 font-black text-slate-900 text-[13px] tracking-tight">
                                         <Shield className="h-3.5 w-3.5 text-primary" />
-                                        {project.client?.name || "IND_PROTOCOL"}
+                                        {project.client?.name || "No Client Assigned"}
                                     </div>
-                                    <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-5 mt-0.5">Verified Partner</p>
+                                    <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-5 mt-0.5">Verified Client</p>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center text-slate-500 font-bold text-sm">
                                         <MapPin className="h-3.5 w-3.5 mr-2 text-slate-400" />
-                                        <span className="truncate max-w-[150px]">{project.location || "FIELD_SITE"}</span>
+                                        <span className="truncate max-w-[150px]">{project.location || "N/A"}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <StatusBadge status={project.isActive ? "ACTIVE" : "INACTIVE"} />
                                 </TableCell>
                                 <TableCell className="text-right px-8">
-                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center justify-end gap-2">
                                         <PermissionGuard permission="edit_project">
                                             <RowEditButton onClick={() => { setEditingProject(project); setOpen(true) }} />
                                         </PermissionGuard>
@@ -185,7 +185,7 @@ export default function ProjectsPage() {
                 title={editingProject ? "Modify Project Parameters" : "Create New Project"}
                 description={editingProject
                     ? "Update and modify project specifications."
-                    : "Initialize a new project and deploy assets to a site."}
+                    : "Create a new project and assign to a site."}
             >
                 <ProjectForm
                     clients={clients}

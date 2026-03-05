@@ -177,7 +177,7 @@ export default function RBACPage() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="h-10 px-6 rounded-2xl text-primary font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all opacity-0 group-hover:opacity-100"
+                                            className="h-10 px-6 rounded-2xl text-primary font-black text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-all"
                                             onClick={() => {
                                                 const role = roles.find(r => r.id === emp.user?.role?.id);
                                                 if (role) {
@@ -242,7 +242,7 @@ export default function RBACPage() {
                                 </TableCell>
                                 <TableCell className="text-right px-8">
                                     {!role.isSystem ? (
-                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex justify-end gap-2">
                                             <RowEditButton onClick={() => {
                                                 setSelectedRole(role)
                                                 setOpen(true)

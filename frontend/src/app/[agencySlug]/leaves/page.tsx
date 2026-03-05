@@ -325,7 +325,7 @@ export default function LeavesPage() {
                   </TableCell>
                   <TableCell className="text-right px-8">
                     {canApprove(leave) ? (
-                      <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-3">
                         <Button
                           size="sm"
                           className="h-10 px-6 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
@@ -347,7 +347,7 @@ export default function LeavesPage() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="pr-4 flex justify-end opacity-20 transition-opacity group-hover:opacity-100">
+                      <div className="pr-4 flex justify-end">
                         <RowViewButton onClick={() => { }} />
                       </div>
                     )}
