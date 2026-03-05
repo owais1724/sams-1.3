@@ -81,6 +81,7 @@ export default function LeavesPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [processingId, setProcessingId] = useState<string | null>(null)
+  const [viewingLeave, setViewingLeave] = useState<LeaveRequest | null>(null)
 
   useEffect(() => {
     if (user) fetchLeaveRequests()
@@ -295,11 +296,11 @@ export default function LeavesPage() {
                   <TableCell className="px-8 py-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 font-black group-hover:border-primary/20 group-hover:text-primary group-hover:scale-110 transition-all shadow-sm">
-                        {leave.employee?.fullName?.charAt(0)}
+                        {leave.employee?.fullName?.charAt(0) || <User className="h-5 w-5" />}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-extrabold text-slate-900 leading-tight group-hover:text-primary transition-colors truncate">{leave.employee?.fullName}</div>
-                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {leave.employee?.employeeCode}</div>
+                        <div className="font-extrabold text-slate-900 leading-tight group-hover:text-primary transition-colors truncate">{leave.employee?.fullName || 'N/A'}</div>
+                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">ID: {leave.employee?.employeeCode || 'N/A'}</div>
                       </div>
                     </div>
                   </TableCell>
@@ -324,33 +325,32 @@ export default function LeavesPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right px-8">
-                    {canApprove(leave) ? (
-                      <div className="flex items-center justify-end gap-3">
-                        <Button
-                          size="sm"
-                          className="h-10 px-6 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
-                          onClick={() => handleApproval(leave.id, getNextStatus(leave)!)}
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
-                          APPROVE
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="h-10 px-6 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-rose-100 transition-all active:scale-95"
-                          onClick={() => {
-                            const reason = prompt("Reason for rejection:");
-                            if (reason) handleApproval(leave.id, 'REJECTED', reason);
-                          }}
-                        >
-                          <XCircle className="h-3.5 w-3.5 mr-2" />
-                          REJECT
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="pr-4 flex justify-end">
-                        <RowViewButton onClick={() => { }} />
-                      </div>
-                    )}
+                    <div className="flex items-center justify-end gap-3">
+                      <RowViewButton onClick={() => setViewingLeave(leave)} />
+                      {canApprove(leave) && (
+                        <>
+                          <Button
+                            size="sm"
+                            className="h-10 px-6 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
+                            onClick={() => handleApproval(leave.id, getNextStatus(leave)!)}
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
+                            APPROVE
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="h-10 px-6 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-rose-100 transition-all active:scale-95"
+                            onClick={() => {
+                              const reason = prompt("Reason for rejection:");
+                              if (reason) handleApproval(leave.id, 'REJECTED', reason);
+                            }}
+                          >
+                            <XCircle className="h-3.5 w-3.5 mr-2" />
+                            REJECT
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </motion.tr>
               ))
@@ -358,6 +358,68 @@ export default function LeavesPage() {
           </AnimatePresence>
         </DataTable>
       </div>
+
+      <Dialog open={!!viewingLeave} onOpenChange={(val) => !val && setViewingLeave(null)}>
+        <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
+          <DialogHeader className="p-10 bg-slate-900 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+            <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase">Leave Details</DialogTitle>
+            <DialogDescription className="text-slate-400 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Verification & Information Protocol</DialogDescription>
+          </DialogHeader>
+          {viewingLeave && (
+            <div className="p-10 space-y-8">
+              <div className="flex items-center gap-5 p-6 bg-slate-50 rounded-[32px] border border-slate-100">
+                <div className="h-16 w-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-primary font-black text-2xl shadow-sm">
+                  {viewingLeave.employee?.fullName?.charAt(0)}
+                </div>
+                <div>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Applicant</div>
+                  <div className="text-xl font-black text-slate-900">{viewingLeave.employee?.fullName}</div>
+                  <div className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mt-1">{viewingLeave.employee?.designation?.name}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Leave Type</div>
+                  <div className="font-extrabold text-slate-900 italic text-sm">{viewingLeave.leaveType.replace(/_/g, " ")}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Current Status</div>
+                  <StatusBadge status={viewingLeave.status} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Start Date</div>
+                  <div className="font-extrabold text-slate-900 italic text-sm">{formatDate(viewingLeave.startDate, { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">End Date</div>
+                  <div className="font-extrabold text-slate-900 italic text-sm">{formatDate(viewingLeave.endDate, { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reason</div>
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-bold italic text-slate-700 leading-relaxed">
+                  "{viewingLeave.reason}"
+                </div>
+              </div>
+
+              {viewingLeave.pendingWith && viewingLeave.status !== 'AGENCY_APPROVED' && viewingLeave.status !== 'REJECTED' && (
+                <div className="bg-amber-50 rounded-[28px] p-5 border border-amber-100 flex items-center gap-4">
+                  <Clock className="h-5 w-5 text-amber-600" />
+                  <div className="text-[10px] font-black text-amber-900 uppercase tracking-widest">Currently pending with: <span className="underline italic">{viewingLeave.pendingWith}</span></div>
+                </div>
+              )}
+
+              <Button onClick={() => setViewingLeave(null)} className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest shadow-xl shadow-slate-200/50">CLOSE RECORD</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

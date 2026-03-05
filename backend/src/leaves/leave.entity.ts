@@ -40,7 +40,8 @@ export interface LeaveRequest {
   pendingWith?: string;
   employee: {
     id: string;
-    name: string;
+    fullName: string;
+    employeeCode: string;
     email: string;
     role: string;
     designation: {

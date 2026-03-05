@@ -477,7 +477,8 @@ export class LeavesService {
       pendingWith: pendingWith,
       employee: {
         id: leaveRequest.employee.id,
-        name: leaveRequest.employee.fullName,
+        fullName: leaveRequest.employee.fullName,
+        employeeCode: leaveRequest.employee.employeeCode,
         email: leaveRequest.employee.email || '',
         role: leaveRequest.employee.user?.role?.name || 'Staff',
         designation: {
