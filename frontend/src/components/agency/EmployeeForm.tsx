@@ -92,8 +92,12 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     const { user } = useAuthStore()
     const [showPassword, setShowPassword] = useState(false)
 
+    const resolvedSchema = initialData
+        ? baseSchema
+        : baseSchema.extend({ password: z.string().min(6, "Password must be at least 6 characters") });
+
     const form = useForm<FormValues>({
-        resolver: zodResolver(baseSchema) as any,
+        resolver: zodResolver(resolvedSchema) as any,
         defaultValues: {
             fullName: "",
             email: "",

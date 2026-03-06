@@ -6,7 +6,9 @@ import {
   Get,
   Res,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -21,24 +23,31 @@ export class AuthController {
     private usersService: UsersService,
   ) { }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(AuthGuard('local'))
   @Post('login')
   async login(@Request() req, @Res({ passthrough: true }) res: Response) {
     const isProd = process.env.NODE_ENV === 'production';
     if (!isProd) {
-      console.log(
-        `[AuthController] Login attempt for user: ${req.user?.email}`,
+      this.logger.log(
+        `Login attempt for user: ${req.user?.email}`,
       );
     }
 
+    // Safely extract client IP from x-forwarded-for
+    const forwarded = req.headers['x-forwarded-for'];
+    const clientIp = req.ip
+      || (Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0]?.trim())
+      || 'unknown';
+
     const { access_token, user } = await this.authService.login(
       req.user,
-      req.ip || req.headers['x-forwarded-for'] as string || 'unknown',
+      clientIp,
     );
 
     // Set HTTP-only cookie
     if (!isProd) {
-      console.log(`[AuthController] Setting cookie. Prod mode: ${isProd}`);
+      this.logger.log(`Setting cookie. Prod mode: ${isProd}`);
     }
 
     res.cookie('access_token', access_token, {
@@ -50,8 +59,8 @@ export class AuthController {
     });
 
     if (!isProd) {
-      console.log(
-        `[AuthController] Cookie set successfully for user: ${user.email}`,
+      this.logger.log(
+        `Cookie set successfully for user: ${user.email}`,
       );
     }
     return { user };
@@ -101,7 +110,7 @@ export class AuthController {
     res.set('Expires', '0');
     const user = await this.usersService.findOneWithPermissions(req.user.email);
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     const roleName: string = user.role?.name || '';

@@ -36,13 +36,14 @@ export function useApiData<T>(
     const [loading, setLoading] = useState(immediate)
     const [error, setError] = useState<string | null>(null)
 
-    const refetch = useCallback(async () => {
+    const refetch = useCallback(async (signal?: AbortSignal) => {
         setLoading(true)
         setError(null)
         try {
-            const response = await api.get(endpoint)
+            const response = await api.get(endpoint, { signal })
             setData(response.data)
         } catch (err: any) {
+            if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return
             console.error(`[useApiData] Failed to fetch ${endpoint}:`, err)
             setError(err?.response?.data?.message || 'Failed to load data')
         } finally {
@@ -51,7 +52,10 @@ export function useApiData<T>(
     }, [endpoint])
 
     useEffect(() => {
-        if (immediate) refetch()
+        if (!immediate) return
+        const controller = new AbortController()
+        refetch(controller.signal)
+        return () => controller.abort()
     }, [immediate, refetch])
 
     return { data, loading, error, refetch }

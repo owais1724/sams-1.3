@@ -86,6 +86,7 @@ export default function StaffLogin() {
             }
 
             login(user)
+            sessionStorage.setItem('sams_portal_type', 'agency')
             toast.success("Ready for duty. Welcome back.")
             window.location.href = `/${agencySlug}/staff/dashboard`
         } catch (error: any) {

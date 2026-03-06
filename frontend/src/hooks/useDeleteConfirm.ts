@@ -16,7 +16,7 @@
 
 import { useState, useCallback } from 'react'
 import api from '@/lib/api'
-import { toast } from 'sonner'
+import { toast } from '@/components/ui/sonner'
 
 interface UseDeleteConfirmOptions {
     /** Backend API endpoint prefix, e.g. '/clients' → DELETE /clients/:id */

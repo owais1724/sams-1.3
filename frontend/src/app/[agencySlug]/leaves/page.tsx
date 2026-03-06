@@ -20,7 +20,7 @@ import {
 import { useAuthStore } from "@/store/authStore"
 import { usePermission } from "@/hooks/usePermission"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import api from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
@@ -109,6 +109,18 @@ export default function LeavesPage() {
       return
     }
 
+    if (!formData.leaveType) {
+      toast.error('Please select a leave type')
+      setSubmitting(false)
+      return
+    }
+
+    if (new Date(formData.endDate) < new Date(formData.startDate)) {
+      toast.error('End date must be on or after start date')
+      setSubmitting(false)
+      return
+    }
+
     try {
       await api.post('/leaves', {
         ...formData,
@@ -137,7 +149,7 @@ export default function LeavesPage() {
         rejectionReason
       })
 
-      const statusLabel = status.toLowerCase().replace('_', ' ')
+      const statusLabel = status.toLowerCase().replaceAll('_', ' ')
       toast.success(`Leave ${statusLabel}`)
       fetchLeaveRequests()
     } catch (error) {
@@ -342,7 +354,11 @@ export default function LeavesPage() {
                           <Button
                             size="sm"
                             className="h-10 px-6 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
-                            onClick={() => handleApproval(leave.id, getNextStatus(leave)!)}
+                            onClick={() => {
+                              const nextStatus = getNextStatus(leave)
+                              if (nextStatus) handleApproval(leave.id, nextStatus)
+                              else toast.error("Unable to determine approval status for your role")
+                            }}
                           >
                             <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
                             APPROVE

@@ -39,8 +39,9 @@ export function AgencySidebar({ onItemClick }: { onItemClick?: () => void }) {
                 setLoading(false)
             }
         }
-        fetchProfile()
-    }, [pathname, login])
+        if (!user) fetchProfile()
+        else setLoading(false)
+    }, [login, user])
 
     const isStaff = user?.role && !user.role.toLowerCase().includes('admin');
 

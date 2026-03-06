@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -50,7 +50,7 @@ export class AttendanceService {
     });
 
     if (!user || !user.employee) {
-      throw new Error('User is not associated with an employee record');
+      throw new NotFoundException('User is not associated with an employee record');
     }
 
     // Validate that the project belongs to this agency
@@ -58,7 +58,7 @@ export class AttendanceService {
       const project = await this.prisma.project.findFirst({
         where: { id: data.projectId, agencyId },
       });
-      if (!project) throw new Error('Unauthorized project selection');
+      if (!project) throw new ForbiddenException('Unauthorized project selection');
     }
 
     // ── DUPLICATE PROTECTION: Check if already checked in today ────────────────
@@ -78,7 +78,7 @@ export class AttendanceService {
     });
 
     if (existingAttendance) {
-      throw new Error(`Already checked in for today at ${new Date(existingAttendance.checkIn!).toLocaleTimeString()}`);
+      throw new ConflictException(`Already checked in for today at ${new Date(existingAttendance.checkIn!).toLocaleTimeString()}`);
     }
 
     return this.prisma.attendance.create({
@@ -101,7 +101,7 @@ export class AttendanceService {
     });
 
     if (!user || !user.employee) {
-      throw new Error('User is not associated with an employee record');
+      throw new NotFoundException('User is not associated with an employee record');
     }
 
     // Find today's check-in
@@ -111,6 +111,7 @@ export class AttendanceService {
     const attendance = await this.prisma.attendance.findFirst({
       where: {
         employeeId: user.employee.id,
+        agencyId,
         date: {
           gte: today,
         },
@@ -119,7 +120,7 @@ export class AttendanceService {
     });
 
     if (!attendance) {
-      throw new Error('No active check-in found for today');
+      throw new NotFoundException('No active check-in found for today');
     }
 
     return this.prisma.attendance.update({

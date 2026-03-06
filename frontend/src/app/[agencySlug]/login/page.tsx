@@ -59,9 +59,6 @@ export default function AgencyAdminLogin() {
         setLoading(true)
         toast.dismiss()
 
-        // Clear any old headers from the instance
-        delete api.defaults.headers.common['Authorization']
-
         try {
             const response = await api.post("/auth/login", values)
             const { user } = response.data

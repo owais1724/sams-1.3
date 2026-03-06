@@ -27,7 +27,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 

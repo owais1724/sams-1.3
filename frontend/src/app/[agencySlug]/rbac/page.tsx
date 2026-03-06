@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/sheet"
 import { RoleForm } from "@/components/agency/RoleForm"
 import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { AlertModal } from "@/components/ui/alert-modal"
 import { TableCell, TableRow } from "@/components/ui/table"

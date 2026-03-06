@@ -9,6 +9,7 @@ import {
   Delete,
   Param,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { MigrationService } from './migration.service';
@@ -41,7 +42,7 @@ export class EmployeesController {
   ) {
     const targetAgencyId = req.user.agencyId || data.agencyId;
     if (!targetAgencyId) {
-      throw new Error('Agency context is required to create an employee');
+      throw new BadRequestException('Agency context is required to create an employee');
     }
     return this.employeesService.create(targetAgencyId, data);
   }
@@ -67,7 +68,7 @@ export class EmployeesController {
   syncRoles(@Request() req, @Body() data: { agencyId?: string }) {
     const targetAgencyId = req.user.agencyId || data.agencyId;
     if (!targetAgencyId) {
-      throw new Error('Agency context is required to sync roles');
+      throw new BadRequestException('Agency context is required to sync roles');
     }
     return this.migrationService.syncEmployeeRolesToDesignations(targetAgencyId);
   }

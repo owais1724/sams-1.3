@@ -238,9 +238,10 @@ export class LeavesService {
     approvalDto: LeaveApprovalDto,
     userRole: string,
     userId: string,
+    agencyId: string,
   ): Promise<LeaveRequest> {
-    const leaveRequest = await this.prisma.leave.findUnique({
-      where: { id: leaveId },
+    const leaveRequest = await this.prisma.leave.findFirst({
+      where: { id: leaveId, agencyId },
       include: {
         employee: {
           include: {
@@ -256,10 +257,6 @@ export class LeavesService {
       throw new NotFoundException('Leave request not found');
     }
 
-    const agencyId = leaveRequest.agencyId;
-    const applicantRole = (
-      leaveRequest.employee.user?.role?.name || 'Staff'
-    ).toLowerCase();
     const updateData: any = {};
 
     // Rejection is similar for everyone

@@ -42,7 +42,7 @@ import {
     Settings2,
     Search
 } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { EmployeeForm } from "@/components/agency/EmployeeForm"
 import { DesignationManager } from "@/components/agency/DesignationManager"
 import { SearchBar } from "@/components/common/SearchBar"
@@ -136,7 +136,7 @@ export default function EmployeesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard title="Total Employees" value={employees.length} icon={<Users />} color="teal" />
-                <StatCard title="On Duty" value={0} icon={<UserCheck />} color="emerald" />
+                <StatCard title="Active" value={employees.filter((e: any) => e.status === 'ACTIVE').length} icon={<UserCheck />} color="emerald" />
                 <StatCard title="Designations" value={designations.length} icon={<Shield />} color="blue" />
             </div>
 

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Plus, Trash2, Building, ShieldCheck, Briefcase } from "lucide-react"
 import { cn } from "@/lib/utils"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import {
     Table,

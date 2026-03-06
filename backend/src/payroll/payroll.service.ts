@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePayrollDto, UpdatePayrollDto, Payroll } from './payroll.entity';
 
@@ -10,6 +10,16 @@ export class PayrollService {
     createPayrollDto: CreatePayrollDto,
     agencyId: string,
   ): Promise<Payroll> {
+    // Validate employee belongs to this agency
+    if (createPayrollDto.employeeId) {
+      const employee = await this.prisma.employee.findFirst({
+        where: { id: createPayrollDto.employeeId, agencyId },
+      });
+      if (!employee) {
+        throw new NotFoundException('Employee not found in this agency');
+      }
+    }
+
     const payroll = await this.prisma.payroll.create({
       data: {
         ...(createPayrollDto.employeeId && {
@@ -119,31 +129,33 @@ export class PayrollService {
       where,
     });
 
-    let count = 0;
-    for (const emp of employees) {
-      // Check if payroll already exists for this month and employee
-      const existing = await this.prisma.payroll.findFirst({
-        where: { employeeId: emp.id, month, agencyId },
-      });
-
-      if (!existing) {
-        const basicSalary = (emp as any).basicSalary || 0;
-        await this.prisma.payroll.create({
-          data: {
-            employeeId: emp.id,
-            month,
-            basicSalary: basicSalary,
-            allowances: 0,
-            deductions: 0,
-            netPay: basicSalary,
-            status: 'DRAFT',
-            agencyId,
-          },
+    return this.prisma.$transaction(async (tx) => {
+      let count = 0;
+      for (const emp of employees) {
+        // Check if payroll already exists for this month and employee
+        const existing = await tx.payroll.findFirst({
+          where: { employeeId: emp.id, month, agencyId },
         });
-        count++;
+
+        if (!existing) {
+          const basicSalary = (emp as any).basicSalary || 0;
+          await tx.payroll.create({
+            data: {
+              employeeId: emp.id,
+              month,
+              basicSalary: basicSalary,
+              allowances: 0,
+              deductions: 0,
+              netPay: basicSalary,
+              status: 'DRAFT',
+              agencyId,
+            },
+          });
+          count++;
+        }
       }
-    }
-    return count;
+      return count;
+    });
   }
 
   async generateIndividual(
@@ -156,7 +168,7 @@ export class PayrollService {
     });
 
     if (!employee) {
-      throw new Error('Employee not found in this agency context');
+      throw new NotFoundException('Employee not found in this agency context');
     }
 
     // 2. Check if payroll already exists for this month and employee
@@ -165,7 +177,7 @@ export class PayrollService {
     });
 
     if (existing) {
-      throw new Error(
+      throw new ConflictException(
         'Payroll record already exists for this employee for the selected month',
       );
     }

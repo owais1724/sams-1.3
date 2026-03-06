@@ -22,7 +22,7 @@ import { Wallet, Download, Eye, Calculator, CheckCircle2, AlertCircle, Receipt, 
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
 import { TableCell, TableRow } from "@/components/ui/table"
@@ -118,10 +118,10 @@ export default function PayrollPage() {
     }
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'INR',
+      currency: currency || 'USD',
       maximumFractionDigits: 0
     }).format(amount)
   }

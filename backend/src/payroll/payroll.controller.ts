@@ -13,7 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
 import { PayrollService } from './payroll.service';
-import { type CreatePayrollDto, type UpdatePayrollDto } from './payroll.entity';
+import { CreatePayrollDto, UpdatePayrollDto } from './payroll.entity';
 
 @Controller('payrolls')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)

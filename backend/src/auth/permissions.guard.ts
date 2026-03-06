@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from './permissions.decorator';
@@ -16,7 +17,7 @@ export class PermissionsGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('You are not authenticated');
+      throw new UnauthorizedException('You are not authenticated');
     }
 
     const userRole = typeof user.role === 'string' ? user.role.toLowerCase().trim() : '';
@@ -62,8 +63,8 @@ export class PermissionsGuard implements CanActivate {
     );
 
     if (!hasPermission) {
-      if (!isProd) console.error(`[RBAC] ACCESS DENIED — User lacks: ${requiredPermissions.join(' or ')}`);
-      throw new ForbiddenException(`Access Denied: Missing ${requiredPermissions.join(' or ')}`);
+      if (!isProd) console.error(`[RBAC] ACCESS DENIED — User lacks required permissions`);
+      throw new ForbiddenException('Access Denied: Insufficient permissions');
     }
 
     if (!isProd) console.log(`[RBAC] ACCESS GRANTED.`);

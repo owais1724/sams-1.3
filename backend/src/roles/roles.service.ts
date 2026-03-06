@@ -2,19 +2,18 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import * as fs from 'fs';
 
 @Injectable()
 export class RolesService {
   constructor(private prisma: PrismaService) { }
 
+  private readonly logger = new Logger(RolesService.name);
+
   private logError(error: any) {
-    fs.appendFileSync(
-      'backend_errors.log',
-      `${new Date().toISOString()} - ${error.stack || error.message}\n`,
-    );
+    this.logger.error(error.message, error.stack);
   }
 
   // Permissions that are platform-level (Super Admin only) and must NEVER
@@ -48,10 +47,7 @@ export class RolesService {
     try {
       return await this.prisma.role.findMany({
         where: {
-          OR: [
-            { agencyId: agencyId },
-            { agencyId: null, isSystem: true }, // System roles like 'Super Admin', though maybe not needed for agency
-          ],
+          agencyId: agencyId,
         },
         include: {
           permissions: true,
@@ -90,29 +86,13 @@ export class RolesService {
     data: { name?: string; description?: string; permissionIds?: string[] },
   ) {
     const role = await this.prisma.role.findUnique({ where: { id: roleId } });
-    if (!role || (role.agencyId !== agencyId && role.agencyId !== null)) {
+    if (!role || role.agencyId !== agencyId) {
       throw new NotFoundException('Role not found');
     }
 
-    // For system roles, only allow permission updates, not name/description changes
+    // Block ALL modifications to system roles
     if (role.isSystem) {
-      if (data.name || data.description) {
-        throw new ForbiddenException(
-          'Cannot modify system role name or description',
-        );
-      }
-      // Allow permission updates for system roles
-      return this.prisma.role.update({
-        where: { id: roleId },
-        data: {
-          permissions: data.permissionIds
-            ? {
-              set: data.permissionIds.map((id) => ({ id })),
-            }
-            : undefined,
-        },
-        include: { permissions: true },
-      });
+      throw new ForbiddenException('Cannot modify system roles');
     }
 
     // For custom roles, allow all updates

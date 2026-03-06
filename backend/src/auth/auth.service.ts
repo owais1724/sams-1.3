@@ -18,7 +18,7 @@ export class AuthService {
   async validateUser(email: string, pass: string): Promise<any> {
     const isProd = process.env.NODE_ENV === 'production';
     if (!isProd) {
-      console.log(`[AuthService] Attempting to validate user: ${email}`);
+      this.logger.log(`Attempting to validate user: ${email}`);
     }
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -26,8 +26,8 @@ export class AuthService {
 
     if (!user) {
       if (!isProd) {
-        console.log(
-          `[AuthService] No user found with email: "${normalizedEmail}"`,
+        this.logger.log(
+          `No user found with email: "${normalizedEmail}"`,
         );
       }
       return null;
@@ -36,8 +36,8 @@ export class AuthService {
     const isPasswordMatching = await bcrypt.compare(pass, user.password);
     if (!isPasswordMatching) {
       if (!isProd) {
-        console.log(
-          `[AuthService] Password mismatch for email: "${normalizedEmail}"`,
+        this.logger.log(
+          `Password mismatch for email: "${normalizedEmail}"`,
         );
       }
       return null;
@@ -47,14 +47,14 @@ export class AuthService {
     const userWithAgency = user as any;
     if (userWithAgency.agency && !userWithAgency.agency.isActive) {
       if (!isProd) {
-        console.log(`[AuthService] Login blocked — agency is deactivated for: "${normalizedEmail}"`);
+        this.logger.warn(`Login blocked — agency is deactivated for: "${normalizedEmail}"`);
       }
       throw new UnauthorizedException('Your agency has been deactivated. Please contact your system administrator.');
     }
 
     if (!isProd) {
-      console.log(
-        `[AuthService] Validation successful for: "${normalizedEmail}"`,
+      this.logger.log(
+        `Validation successful for: "${normalizedEmail}"`,
       );
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -67,6 +67,10 @@ export class AuthService {
     const userWithPermissions = await this.usersService.findOneWithPermissions(
       user.email,
     );
+
+    if (!userWithPermissions) {
+      throw new UnauthorizedException('User no longer exists');
+    }
 
     const payload = {
       email: userWithPermissions.email,

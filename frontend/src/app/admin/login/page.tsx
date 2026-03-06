@@ -76,6 +76,7 @@ export default function LoginPage() {
         } catch (error: any) {
             console.error('[Admin Login Error]', error)
             toast.error("Invalid credentials")
+        } finally {
             setLoading(false)
         }
     }

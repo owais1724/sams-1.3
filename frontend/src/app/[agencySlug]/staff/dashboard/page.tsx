@@ -25,7 +25,7 @@ import {
   Target
 } from "lucide-react"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -196,7 +196,7 @@ export default function StaffDashboard() {
               <div className="flex flex-wrap gap-2">
                 {userPermissions.map(p => (
                   <Badge key={p} className="bg-white text-slate-600 border border-slate-100 shadow-sm px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-wider">
-                    {p.replace('_', ' ')}
+                    {p.replaceAll('_', ' ')}
                   </Badge>
                 ))}
                 {userPermissions.length === 0 && <span className="text-xs font-medium text-slate-400 italic">No specific privileges assigned to this node.</span>}

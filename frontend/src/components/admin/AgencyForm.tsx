@@ -19,7 +19,7 @@ import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 import { FormCard, FormHeader, SubmitButton } from "@/components/ui/design-system"
 
-const formSchema = z.object({
+const baseFormSchema = z.object({
     name: z.string().min(2, "Agency name must be at least 2 characters"),
     slug: z.string().min(2, "Slug must be at least 2 characters").regex(/^[a-z0-9-]+$/, "Slug must only contain lowercase letters, numbers, and hyphens"),
     adminName: z.string().min(2, "Admin name is required"),
@@ -29,12 +29,16 @@ const formSchema = z.object({
         countryCode: z.string().min(1, "Country code is required"),
         phoneNumber: z.string()
     })
-}).refine((data) => {
-    return true;
+});
+
+const createFormSchema = baseFormSchema.refine((data) => {
+    return !!data.adminPassword && data.adminPassword.length >= 6;
 }, {
-    message: "Invalid data",
+    message: "Password must be at least 6 characters",
     path: ["adminPassword"]
 });
+
+const editFormSchema = baseFormSchema;
 
 function parsePhone(raw: string): { countryCode: string; phoneNumber: string } {
     const knownCodes = ["+254", "+234", "+44", "+27", "+91", "+1"]
@@ -50,7 +54,9 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
 
-    const form = useForm<z.infer<typeof formSchema>>({
+    const formSchema = initialData ? editFormSchema : createFormSchema;
+
+    const form = useForm<z.infer<typeof baseFormSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: "",
@@ -77,7 +83,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
         })
     }, [initialData?.id])
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof baseFormSchema>) {
         setLoading(true)
         try {
             if (initialData) {

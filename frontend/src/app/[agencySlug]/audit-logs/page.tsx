@@ -38,7 +38,7 @@ import {
 import { TableCell, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import api from "@/lib/api"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/sonner"
 
 export default function AuditLogsPage() {
     const [logs, setLogs] = useState<any[]>([])
@@ -205,7 +205,7 @@ export default function AuditLogsPage() {
                                                 <LogIcon className="h-5 w-5" />
                                             </div>
                                             <div>
-                                                <div className="font-extrabold text-slate-900 uppercase tracking-tight text-xs">{log.action.replace('_', ' ')}</div>
+                                                <div className="font-extrabold text-slate-900 uppercase tracking-tight text-xs">{log.action.replaceAll('_', ' ')}</div>
                                                 <div className="text-[10px] text-slate-500 font-medium truncate max-w-[200px]">{log.details}</div>
                                             </div>
                                         </div>

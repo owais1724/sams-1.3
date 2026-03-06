@@ -167,52 +167,53 @@ export class AgenciesService {
     const agency = await this.prisma.agency.findUnique({ where: { id } });
     if (!agency) throw new NotFoundException('Agency not found');
 
-    // Use raw SQL to delete in correct FK dependency order
-    // This avoids any Prisma ORM FK constraint issues regardless of DB state
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "AuditLog" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Attendance" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Leave" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Payroll" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Visitor" WHERE "agencyId" = $1`, id
-    );
-    // Delete checkpoints for all projects of this agency
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Checkpoint" WHERE "projectId" IN (SELECT id FROM "Project" WHERE "agencyId" = $1)`, id
-    );
-    // Delete the many-to-many join table _EmployeeToProject
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "_EmployeeToProject" WHERE "B" IN (SELECT id FROM "Project" WHERE "agencyId" = $1)`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Project" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Client" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "User" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Employee" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Designation" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Role" WHERE "agencyId" = $1`, id
-    );
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "Agency" WHERE id = $1`, id
-    );
+    // Use raw SQL to delete in correct FK dependency order inside a transaction
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "AuditLog" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Attendance" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Leave" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Payroll" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Visitor" WHERE "agencyId" = $1`, id
+      );
+      // Delete checkpoints for all projects of this agency
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Checkpoint" WHERE "projectId" IN (SELECT id FROM "Project" WHERE "agencyId" = $1)`, id
+      );
+      // Delete the many-to-many join table _EmployeeToProject
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "_EmployeeToProject" WHERE "B" IN (SELECT id FROM "Project" WHERE "agencyId" = $1)`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Project" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Client" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "User" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Employee" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Designation" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Role" WHERE "agencyId" = $1`, id
+      );
+      await tx.$executeRawUnsafe(
+        `DELETE FROM "Agency" WHERE id = $1`, id
+      );
+    });
 
     return { success: true, id };
   }

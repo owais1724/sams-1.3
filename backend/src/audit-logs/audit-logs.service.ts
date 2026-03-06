@@ -38,13 +38,13 @@ export class AuditLogsService {
     return this.prisma.auditLog.create({
       data: {
         ...data,
-        agencyId: finalAgencyId!, // Assert non-null if we expect it to be handled
+        agencyId: finalAgencyId ?? null,
         userId: userId || null,
       },
     });
   }
 
-  async findAll(agencyId: string) {
+  async findAll(agencyId: string, take: number = 200, skip: number = 0) {
     return this.prisma.auditLog.findMany({
       where: { agencyId },
       include: {
@@ -57,6 +57,8 @@ export class AuditLogsService {
         },
       },
       orderBy: { createdAt: 'desc' },
+      take,
+      skip,
     });
   }
 }

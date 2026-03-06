@@ -43,7 +43,7 @@ export class LeavesController {
     @Body() approvalDto: LeaveApprovalDto,
     @Request() req,
   ) {
-    return this.leavesService.approveLeave(leaveId, approvalDto, req.user.role, req.user.userId);
+    return this.leavesService.approveLeave(leaveId, approvalDto, req.user.role, req.user.userId, req.user.agencyId);
   }
 
   // These enum routes don't need permission checks as they are read-only metadata

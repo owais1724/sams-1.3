@@ -9,6 +9,7 @@ import {
   Request,
   Logger,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { DesignationsService } from './designations.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -28,7 +29,7 @@ export class DesignationsController {
     this.logger.log(`POST /designations - User: ${req.user?.userId}, Agency: ${req.user?.agencyId}`);
     const agencyId = req.user.agencyId || data.agencyId;
     if (!agencyId) {
-      throw new Error('Agency context is required to create a designation');
+      throw new BadRequestException('Agency context is required to create a designation');
     }
     return this.designationsService.create(agencyId, data);
   }

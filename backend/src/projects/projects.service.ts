@@ -20,7 +20,11 @@ export class ProjectsService {
 
     const project = await this.prisma.project.create({
       data: {
-        ...data,
+        name: data.name,
+        location: data.location,
+        description: data.description,
+        isActive: data.isActive,
+        clientId: data.clientId,
         agencyId,
       },
     });

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -44,10 +44,10 @@ export class DesignationsService {
       include: { _count: { select: { employees: true } } }
     });
 
-    if (!designation) throw new Error('Designation not found');
+    if (!designation) throw new NotFoundException('Designation not found');
 
     if (designation._count.employees > 0) {
-      throw new Error(`Cannot delete designation "${designation.name}" because it is currently assigned to ${designation._count.employees} employees.`);
+      throw new ConflictException(`Cannot delete designation "${designation.name}" because it is currently assigned to ${designation._count.employees} employees.`);
     }
 
     return this.prisma.designation.delete({
