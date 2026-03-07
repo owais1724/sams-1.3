@@ -4,15 +4,22 @@ import {
   ExecutionContext,
   ForbiddenException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from './permissions.decorator';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector) { }
+  private readonly logger = new Logger(PermissionsGuard.name);
 
-  canActivate(context: ExecutionContext): boolean {
+  constructor(
+    private reflector: Reflector,
+    private usersService: UsersService,
+  ) { }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
@@ -24,14 +31,12 @@ export class PermissionsGuard implements CanActivate {
     const isProd = process.env.NODE_ENV === 'production';
 
     // ── Tier 1: Super Admins bypass all permission checks ───
-    // Super Admins own the platform — they should never be blocked.
-    // Agency Admins and Staff are now evaluated based on their actual JWT permissions.
     const isPlatformAdmin = [
       'super admin', 'superadmin', 'platform admin'
     ].includes(userRole);
 
     if (isPlatformAdmin) {
-      if (!isProd) console.log(`[RBAC] Platform Admin Bypass Active for ${user.email} (role: ${userRole})`);
+      if (!isProd) this.logger.log(`[RBAC] Platform Admin Bypass Active for ${user.email} (role: ${userRole})`);
       return true;
     }
 
@@ -42,20 +47,31 @@ export class PermissionsGuard implements CanActivate {
     );
 
     // If no permissions specified on the route - ALLOW if authenticated
-    // (We previously had 'Unprotected Resource' which was too strict for base pages)
     if (!requiredPermissions || requiredPermissions.length === 0) {
-      if (!isProd) console.log(`[RBAC] No specific permissions required for this route.`);
+      if (!isProd) this.logger.log(`[RBAC] No specific permissions required for this route.`);
       return true;
     }
 
-    const userPermissions: string[] = user.permissions || [];
+    // ── Fetch LIVE permissions from DB instead of stale JWT ───
+    // This ensures that when an admin updates a role's permissions via RBAC,
+    // the changes take effect immediately without requiring the user to re-login.
+    let userPermissions: string[] = [];
+    try {
+      const freshUser = await this.usersService.findById(user.userId);
+      if (freshUser && (freshUser as any).role?.permissions) {
+        userPermissions = (freshUser as any).role.permissions.map((p: any) => p.action);
+      }
+    } catch {
+      // Fallback to JWT permissions if DB query fails
+      userPermissions = user.permissions || [];
+    }
 
     // Detailed debug output for the user's terminal
     if (!isProd) {
-      console.log(`[RBAC] User: ${user.email} | Role: ${userRole}`);
-      console.log(`[RBAC] Route: ${request.method} ${request.url}`);
-      console.log(`[RBAC] Required: ${JSON.stringify(requiredPermissions)}`);
-      console.log(`[RBAC] User Has: ${JSON.stringify(userPermissions)}`);
+      this.logger.log(`[RBAC] User: ${user.email} | Role: ${userRole}`);
+      this.logger.log(`[RBAC] Route: ${request.method} ${request.url}`);
+      this.logger.log(`[RBAC] Required: ${JSON.stringify(requiredPermissions)}`);
+      this.logger.log(`[RBAC] User Has (live): ${JSON.stringify(userPermissions)}`);
     }
 
     const hasPermission = requiredPermissions.some((p) =>
@@ -63,11 +79,11 @@ export class PermissionsGuard implements CanActivate {
     );
 
     if (!hasPermission) {
-      if (!isProd) console.error(`[RBAC] ACCESS DENIED — User lacks required permissions`);
+      if (!isProd) this.logger.error(`[RBAC] ACCESS DENIED — User lacks required permissions`);
       throw new ForbiddenException('Access Denied: Insufficient permissions');
     }
 
-    if (!isProd) console.log(`[RBAC] ACCESS GRANTED.`);
+    if (!isProd) this.logger.log(`[RBAC] ACCESS GRANTED.`);
     return true;
   }
 }

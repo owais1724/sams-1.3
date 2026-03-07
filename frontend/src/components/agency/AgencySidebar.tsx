@@ -39,9 +39,9 @@ export function AgencySidebar({ onItemClick }: { onItemClick?: () => void }) {
                 setLoading(false)
             }
         }
-        if (!user) fetchProfile()
-        else setLoading(false)
-    }, [login, user])
+        // Always fetch fresh profile to pick up permission changes made by admin
+        fetchProfile()
+    }, [login])
 
     const isStaff = user?.role && !user.role.toLowerCase().includes('admin');
 
