@@ -40,6 +40,17 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
+    // ── Tier 1b: Agency Admins bypass permission checks within their agency ───
+    // Agency Admins have full access to their agency's data (scoped by agencyId in services).
+    const isAgencyAdmin = [
+      'agency admin', 'agencyadmin'
+    ].includes(userRole);
+
+    if (isAgencyAdmin) {
+      if (!isProd) this.logger.log(`[RBAC] Agency Admin Bypass Active for ${user.email} (role: ${userRole})`);
+      return true;
+    }
+
     // ── Tier 2: Permission Enforcement ────────────────────────────────────────
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
       PERMISSIONS_KEY,

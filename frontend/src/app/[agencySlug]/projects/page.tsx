@@ -41,7 +41,7 @@ export default function ProjectsPage() {
     })
     const [isDeleting, setIsDeleting] = useState(false)
 
-    const canViewClients = authUser?.role === 'Super Admin' || authUser?.permissions?.includes('view_clients')
+    const canViewClients = authUser?.role === 'Super Admin' || authUser?.role?.toLowerCase().includes('admin') || authUser?.permissions?.includes('view_clients')
 
     const fetchData = async () => {
         try {
