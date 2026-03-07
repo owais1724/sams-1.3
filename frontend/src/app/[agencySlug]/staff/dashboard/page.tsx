@@ -29,6 +29,7 @@ import { toast } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useAuthStore } from "@/store/authStore"
 
 export default function StaffDashboard() {
   const router = useRouter()
@@ -46,6 +47,7 @@ export default function StaffDashboard() {
   const [userPermissions, setUserPermissions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState<any>(null)
+  const { login } = useAuthStore()
 
   const fetchDashboardData = async () => {
     setLoading(true)
@@ -53,6 +55,8 @@ export default function StaffDashboard() {
       const userRes = await api.get('/auth/me')
       const user = userRes.data
       setUserData(user)
+      // Update auth store with fresh permissions so PermissionGuard works correctly
+      login(user)
 
       const PLATFORM_PERMISSIONS = [
         'create_agency', 'edit_agency', 'delete_agency', 'view_agencies',

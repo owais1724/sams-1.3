@@ -34,11 +34,14 @@ export class MigrationService {
         newRole: string;
       }> = [];
 
-      // Pre-fetch essential permissions
+      // Pre-fetch essential permissions (including full project permissions)
       const essentialActions = [
         'mark_attendance',
         'apply_leave',
         'view_projects',
+        'create_project',
+        'edit_project',
+        'delete_project',
       ];
       for (const action of essentialActions) {
         await this.prisma.permission.upsert({
