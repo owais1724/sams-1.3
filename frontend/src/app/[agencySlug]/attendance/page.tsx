@@ -149,12 +149,12 @@ export default function AttendancePage() {
                                     <>
                                         <div className="w-full md:w-72">
                                             <Select onValueChange={setSelectedProject}>
-                                                <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
+                                                <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:text-slate-900 font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
                                                     <SelectValue placeholder="SELECT PROJECT SITE" />
                                                 </SelectTrigger>
-                                                <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 text-white shadow-2xl p-2">
+                                                <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 shadow-2xl p-2">
                                                     {projects.map(p => (
-                                                        <SelectItem key={p.id} value={p.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl focus:bg-primary/20 focus:text-primary transition-colors cursor-pointer">{p.name}</SelectItem>
+                                                        <SelectItem key={p.id} value={p.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white focus:bg-primary/20 focus:text-primary transition-colors cursor-pointer">{p.name}</SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
