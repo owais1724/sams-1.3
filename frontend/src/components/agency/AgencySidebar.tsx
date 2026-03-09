@@ -93,12 +93,6 @@ export function AgencySidebar({ onItemClick }: { onItemClick?: () => void }) {
             icon: Wallet,
             permissions: ["view_payroll", "manage_payroll"]
         },
-        {
-            name: "Audit Logs",
-            href: `/${agencySlug}/audit-logs`,
-            icon: ShieldCheck,
-            permissions: ["view_audit_logs"]
-        },
     ]
 
     const navItems = allNavItems.filter(item => {
