@@ -58,7 +58,7 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
 
             {/* Collapse Toggle Button */}
             {onToggleCollapse && (
-                <div className={cn("hidden lg:flex px-5 pt-4 transition-all duration-300", collapsed && "justify-center px-3")}>
+                <div className={cn("hidden lg:flex px-5 pt-2 transition-all duration-300", collapsed && "justify-center px-3")}>
                     <button
                         onClick={onToggleCollapse}
                         className="flex items-center justify-center h-8 w-8 rounded-lg bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all"
@@ -72,12 +72,12 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
             {/* Navigation */}
             <div className={cn(
                 "flex-1 overflow-y-auto space-y-10 scrollbar-hide transition-all duration-300",
-                onToggleCollapse ? "pt-4" : "pt-10",
+                onToggleCollapse ? "pt-2" : "pt-8",
                 collapsed ? "px-2" : "px-5"
             )}>
                 <div>
                     <SidebarSectionLabel collapsed={collapsed}>Core Control</SidebarSectionLabel>
-                    <nav className="space-y-2 mt-4">
+                    <nav className="space-y-2 mt-2">
                         {navItems.map((item) => (
                             <SidebarItem
                                 key={item.name}
