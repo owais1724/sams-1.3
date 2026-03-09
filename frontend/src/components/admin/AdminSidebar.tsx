@@ -70,7 +70,11 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
             )}
 
             {/* Navigation */}
-            <div className={cn("flex-1 overflow-y-auto pt-10 space-y-10 scrollbar-hide transition-all duration-300", collapsed ? "px-2" : "px-5")}>
+            <div className={cn(
+                "flex-1 overflow-y-auto space-y-10 scrollbar-hide transition-all duration-300",
+                onToggleCollapse ? "pt-4" : "pt-10",
+                collapsed ? "px-2" : "px-5"
+            )}>
                 <div>
                     <SidebarSectionLabel collapsed={collapsed}>Core Control</SidebarSectionLabel>
                     <nav className="space-y-2 mt-4">
