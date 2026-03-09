@@ -160,10 +160,11 @@ export default function LeavesPage() {
   }
 
   const canApprove = (leave: LeaveRequest) => {
-    if (!user || !user.role || !user.employeeId) return false
+    if (!user || !user.role) return false
 
     // Cannot approve your own leave
-    if (leave.employee.id === user.employeeId) return false
+    // If user has employeeId, check if it matches the leave's employeeId
+    if (user.employeeId && leave.employee.id === user.employeeId) return false
 
     const role = user.role.toLowerCase();
     const status = leave.status;
