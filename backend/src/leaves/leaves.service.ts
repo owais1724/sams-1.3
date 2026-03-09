@@ -15,6 +15,8 @@ export class LeavesService {
   async createLeaveRequest(
     createLeaveDto: CreateLeaveRequestDto,
     agencyId: string,
+    userRole?: string,
+    userId?: string,
   ): Promise<LeaveRequest> {
     const employee = await this.prisma.employee.findUnique({
       where: { id: createLeaveDto.employeeId },
@@ -62,6 +64,26 @@ export class LeavesService {
       );
     }
 
+    // Default to PENDING for regular flow
+    let status = LeaveStatus.PENDING;
+    const approvalData: any = {};
+    const role = userRole?.toLowerCase() || '';
+
+    if (isEmergency) {
+      status = LeaveStatus.AGENCY_APPROVED;
+      approvalData.agencyApprovedAt = new Date();
+      approvalData.agencyApprovedBy = 'SYSTEM_AUTO_EMERGENCY';
+    } else if (role.includes('admin')) {
+      // Admins are their own authority, but we still mark it final
+      status = LeaveStatus.AGENCY_APPROVED;
+      approvalData.agencyApprovedAt = new Date();
+      approvalData.agencyApprovedBy = userId;
+      approvalData.hrApprovedAt = new Date();
+      approvalData.hrApprovedBy = userId;
+      approvalData.supervisorApprovedAt = new Date();
+      approvalData.supervisorApprovedBy = userId;
+    }
+
     const leaveRequest = await this.prisma.leave.create({
       data: {
         employeeId: createLeaveDto.employeeId,
@@ -69,14 +91,9 @@ export class LeavesService {
         startDate: new Date(createLeaveDto.startDate),
         endDate: new Date(createLeaveDto.endDate),
         reason: createLeaveDto.reason,
-        status: isEmergency ? LeaveStatus.AGENCY_APPROVED : LeaveStatus.PENDING,
+        status,
         agencyId: employee.agencyId,
-        ...(isEmergency && {
-          agencyApprovedAt: new Date(),
-          agencyApprovedBy: 'SYSTEM_AUTO_EMERGENCY',
-          // We leave supervisor and HR approvals null for emergency leaves
-          // so they can be "accepted" later as per business logic
-        }),
+        ...approvalData,
       },
       include: {
         employee: {
@@ -258,6 +275,11 @@ export class LeavesService {
     }
 
     const updateData: any = {};
+
+    // Cannot approve your own leave
+    if (leaveRequest.employee.user?.id === userId) {
+      throw new ForbiddenException('You cannot approve your own leave request');
+    }
 
     // Rejection is similar for everyone
     if (approvalDto.status === LeaveStatus.REJECTED) {

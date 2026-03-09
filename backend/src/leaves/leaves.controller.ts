@@ -27,7 +27,12 @@ export class LeavesController {
     @Body() createLeaveDto: CreateLeaveRequestDto,
     @Request() req,
   ) {
-    return this.leavesService.createLeaveRequest(createLeaveDto, req.user.agencyId);
+    return this.leavesService.createLeaveRequest(
+      createLeaveDto,
+      req.user.agencyId,
+      req.user.role,
+      req.user.userId,
+    );
   }
 
   @Get()

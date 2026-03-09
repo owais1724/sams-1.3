@@ -160,10 +160,12 @@ export default function LeavesPage() {
   }
 
   const canApprove = (leave: LeaveRequest) => {
-    if (!user || !user.role) return false
+    if (!user || !user.role || !user.employeeId) return false
+
+    // Cannot approve your own leave
+    if (leave.employee.id === user.employeeId) return false
 
     const role = user.role.toLowerCase();
-    const applicantRole = (leave.employee?.designation?.name || 'Staff').toLowerCase();
     const status = leave.status;
 
     const isHR = role.includes('hr');
@@ -173,9 +175,14 @@ export default function LeavesPage() {
     if (status === 'REJECTED') return false
     if (status === 'AGENCY_APPROVED') return false
 
+    // Administrator can approve anything not yet finalized
     if (isAdmin) return true
-    if (isHR && (status === 'PENDING' || status === 'SUPERVISOR_APPROVED')) return true
-    if (isSupervisor && status === 'PENDING') return true
+
+    // Only allow approval if it's actually pending with the user's role
+    const pendingWith = leave.pendingWith?.toLowerCase() || '';
+
+    if (isHR && (pendingWith.includes('hr') || status === 'SUPERVISOR_APPROVED')) return true
+    if (isSupervisor && pendingWith.includes('supervisor') && status === 'PENDING') return true
 
     return false
   }
@@ -188,7 +195,10 @@ export default function LeavesPage() {
     const isSupervisor = role.includes('supervisor');
     const isAdmin = role.includes('admin');
 
+    // HR or Admin approval results in Agency/Final approval
     if (isHR || isAdmin) return 'AGENCY_APPROVED'
+
+    // Supervisor approval results in Supervisor Approved (next is HR)
     if (isSupervisor) return 'SUPERVISOR_APPROVED'
 
     return null
