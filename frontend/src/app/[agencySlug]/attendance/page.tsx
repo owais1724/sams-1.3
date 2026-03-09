@@ -154,7 +154,9 @@ export default function AttendancePage() {
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 shadow-2xl p-2">
                                                     {projects.map(p => (
-                                                        <SelectItem key={p.id} value={p.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white focus:bg-primary/20 focus:text-primary transition-colors cursor-pointer">{p.name}</SelectItem>
+                                                        <SelectItem key={p.id} value={p.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white/70 focus:bg-white/10 focus:text-white data-[state=checked]:text-white data-[state=checked]:bg-white/5 transition-all cursor-pointer">
+                                                            {p.name}
+                                                        </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
