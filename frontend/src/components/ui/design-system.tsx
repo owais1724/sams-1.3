@@ -94,7 +94,7 @@ export function SubmitButton({
             type="submit"
             disabled={disabled || loading}
             className={cn(
-                "w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black shadow-lg shadow-slate-200/50 transition-all active:scale-[0.98] uppercase tracking-widest mt-4 shrink-0",
+                "w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black shadow-lg shadow-slate-200/50 transition-all active:scale-[0.98] uppercase tracking-widest mt-4 shrink-0 text-xs sm:text-sm",
                 className
             )}
         >
@@ -164,21 +164,21 @@ export function PageHeader({
     className,
 }: PageHeaderProps) {
     return (
-        <div className={cn("flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8", className)}>
+        <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8", className)}>
             <div className="flex-1 min-w-0">
-                <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                     {title}{" "}
                     {titleHighlight && (
                         <span className="text-primary">{titleHighlight}</span>
                     )}
                 </h1>
                 {subtitle && (
-                    <p className="text-xs md:text-base text-slate-500 font-medium mt-2 leading-relaxed max-w-2xl">
+                    <p className="text-xs sm:text-sm md:text-base text-slate-500 font-medium mt-1.5 sm:mt-2 leading-relaxed max-w-2xl">
                         {subtitle}
                     </p>
                 )}
             </div>
-            {action && <div className="w-full md:w-auto flex-shrink-0 animate-in fade-in slide-in-from-right-4 duration-500">{action}</div>}
+            {action && <div className="w-full sm:w-auto flex-shrink-0 animate-in fade-in slide-in-from-right-4 duration-500">{action}</div>}
         </div>
     )
 }
@@ -431,15 +431,18 @@ interface SidebarItemProps {
     isActive: boolean
     className?: string
     onClick?: () => void
+    collapsed?: boolean
 }
 
-export function SidebarItem({ name, href, icon: Icon, isActive, className, onClick }: SidebarItemProps) {
+export function SidebarItem({ name, href, icon: Icon, isActive, className, onClick, collapsed }: SidebarItemProps) {
     return (
         <Link
             href={href}
             onClick={onClick}
+            title={collapsed ? name : undefined}
             className={cn(
                 "group flex items-center rounded-xl px-4 py-4 text-sm font-bold transition-all duration-300 relative overflow-hidden",
+                collapsed && "justify-center px-3",
                 isActive
                     ? "bg-primary text-white shadow-xl shadow-primary/20"
                     : "text-slate-300/60 hover:text-white hover:bg-white/5",
@@ -447,10 +450,16 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
             )}
         >
             <Icon className={cn(
-                "mr-3 h-5 w-5 transition-transform duration-300 group-hover:scale-110",
+                "h-5 w-5 transition-transform duration-300 group-hover:scale-110 shrink-0",
+                !collapsed && "mr-3",
                 isActive ? "text-white" : "text-slate-400/40 group-hover:text-white"
             )} />
-            {name}
+            <span className={cn(
+                "whitespace-nowrap transition-all duration-300",
+                collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+            )}>
+                {name}
+            </span>
             {isActive && (
                 <div className="absolute right-0 top-0 bottom-0 w-1 bg-white rounded-l-full shadow-white/50" />
             )}
@@ -458,24 +467,33 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
     )
 }
 
-export function SidebarLogout({ onClick, label = "Sign Out", className }: { onClick: () => void, label?: string, className?: string }) {
+export function SidebarLogout({ onClick, label = "Sign Out", className, collapsed }: { onClick: () => void, label?: string, className?: string, collapsed?: boolean }) {
     return (
         <button
             onClick={onClick}
+            title={collapsed ? label : undefined}
             className={cn(
                 "flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 px-3 py-3 text-xs font-black text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 group",
                 className
             )}
         >
-            <LogOut className="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" />
-            {label}
+            <LogOut className="h-4 w-4 transform group-hover:-translate-x-1 transition-transform shrink-0" />
+            <span className={cn(
+                "whitespace-nowrap transition-all duration-300",
+                collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+            )}>
+                {label}
+            </span>
         </button>
     )
 }
 
-export function SidebarSectionLabel({ children }: { children: React.ReactNode }) {
+export function SidebarSectionLabel({ children, collapsed }: { children: React.ReactNode, collapsed?: boolean }) {
     return (
-        <p className="px-3 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-40">
+        <p className={cn(
+            "px-3 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-40 transition-all duration-300 whitespace-nowrap",
+            collapsed && "opacity-0 h-0 mb-0 overflow-hidden"
+        )}>
             {children}
         </p>
     )
@@ -673,14 +691,14 @@ interface ControlPanelProps {
 export function ControlPanel({ count, totalLabel, children, className }: ControlPanelProps) {
     return (
         <div className={cn(
-            "flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-[32px] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 mb-8",
+            "flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl sm:rounded-[32px] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 mb-6 sm:mb-8",
             className
         )}>
-            <div className="flex items-center gap-4 px-2">
-                <div className="h-10 w-10 bg-primary/10 text-primary rounded-2xl flex items-center justify-center font-black text-sm">
+            <div className="flex items-center gap-3 sm:gap-4 px-1 sm:px-2">
+                <div className="h-9 w-9 sm:h-10 sm:w-10 bg-primary/10 text-primary rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm">
                     {count}
                 </div>
-                <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
+                <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-[0.15em] sm:tracking-[0.2em]">
                     {totalLabel}
                 </span>
             </div>
@@ -706,6 +724,6 @@ export function FormLabelBase({ label, required, className }: { label: string, r
 // ─────────────────────────────────────────────────────────────────────────────
 // 18. PREMIUM INPUT CLASSES
 // ─────────────────────────────────────────────────────────────────────────────
-export const inputVariants = "h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-6"
+export const inputVariants = "h-12 sm:h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-xl sm:rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4 sm:px-6 text-sm sm:text-base"
 
-export const selectVariants = "h-14 bg-slate-50 border-transparent text-slate-900 rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-6 w-full appearance-none"
+export const selectVariants = "h-12 sm:h-14 bg-slate-50 border-transparent text-slate-900 rounded-xl sm:rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4 sm:px-6 w-full appearance-none text-sm sm:text-base"

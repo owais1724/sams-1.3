@@ -57,10 +57,10 @@ export function FormSheet({
         <Sheet open={open} onOpenChange={onOpenChange}>
             {trigger && <SheetTrigger asChild>{trigger}</SheetTrigger>}
             <SheetContent
-                className="w-full border-none shadow-2xl p-0"
-                style={{ maxWidth: `${maxWidth}px` }}
+                className="w-full sm:w-auto border-none shadow-2xl p-0"
+                style={{ maxWidth: `min(100vw, ${maxWidth}px)` }}
             >
-                <div className="p-5 sm:p-10 overflow-y-auto h-full">
+                <div className="px-4 py-6 sm:p-10 overflow-y-auto h-full">
                     <SheetHeader>
                         <SheetTitle className="text-xl sm:text-2xl font-bold">{title}</SheetTitle>
                         {description && (

@@ -30,7 +30,7 @@ export function SearchBar({ value, onChange, placeholder = "Search...", classNam
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-hover:text-primary transition-colors pointer-events-none" />
             <Input
                 placeholder={placeholder}
-                className="pl-11 pr-10 py-5 sm:py-6 bg-slate-50 border-transparent rounded-2xl w-full md:w-[280px] focus:bg-white focus:ring-primary shadow-inner transition-all font-medium text-sm"
+                className="pl-11 pr-10 py-4 sm:py-6 bg-slate-50 border-transparent rounded-xl sm:rounded-2xl w-full md:w-[280px] focus:bg-white focus:ring-primary shadow-inner transition-all font-medium text-sm"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
             />

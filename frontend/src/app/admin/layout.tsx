@@ -18,10 +18,23 @@ export default function AdminLayout({
     const router = useRouter()
     const { user, isAuthenticated, logout, login } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('sams_admin_sidebar_collapsed') === 'true'
+        }
+        return false
+    })
+
+    const toggleSidebarCollapse = () => {
+        setSidebarCollapsed(prev => {
+            const next = !prev
+            localStorage.setItem('sams_admin_sidebar_collapsed', String(next))
+            return next
+        })
+    }
 
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login')
-
-    const [sidebarOpen, setSidebarOpen] = useState(false)
 
     useEffect(() => {
         let isActive = true;
@@ -97,20 +110,20 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="flex h-screen bg-slate-100 font-outfit p-4 gap-4 overflow-hidden">
-            {/* Desktop Sidebar - The Floating Island */}
-            <div className="hidden lg:flex w-76 shrink-0 z-20">
-                <div className="w-full h-full rounded-[40px] overflow-hidden shadow-[20px_0_60px_-15px_rgba(0,0,0,0.1)]">
-                    <AdminSidebar />
+        <div className="flex h-screen bg-slate-100 font-outfit p-2 sm:p-4 overflow-hidden">
+            {/* Unified Container — sidebar + content as one panel */}
+            <div className="flex flex-1 h-full rounded-2xl sm:rounded-[40px] overflow-hidden shadow-xl shadow-slate-200/50 border border-slate-200/50">
+                {/* Desktop Sidebar */}
+                <div className={`hidden lg:flex shrink-0 z-20 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-76'}`}>
+                    <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
                 </div>
-            </div>
 
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
+                <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
                 {/* Mobile Header - Elevated */}
-                <header className="lg:hidden flex items-center justify-between px-6 h-20 bg-[#0d5c56] text-white rounded-[32px] mb-4 shrink-0 z-30 shadow-xl shadow-black/10">
-                    <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 bg-gradient-to-tr from-[#14B8A6] to-emerald-400 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
-                            <ShieldCheck className="h-5 w-5 text-white" />
+                <header className="lg:hidden flex items-center justify-between px-4 sm:px-6 h-16 sm:h-20 bg-[#0d5c56] text-white rounded-2xl mx-2 mt-2 mb-2 sm:mx-4 sm:mt-4 sm:mb-4 shrink-0 z-30 shadow-xl shadow-black/10">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="h-9 w-9 sm:h-10 sm:w-10 bg-gradient-to-tr from-[#14B8A6] to-emerald-400 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/20">
+                            <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                         </div>
                         <div>
                             <h1 className="text-sm font-black tracking-[0.1em] uppercase leading-none">SAMS Admin</h1>
@@ -129,11 +142,12 @@ export default function AdminLayout({
                     </Sheet>
                 </header>
 
-                <main className="flex-1 overflow-y-auto bg-white rounded-[40px] shadow-sm border border-slate-200/50">
-                    <div className="p-6 md:p-10 lg:p-12">
+                <main className="flex-1 overflow-y-auto">
+                    <div className="p-4 sm:p-6 md:p-10 lg:p-12">
                         {children}
                     </div>
                 </main>
+            </div>
             </div>
         </div>
     )
