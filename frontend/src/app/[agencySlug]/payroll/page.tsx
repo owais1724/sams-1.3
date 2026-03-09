@@ -262,7 +262,7 @@ export default function PayrollPage() {
                   transition={{ duration: 0.2, delay: idx * 0.02 }}
                   className="group hover:bg-slate-50/50 transition-colors"
                 >
-                  <TableCell className="px-8 py-6">
+                  <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 font-black group-hover:border-primary/20 group-hover:text-primary group-hover:scale-110 transition-all shadow-sm">
                         {payroll.employee?.fullName?.charAt(0)}
@@ -288,7 +288,7 @@ export default function PayrollPage() {
                   <TableCell>
                     <StatusBadge status={payroll.status} />
                   </TableCell>
-                  <TableCell className="text-right px-8">
+                  <TableCell className="text-right px-4 sm:px-8">
                     <Button
                       variant="ghost"
                       size="icon"

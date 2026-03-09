@@ -171,7 +171,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="rounded-[32px] border border-slate-100 bg-white shadow-2xl shadow-slate-200/60 overflow-hidden">
-                <div className="px-8 py-7 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                <div className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-7 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-black text-slate-900">Agency Directory</h3>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Active Network Nodes</p>
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
                     <Table className="min-w-[900px]">
                         <TableHeader className="bg-slate-50/30">
                             <TableRow className="hover:bg-transparent border-slate-100 h-14">
-                                <TableHead className="px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Entity</TableHead>
+                                <TableHead className="px-4 sm:px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Entity</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Private Endpoint</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Status</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployed Since</TableHead>

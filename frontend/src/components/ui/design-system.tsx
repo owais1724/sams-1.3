@@ -238,7 +238,7 @@ interface DataTableProps {
     minWidth?: string
 }
 
-export function DataTable({ columns, children, className, minWidth = "800px" }: DataTableProps) {
+export function DataTable({ columns, children, className, minWidth = "720px" }: DataTableProps) {
     return (
         <TableCardWrapper className={className} minWidth={minWidth}>
             <Table>
@@ -248,7 +248,7 @@ export function DataTable({ columns, children, className, minWidth = "800px" }: 
                             <TableColHead
                                 key={i}
                                 align={i === columns.length - 1 ? "right" : "left"}
-                                className={i === 0 ? "px-8" : i === columns.length - 1 ? "px-8" : ""}
+                                className={i === 0 ? "px-4 sm:px-8" : i === columns.length - 1 ? "px-4 sm:px-8" : ""}
                             >
                                 {col}
                             </TableColHead>

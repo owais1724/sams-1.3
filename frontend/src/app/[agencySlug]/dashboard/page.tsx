@@ -121,7 +121,7 @@ export default function AgencyDashboard() {
                 <StatCard title="Pending Leaves" value={stats.pendingLeaves} icon={<CalendarDays />} color="amber" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
                 <div className="lg:col-span-2 space-y-10">
                     <div>
                         <div className="flex items-center justify-between mb-8 px-2">
@@ -174,9 +174,9 @@ export default function AgencyDashboard() {
                         </div>
                     </div>
 
-                    <div className="bg-slate-950 rounded-[40px] p-10 relative overflow-hidden group">
+                    <div className="bg-slate-950 rounded-[40px] p-5 sm:p-10 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 rotate-12 group-hover:bg-primary/20 transition-all duration-1000" />
-                        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
+                        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 sm:gap-10">
                             <div>
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/10 backdrop-blur-md">

@@ -114,9 +114,9 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                     <Table>
                         <TableHeader className="bg-slate-50/50 border-b border-slate-100">
                             <TableRow className="h-14">
-                                <TableHead className="px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Designation Title</TableHead>
+                                <TableHead className="px-4 sm:px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Designation Title</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Roster Density</TableHead>
-                                <TableHead className="text-right px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</TableHead>
+                                <TableHead className="text-right px-4 sm:px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -125,7 +125,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                             ) : (
                                 designations.map((des) => (
                                     <TableRow key={des.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                        <TableCell className="px-8 py-5">
+                                        <TableCell className="px-4 sm:px-8 py-4 sm:py-5">
                                             <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors uppercase tracking-tight">{des.name}</div>
                                             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">{des.description || "Baseline operational scope"}</div>
                                         </TableCell>
@@ -134,7 +134,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                                 {des._count?.employees || 0} ACTIVE MEMBERS
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right px-8">
+                                        <TableCell className="text-right px-4 sm:px-8">
                                             <PermissionGuard permission="manage_roles">
                                                 <RowDeleteButton onClick={() => handleDelete(des.id)} />
                                             </PermissionGuard>

@@ -128,8 +128,8 @@ export default function AttendancePage() {
             {canMark && (
                 <div className="bg-slate-950 rounded-[40px] p-1 shadow-2xl overflow-hidden relative group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 group-hover:bg-primary/20 transition-all duration-700" />
-                    <div className="bg-slate-900 rounded-[38px] p-10 relative z-10 border border-white/5">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-10">
+                    <div className="bg-slate-900 rounded-[38px] p-5 sm:p-10 relative z-10 border border-white/5">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-10">
                             <div className="flex-1 space-y-3">
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/20 backdrop-blur-md">
@@ -227,7 +227,7 @@ export default function AttendancePage() {
                                     transition={{ duration: 0.2, delay: idx * 0.02 }}
                                     className="group hover:bg-slate-50/50 transition-colors"
                                 >
-                                    <TableCell className="px-8 py-6">
+                                    <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
                                         <div className="flex items-center gap-4">
                                             <Avatar className="h-12 w-12 rounded-2xl border-2 border-slate-50 group-hover:border-primary/20 group-hover:scale-110 transition-all shadow-sm">
                                                 <AvatarFallback className="bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-500 font-black text-xs uppercase">
@@ -260,7 +260,7 @@ export default function AttendancePage() {
                                             {record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "--:--"}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-right px-8">
+                                    <TableCell className="text-right px-4 sm:px-8">
                                         <StatusBadge status={record.status} />
                                     </TableCell>
                                 </motion.tr>

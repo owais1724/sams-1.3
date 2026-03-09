@@ -88,7 +88,7 @@ export default function AuditLogsPage() {
                     </DialogHeader>
                     {selectedLog && (
                         <div className="relative">
-                            <div className="bg-slate-950 p-10 text-white relative overflow-hidden">
+                            <div className="bg-slate-950 p-5 sm:p-10 text-white relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
                                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full -ml-24 -mb-24" />
 
@@ -193,7 +193,7 @@ export default function AuditLogsPage() {
                             const LogIcon = getIcon(log.action)
                             return (
                                 <TableRow key={log.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <TableCell className="px-8 py-6">
+                                    <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
                                         <div className="flex flex-col">
                                             <span className="font-extrabold text-slate-900">{new Date(log.createdAt).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}</span>
                                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(log.createdAt).toLocaleDateString()}</span>
@@ -224,7 +224,7 @@ export default function AuditLogsPage() {
                                             {log.severity}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right px-8">
+                                    <TableCell className="text-right px-4 sm:px-8">
                                         <Button
                                             variant="ghost"
                                             size="icon"

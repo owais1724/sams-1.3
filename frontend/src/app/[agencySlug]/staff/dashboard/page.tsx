@@ -159,7 +159,7 @@ export default function StaffDashboard() {
         <StatCard title="Pending Leaves" value={userStats.onLeave} icon={<CalendarDays />} color="amber" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
         <div className="lg:col-span-2 space-y-10">
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
@@ -192,7 +192,7 @@ export default function StaffDashboard() {
           </div>
 
           <div className="bg-slate-50/50 p-8 rounded-[40px] border border-slate-100 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-700">
+            <div className="absolute top-0 right-0 p-5 sm:p-10 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-700">
               <ShieldCheck className="h-40 w-40" />
             </div>
             <div className="relative z-10">

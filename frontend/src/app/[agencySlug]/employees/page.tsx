@@ -178,7 +178,7 @@ export default function EmployeesPage() {
                                         transition={{ duration: 0.2, delay: idx * 0.03 }}
                                         className="group hover:bg-slate-50/50 transition-colors"
                                     >
-                                        <TableCell className="px-8 py-6">
+                                        <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
                                             <div className="flex items-center gap-4">
                                                 <Avatar className="h-12 w-12 rounded-2xl border-2 border-slate-50 shadow-sm transition-all group-hover:scale-110 group-hover:border-primary/20">
                                                     <AvatarFallback className="bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-500 font-black uppercase">
@@ -211,7 +211,7 @@ export default function EmployeesPage() {
                                         <TableCell>
                                             <StatusBadge status={emp.status || "ACTIVE"} />
                                         </TableCell>
-                                        <TableCell className="text-right px-8">
+                                        <TableCell className="text-right px-4 sm:px-8">
                                             <div className="flex items-center justify-end gap-2">
                                                 <RowViewButton onClick={() => setProfileDialog({ open: true, employee: emp })} />
                                                 <PermissionGuard permission="edit_employee">
@@ -262,7 +262,7 @@ export default function EmployeesPage() {
                         <DialogDescription>Full employee profile and management center.</DialogDescription>
                     </DialogHeader>
 
-                    <div className="bg-slate-900 p-10 text-white relative overflow-hidden">
+                    <div className="bg-slate-900 p-5 sm:p-10 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 rotate-12" />
                         <div className="relative flex items-center gap-6">
                             <Avatar className="h-24 w-24 border-4 border-white/10 shadow-2xl rounded-[32px] overflow-hidden">
@@ -279,7 +279,7 @@ export default function EmployeesPage() {
                     </div>
 
                     <div className="p-10 space-y-10 bg-white">
-                        <div className="grid grid-cols-2 gap-10">
+                        <div className="grid grid-cols-2 gap-6 sm:gap-10">
                             {[
                                 { icon: <ShieldCheck />, label: 'Designation', value: profileDialog.employee?.designation?.name || "UNSET" },
                                 { icon: <Wallet />, label: 'Monthly Salary', value: `${profileDialog.employee?.salaryCurrency} ${profileDialog.employee?.basicSalary?.toLocaleString()}` },
