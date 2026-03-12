@@ -127,7 +127,7 @@ export default function AgencyDashboard() {
             />
 
             {/* ── Stat Cards ── */}
-            <div className="grid gap-6 md:grid-cols-5">
+            <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-5">
                 <StatCard title="Active Deployments" value={stats.activeDeployments} icon={<MapPin />} color="violet" />
                 <StatCard title="Guards on Duty" value={stats.guardsOnDuty} icon={<Zap />} color="emerald" />
                 <StatCard title="Open Incidents" value={stats.openIncidents} icon={<AlertTriangle />} color="rose" />
@@ -137,14 +137,14 @@ export default function AgencyDashboard() {
 
             {/* ── Panel 1: Attendance Summary ── */}
             <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-                <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                    <div className="h-8 w-8 bg-emerald-50 rounded-xl flex items-center justify-center">
+                <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center gap-3">
+                    <div className="h-8 w-8 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
                         <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     </div>
-                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-700">Today&apos;s Attendance Summary</h3>
+                    <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Today&apos;s Attendance Summary</h3>
                 </div>
-                <CardContent className="p-8">
-                    <div className="grid grid-cols-4 gap-6">
+                <CardContent className="p-4 sm:p-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
                         <div className="text-center p-4 bg-emerald-50/50 rounded-2xl">
                             <p className="text-3xl font-black text-emerald-600">{stats.attendanceSummary.present}</p>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 mt-1">Present</p>
@@ -175,16 +175,16 @@ export default function AgencyDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* ── Panel 2: Today's Active Deployments ── */}
                 <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50">
-                    <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-violet-50 rounded-xl flex items-center justify-center">
+                            <div className="h-8 w-8 bg-violet-50 rounded-xl flex items-center justify-center shrink-0">
                                 <MapPin className="h-4 w-4 text-violet-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-700">Today&apos;s Deployments</h3>
+                            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Today&apos;s Deployments</h3>
                         </div>
                         <Badge variant="outline" className="font-black text-[10px]">{todayDeployments.length}</Badge>
                     </div>
-                    <CardContent className="p-6 max-h-[400px] overflow-y-auto">
+                    <CardContent className="p-4 sm:p-6 max-h-[400px] overflow-y-auto">
                         {todayDeployments.length === 0 ? (
                             <div className="text-center py-12">
                                 <CalendarDays className="h-10 w-10 text-slate-200 mx-auto mb-3" />
@@ -216,16 +216,16 @@ export default function AgencyDashboard() {
 
                 {/* ── Panel 3: Guards on Duty ── */}
                 <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50">
-                    <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-emerald-50 rounded-xl flex items-center justify-center">
+                            <div className="h-8 w-8 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
                                 <Shield className="h-4 w-4 text-emerald-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-700">Guards on Duty</h3>
+                            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Guards on Duty</h3>
                         </div>
                         <Badge variant="outline" className="font-black text-[10px]">{guardsOnDutyList.length}</Badge>
                     </div>
-                    <CardContent className="p-6 max-h-[400px] overflow-y-auto">
+                    <CardContent className="p-4 sm:p-6 max-h-[400px] overflow-y-auto">
                         {guardsOnDutyList.length === 0 ? (
                             <div className="text-center py-12">
                                 <Users className="h-10 w-10 text-slate-200 mx-auto mb-3" />
@@ -257,18 +257,18 @@ export default function AgencyDashboard() {
 
                 {/* ── Panel 4: Open Incidents ── */}
                 <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50">
-                    <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-rose-50 rounded-xl flex items-center justify-center">
+                            <div className="h-8 w-8 bg-rose-50 rounded-xl flex items-center justify-center shrink-0">
                                 <AlertTriangle className="h-4 w-4 text-rose-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-700">Open Incidents</h3>
+                            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Open Incidents</h3>
                         </div>
                         <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary" asChild>
                             <Link href={`/${agencySlug}/incidents`}>View All <ArrowRight className="h-3 w-3 ml-1" /></Link>
                         </Button>
                     </div>
-                    <CardContent className="p-6 max-h-[400px] overflow-y-auto">
+                    <CardContent className="p-4 sm:p-6 max-h-[400px] overflow-y-auto">
                         {recentIncidents.length === 0 ? (
                             <div className="text-center py-12">
                                 <ShieldCheck className="h-10 w-10 text-slate-200 mx-auto mb-3" />
@@ -300,18 +300,18 @@ export default function AgencyDashboard() {
 
                 {/* ── Panel 5: Recent Activity Feed ── */}
                 <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50">
-                    <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <div className="h-8 w-8 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                                 <Activity className="h-4 w-4 text-blue-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-700">Recent Activity</h3>
+                            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Recent Activity</h3>
                         </div>
                         <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary" asChild>
                             <Link href={`/${agencySlug}/audit-logs`}>Full Log <ArrowRight className="h-3 w-3 ml-1" /></Link>
                         </Button>
                     </div>
-                    <CardContent className="p-6 max-h-[400px] overflow-y-auto">
+                    <CardContent className="p-4 sm:p-6 max-h-[400px] overflow-y-auto">
                         {recentActivity.length === 0 ? (
                             <div className="text-center py-12">
                                 <Clock className="h-10 w-10 text-slate-200 mx-auto mb-3" />

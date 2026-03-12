@@ -257,7 +257,7 @@ export default function IncidentsPage() {
                 ) : undefined}
             />
 
-            <div className="grid gap-6 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4">
                 <StatCard title="Total Incidents" value={stats.total} icon={<FileWarning />} color="slate" />
                 <StatCard title="Open" value={stats.open} icon={<AlertTriangle />} color="rose" />
                 <StatCard title="Under Review" value={stats.underReview} icon={<Clock />} color="amber" />
@@ -270,7 +270,7 @@ export default function IncidentsPage() {
                         placeholder="Search by title or reporter..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="h-10 rounded-xl bg-slate-50 border-slate-200 max-w-xs"
+                        className="h-10 rounded-xl bg-slate-50 border-slate-200 w-full sm:max-w-xs"
                     />
                     <select
                         value={statusFilter}
@@ -413,7 +413,7 @@ export default function IncidentsPage() {
                                         rows={4}
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Type</Label>
                                         <select
@@ -552,7 +552,7 @@ export default function IncidentsPage() {
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-wider text-slate-400 mb-1">Reported By</p>
                                     <p className="font-bold text-slate-900">{selectedIncident.reporter?.fullName}</p>

@@ -267,7 +267,7 @@ export default function AttendancePage() {
             )}
 
             {/* Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard title="Present" value={stats.present} icon={<CheckCircle2 />} color="emerald" />
                 <StatCard title="Late" value={stats.late} icon={<Clock />} color="amber" />
                 <StatCard title="Absent" value={stats.absent} icon={<XCircle />} color="rose" />
@@ -293,7 +293,7 @@ export default function AttendancePage() {
                                     transition={{ duration: 0.2, delay: idx * 0.02 }}
                                     className="group hover:bg-slate-50/50 transition-colors"
                                 >
-                                    <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
+                                    <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                                         <div className="flex items-center gap-4">
                                             <Avatar className="h-12 w-12 rounded-2xl border-2 border-slate-50 group-hover:border-primary/20 group-hover:scale-110 transition-all shadow-sm">
                                                 <AvatarFallback className="bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-500 font-black text-xs uppercase">

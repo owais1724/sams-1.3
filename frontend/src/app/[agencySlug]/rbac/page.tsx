@@ -211,7 +211,7 @@ export default function RBACPage() {
                                 transition={{ duration: 0.2, delay: idx * 0.03 }}
                                 className="group hover:bg-slate-50/50 transition-colors"
                             >
-                                <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
+                                <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                                     <div className="flex items-center gap-4">
                                         <div className={cn(
                                             "h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm border-2 transition-transform group-hover:scale-110",

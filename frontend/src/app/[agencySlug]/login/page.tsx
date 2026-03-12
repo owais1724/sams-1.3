@@ -95,9 +95,9 @@ export default function AgencyAdminLogin() {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F766E] font-outfit p-4 relative overflow-hidden selection:bg-teal-500/30">
             {/* Soft Organic Teal Shapes */}
-            <div className="absolute inset-0 z-0">
-                <div className="absolute top-[10%] left-[10%] w-[400px] h-[400px] bg-white/5 blur-[100px] rounded-full" />
-                <div className="absolute bottom-[10%] right-[10%] w-[300px] h-[300px] bg-teal-400/10 blur-[80px] rounded-full" />
+            <div className="absolute inset-0 z-0 overflow-hidden">
+                <div className="absolute top-[10%] left-[10%] w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] lg:w-[400px] lg:h-[400px] bg-white/5 blur-[100px] rounded-full" />
+                <div className="absolute bottom-[10%] right-[10%] w-[150px] h-[150px] sm:w-[250px] sm:h-[250px] lg:w-[300px] lg:h-[300px] bg-teal-400/10 blur-[80px] rounded-full" />
             </div>
 
             <motion.div

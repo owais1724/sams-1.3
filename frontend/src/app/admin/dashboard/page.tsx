@@ -164,7 +164,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="rounded-[32px] border border-slate-100 bg-white shadow-2xl shadow-slate-200/60 overflow-hidden">
-                <div className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-7 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                <div className="px-4 sm:px-8 py-4 sm:py-7 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-black text-slate-900">Agency Directory</h3>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Active Network Nodes</p>
@@ -174,14 +174,14 @@ export default function AdminDashboard() {
                     </Badge>
                 </div>
                 <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200">
-                    <Table className="min-w-[900px]">
+                    <Table className="min-w-[640px]">
                         <TableHeader className="bg-slate-50/30">
                             <TableRow className="hover:bg-transparent border-slate-100 h-14">
                                 <TableHead className="px-4 sm:px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Entity</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Private Endpoint</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Status</TableHead>
                                 <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployed Since</TableHead>
-                                <TableHead className="text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pr-8">Operations</TableHead>
+                                <TableHead className="text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pr-4 sm:pr-8">Operations</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -204,10 +204,10 @@ export default function AdminDashboard() {
                                 </TableRow>
                             ) : (
                                 agencies.map((agency) => (
-                                    <TableRow key={agency.id} className="group hover:bg-slate-50/50 transition-colors border-slate-50 h-24">
-                                        <TableCell className="pl-8">
+                                    <TableRow key={agency.id} className="group hover:bg-slate-50/50 transition-colors border-slate-50 sm:h-24">
+                                        <TableCell className="pl-4 sm:pl-8">
                                             <div className="flex flex-col">
-                                                <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors">{agency.name}</span>
+                                                <span className="text-sm sm:text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors">{agency.name}</span>
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">ID: {agency.id.slice(-8).toUpperCase()}</span>
                                             </div>
                                         </TableCell>
@@ -236,8 +236,8 @@ export default function AdminDashboard() {
                                                 day: 'numeric'
                                             })}
                                         </TableCell>
-                                        <TableCell className="pr-8 text-right">
-                                            <div className="flex items-center justify-end gap-2">
+                                        <TableCell className="pr-4 sm:pr-8 text-right">
+                                            <div className="flex items-center justify-end gap-1 sm:gap-2 flex-wrap">
                                                 {/* Toggle Button */}
                                                 <Button
                                                     variant="ghost"

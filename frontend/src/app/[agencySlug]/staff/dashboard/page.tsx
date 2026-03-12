@@ -167,7 +167,7 @@ export default function StaffDashboard() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4">
         <StatCard title="Total Staff" value={userStats.totalStaff} icon={<Users />} color="blue" />
         <StatCard title="Present Today" value={userStats.presentToday} icon={<Zap />} color="emerald" />
         <StatCard title="Active Projects" value={userStats.activeProjects} icon={<Target />} color="violet" />

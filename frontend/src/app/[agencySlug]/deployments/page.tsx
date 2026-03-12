@@ -308,7 +308,7 @@ export default function DeploymentsPage() {
                 ) : undefined}
             />
 
-            <div className="grid gap-6 md:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4">
                 <StatCard title="Total Deployments" value={stats.total} icon={<Shield />} color="teal" />
                 <StatCard title="Active" value={stats.active} icon={<MapPin />} color="emerald" />
                 <StatCard title="Planned" value={stats.planned} icon={<Calendar />} color="blue" />
@@ -316,12 +316,12 @@ export default function DeploymentsPage() {
             </div>
 
             <ControlPanel count={filtered.length} totalLabel="Deployments">
-                <div className="flex items-center gap-3 flex-1">
+                <div className="flex items-center gap-3 flex-1 flex-wrap">
                     <Input
                         placeholder="Search by site or shift..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="h-10 rounded-xl bg-slate-50 border-slate-200 max-w-xs"
+                        className="h-10 rounded-xl bg-slate-50 border-slate-200 w-full sm:max-w-xs"
                     />
                     <select
                         value={statusFilter}
@@ -433,7 +433,7 @@ export default function DeploymentsPage() {
 
             {/* Create Deployment Dialog */}
             <Dialog open={showCreate} onOpenChange={setShowCreate}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black">Create Deployment</DialogTitle>
                     </DialogHeader>
@@ -538,7 +538,7 @@ export default function DeploymentsPage() {
 
             {/* Edit Deployment Dialog */}
             <Dialog open={!!editingDeployment} onOpenChange={(open) => { if (!open) setEditingDeployment(null) }}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black">Edit Deployment</DialogTitle>
                     </DialogHeader>
@@ -663,7 +663,7 @@ function AssignGuardsDialog({
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-xl font-black">Manage Guards</DialogTitle>
                 </DialogHeader>

@@ -93,7 +93,7 @@ export default function ClientsPage() {
                                 transition={{ duration: 0.2, delay: idx * 0.03 }}
                                 className="group hover:bg-slate-50/50 transition-colors"
                             >
-                                <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-7">
+                                <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                                     <div className="flex items-center gap-4">
                                         <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-110 group-hover:border-primary/20 transition-all shrink-0">
                                             <Building className="h-6 w-6 text-slate-300 group-hover:text-primary transition-colors" />

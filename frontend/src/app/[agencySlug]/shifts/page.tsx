@@ -411,7 +411,7 @@ export default function ShiftsPage() {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="space-y-0">
                         <FormLabelBase label="Start Time" required />
                         <TimePickerAmPm
@@ -440,7 +440,7 @@ export default function ShiftsPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         <StatCard title="Total Shifts" value={shifts.length} icon={<Shield />} color="teal" />
         <StatCard title="Assignments Today" value={totalAssignments} icon={<Users />} color="blue" />
         <StatCard title="Late Arrivals" value={lateCount} icon={<AlertTriangle />} color="amber" />
@@ -775,7 +775,7 @@ export default function ShiftsPage() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-0">
                 <FormLabelBase label="Start Time" required />
                 <TimePickerAmPm

@@ -186,7 +186,7 @@ export default function EmployeesPage() {
                                         transition={{ duration: 0.2, delay: idx * 0.03 }}
                                         className="group hover:bg-slate-50/50 transition-colors"
                                     >
-                                        <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
+                                        <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                                             <div className="flex items-center gap-4">
                                                 <Avatar className="h-12 w-12 rounded-2xl border-2 border-slate-50 shadow-sm transition-all group-hover:scale-110 group-hover:border-primary/20">
                                                     <AvatarFallback className="bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-500 font-black uppercase">
@@ -283,22 +283,22 @@ export default function EmployeesPage() {
 
                     <div className="bg-slate-900 p-5 sm:p-10 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 rotate-12" />
-                        <div className="relative flex items-center gap-6">
-                            <Avatar className="h-24 w-24 border-4 border-white/10 shadow-2xl rounded-[32px] overflow-hidden">
-                                <AvatarFallback className="bg-primary text-white text-3xl font-black uppercase">
+                        <div className="relative flex items-center gap-4 sm:gap-6">
+                            <Avatar className="h-16 w-16 sm:h-24 sm:w-24 border-4 border-white/10 shadow-2xl rounded-[24px] sm:rounded-[32px] overflow-hidden shrink-0">
+                                <AvatarFallback className="bg-primary text-white text-xl sm:text-3xl font-black uppercase">
                                     {profileDialog.employee?.fullName?.slice(0, 2)}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
                                 <div className="px-3 py-1 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] w-fit mb-3 border border-primary/20">Operational Profile</div>
-                                <h2 className="text-3xl font-black tracking-tight leading-none truncate pr-4">{profileDialog.employee?.fullName}</h2>
+                                <h2 className="text-xl sm:text-3xl font-black tracking-tight leading-none truncate pr-4">{profileDialog.employee?.fullName}</h2>
                                 <p className="text-slate-400 font-black text-[10px] mt-2 uppercase tracking-[0.3em]">{profileDialog.employee?.employeeCode || 'DEEPLAYED_OPERATOR'}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-10 space-y-10 bg-white">
-                        <div className="grid grid-cols-2 gap-6 sm:gap-10">
+                    <div className="p-5 sm:p-10 space-y-10 bg-white">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                             {[
                                 { icon: <ShieldCheck />, label: 'Designation', value: profileDialog.employee?.designation?.name || "UNSET" },
                                 { icon: <Wallet />, label: 'Monthly Salary', value: `${profileDialog.employee?.salaryCurrency} ${profileDialog.employee?.basicSalary?.toLocaleString()}` },
@@ -314,7 +314,7 @@ export default function EmployeesPage() {
                             ))}
                         </div>
 
-                        <div className="pt-10 border-t border-slate-50 flex items-center justify-between">
+                        <div className="pt-10 border-t border-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div className="flex flex-col">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Management</p>
                                 <p className="text-[11px] text-slate-400 font-medium font-italic">Record deletion requires confirmation.</p>

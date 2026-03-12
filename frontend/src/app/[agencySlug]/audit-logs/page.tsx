@@ -140,7 +140,7 @@ export default function AuditLogsPage() {
 
                                 <div className="space-y-3">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Forensic Metadata</p>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-bold text-slate-400 uppercase">Operator Node</p>
                                             <p className="text-xs font-black text-slate-900">{selectedLog.user?.fullName || "SYSTEM_DAEMON"}</p>
@@ -193,7 +193,7 @@ export default function AuditLogsPage() {
                             const LogIcon = getIcon(log.action)
                             return (
                                 <TableRow key={log.id} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
+                                    <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                                         <div className="flex flex-col">
                                             <span className="font-extrabold text-slate-900">{new Date(log.createdAt).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}</span>
                                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{new Date(log.createdAt).toLocaleDateString()}</span>

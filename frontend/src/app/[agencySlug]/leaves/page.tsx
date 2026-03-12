@@ -244,7 +244,7 @@ export default function LeavesPage() {
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div className="space-y-0">
                       <FormLabelBase label="From Date" required />
                       <Input
@@ -293,7 +293,7 @@ export default function LeavesPage() {
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           title="Review Required"
           value={leaveRequests.filter(canApprove).length}
@@ -326,7 +326,7 @@ export default function LeavesPage() {
                   transition={{ duration: 0.2, delay: idx * 0.02 }}
                   className="group hover:bg-slate-50/50 transition-colors"
                 >
-                  <TableCell className="px-4 sm:px-4 sm:px-8 py-4 sm:py-5 sm:py-6">
+                  <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 font-black group-hover:border-primary/20 group-hover:text-primary group-hover:scale-110 transition-all shadow-sm">
                         {leave.employee?.fullName?.charAt(0) || <User className="h-5 w-5" />}
@@ -416,7 +416,7 @@ export default function LeavesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-1">
                   <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Leave Type</div>
                   <div className="font-extrabold text-slate-900 italic text-sm">{viewingLeave.leaveType.replace(/_/g, " ")}</div>
@@ -427,7 +427,7 @@ export default function LeavesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-1">
                   <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Start Date</div>
                   <div className="font-extrabold text-slate-900 italic text-sm">{formatDate(viewingLeave.startDate, { day: '2-digit', month: 'long', year: 'numeric' })}</div>
