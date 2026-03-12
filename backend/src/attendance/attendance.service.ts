@@ -15,21 +15,32 @@ export class AttendanceService {
    * Returns 'PRESENT' or 'LATE', or throws if outside the allowed window.
    */
   private validateShiftTiming(startTime: string, endTime: string, shiftName?: string): string {
-    const now = new Date();
+    // Use agency timezone (TZ env var) — fallback to Asia/Kolkata
+    const tz = process.env.TZ || 'Asia/Kolkata';
+    const nowUTC = new Date();
+    // Get current time in the target timezone
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(nowUTC);
+    const get = (type: string) => parseInt(parts.find(p => p.type === type)?.value || '0');
+    const localNow = new Date(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
+
     const [sh, sm] = startTime.split(':').map(Number);
     const [eh, em] = endTime.split(':').map(Number);
 
-    const shiftStart = new Date();
+    const shiftStart = new Date(localNow);
     shiftStart.setHours(sh, sm, 0, 0);
 
-    const shiftEnd = new Date();
+    const shiftEnd = new Date(localNow);
     shiftEnd.setHours(eh, em, 0, 0);
 
     // Handle overnight shifts (e.g. 22:00 - 06:00)
     if (shiftEnd <= shiftStart) {
-      // If current time is after midnight, shift started yesterday → shiftStart goes back a day
-      // If current time is before midnight, shift ends tomorrow → shiftEnd goes forward a day
-      if (now.getHours() < 12) {
+      if (localNow.getHours() < 12) {
         shiftStart.setDate(shiftStart.getDate() - 1);
       } else {
         shiftEnd.setDate(shiftEnd.getDate() + 1);
@@ -39,14 +50,13 @@ export class AttendanceService {
     const label = shiftName ? ` (${shiftName})` : '';
     const earlyOpen = new Date(shiftStart.getTime() - EARLY_WINDOW_MINUTES * 60000);
 
-    if (now < earlyOpen) {
-      const startFormatted = startTime;
+    if (localNow < earlyOpen) {
       throw new ForbiddenException(
-        `Too early to check in. Your shift${label} starts at ${startFormatted}. Check-in opens 30 minutes before.`,
+        `Too early to check in. Your shift${label} starts at ${startTime}. Check-in opens 30 minutes before.`,
       );
     }
 
-    if (now > shiftEnd) {
+    if (localNow > shiftEnd) {
       throw new ForbiddenException(
         `Your shift${label} (${startTime} – ${endTime}) has already ended. Check-in is no longer available.`,
       );
@@ -54,7 +64,7 @@ export class AttendanceService {
 
     // Within window — determine PRESENT vs LATE
     const lateThreshold = new Date(shiftStart.getTime() + LATE_GRACE_MINUTES * 60000);
-    return now > lateThreshold ? 'LATE' : 'PRESENT';
+    return localNow > lateThreshold ? 'LATE' : 'PRESENT';
   }
 
   async findAll(agencyId: string, todayOnly: boolean, employeeId?: string) {
