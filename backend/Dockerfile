@@ -27,4 +27,4 @@ COPY --from=builder /app/scripts ./scripts
 
 EXPOSE 3000
 
-CMD sh -c "node -e \"const { execSync } = require('child_process'); try { const url = process.env.DATABASE_URL; const cmd = 'psql ' + url + ' -f scripts/fix-fk-constraints.sql'; execSync(cmd, {stdio: 'inherit'}); } catch(e) { console.log('FK fix skipped:', e.message); }\" && npx prisma db push --accept-data-loss && npm run start:prod"
+CMD sh -c "npx prisma db push --accept-data-loss && npx prisma db seed && npm run start:prod"
