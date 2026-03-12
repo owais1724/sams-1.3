@@ -31,7 +31,11 @@ const nextConfig: NextConfig = {
       ];
     }
 
-    const base = backendUrl.replace(/\/$/, ""); // Strip trailing slash
+    // Ensure URL has a protocol prefix
+    let base = backendUrl.replace(/\/$/, ""); // Strip trailing slash
+    if (!base.startsWith("http://") && !base.startsWith("https://")) {
+      base = `https://${base}`;
+    }
 
     return [
       {
