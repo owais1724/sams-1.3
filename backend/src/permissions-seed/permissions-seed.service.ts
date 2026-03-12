@@ -45,6 +45,14 @@ export class PermissionsSeedService implements OnModuleInit {
         'view_payroll', 'manage_payroll',
         // Reports
         'view_reports',
+        // Shifts
+        'view_shifts', 'manage_shifts',
+        // Deployments
+        'view_deployments', 'manage_deployments',
+        // Incidents
+        'view_incidents', 'report_incident', 'manage_incidents',
+        // Dashboard
+        'view_dashboard',
     ];
 
     constructor(private prisma: PrismaService) { }

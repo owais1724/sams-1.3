@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { Calendar, Clock, Users, CheckCircle2, XCircle, AlertCircle, MapPin, Building2, Activity, Shield } from "lucide-react"
+import { Calendar, Clock, Users, CheckCircle2, XCircle, AlertCircle, MapPin, Building2, Activity, Shield, Camera } from "lucide-react"
 import {
     Table,
     TableBody,
@@ -25,6 +25,7 @@ import {
     SectionHeading
 } from "@/components/ui/design-system"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AttendanceCheckIn } from "@/components/common/AttendanceCheckIn"
 import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
@@ -37,9 +38,14 @@ export default function AttendancePage() {
     const [loading, setLoading] = useState(true)
     const [attendanceData, setAttendanceData] = useState<any[]>([])
     const [projects, setProjects] = useState<any[]>([])
+    const [activeDeployments, setActiveDeployments] = useState<any[]>([])
     const [selectedProject, setSelectedProject] = useState<string>("")
-    const [myStatus, setMyStatus] = useState<any>(null)
+    const [selectedDeployment, setSelectedDeployment] = useState<string>("")
     const [isChecking, setIsChecking] = useState(false)
+    const [attendanceCheckInOpen, setAttendanceCheckInOpen] = useState(false)
+
+    // Does this user have active deployments today?
+    const hasDeployments = activeDeployments.length > 0
 
     const isStaff = user?.role?.toLowerCase().includes('staff') || user?.role?.toLowerCase().includes('guard')
     const isAdmin = user?.role?.toLowerCase().includes('admin')
@@ -49,19 +55,37 @@ export default function AttendancePage() {
     const fetchData = async () => {
         setLoading(true)
         try {
-            const [attendanceRes, projectsRes] = await Promise.all([
+            const [attendanceRes, projectsRes, deploymentsRes] = await Promise.all([
                 api.get(`/attendance?today=true`),
-                canMark ? api.get('/projects') : Promise.resolve({ data: [] })
+                canMark ? api.get('/projects') : Promise.resolve({ data: [] }),
+                canMark ? api.get('/deployments/my-schedule').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
             ])
 
             const data = attendanceRes.data || []
             setAttendanceData(data)
-            setProjects(projectsRes.data || [])
 
-            if (canMark && user) {
-                const myRecord = data.find((a: any) => a.employee?.userId === user.id || (user.employeeId && a.employeeId === user.employeeId))
-                setMyStatus(myRecord)
+            // Check for active deployments today
+            const today = new Date()
+            const myDeployments = (deploymentsRes.data || []).filter((d: any) => {
+                if (d.status !== 'active') return false
+                const start = new Date(d.startDate)
+                const end = new Date(d.endDate)
+                start.setHours(0, 0, 0, 0)
+                end.setHours(23, 59, 59, 999)
+                return today >= start && today <= end
+            })
+            setActiveDeployments(myDeployments)
+            
+            // Filter projects - for staff, show only assigned projects
+            let filteredProjects = projectsRes.data || []
+            if (isStaff && user?.employeeId) {
+                filteredProjects = filteredProjects.filter((p: any) => 
+                    p.assignedEmployees?.some((emp: any) => emp.id === user.employeeId)
+                )
             }
+            setProjects(filteredProjects)
+
+            // Don't set myStatus here - will be calculated based on selected project
         } catch (error: any) {
             toast.error("Failed to load attendance data.")
         } finally {
@@ -69,35 +93,41 @@ export default function AttendancePage() {
         }
     }
 
+    // Calculate attendance status for selected site (project or deployment)
+    const getAttendanceStatus = () => {
+        if (!user) return null
+        if (hasDeployments) {
+            if (!selectedDeployment) return null
+            return attendanceData.find((a: any) => 
+                a.deploymentId === selectedDeployment && 
+                (a.employee?.userId === user.id || (user.employeeId && a.employeeId === user.employeeId))
+            )
+        }
+        if (!selectedProject) return null
+        return attendanceData.find((a: any) => 
+            a.projectId === selectedProject && 
+            (a.employee?.userId === user.id || (user.employeeId && a.employeeId === user.employeeId))
+        )
+    }
+
+    const myStatus = getAttendanceStatus()
+    const selectedSite = hasDeployments ? selectedDeployment : selectedProject
+
     useEffect(() => {
         if (user) fetchData()
     }, [user])
 
-    const handleCheckIn = async () => {
-        if (!selectedProject) {
-            toast.error("Please select a project site.")
+    const handleCheckOut = async () => {
+        if (!selectedSite) {
+            toast.error(hasDeployments ? "Please select a deployment first." : "Please select a project first.")
             return
         }
-
+        
         setIsChecking(true)
         try {
-            await api.post('/attendance/check-in', {
-                projectId: selectedProject,
-                method: 'WEB'
-            })
-            toast.success("Check-in recorded.")
-            fetchData()
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Check-in failed.")
-        } finally {
-            setIsChecking(false)
-        }
-    }
-
-    const handleCheckOut = async () => {
-        setIsChecking(true)
-        try {
-            await api.post('/attendance/check-out', {})
+            await api.post('/attendance/check-out', 
+                hasDeployments ? { deploymentId: selectedDeployment } : { projectId: selectedProject }
+            )
             toast.success("Check-out recorded.")
             fetchData()
         } catch (error: any) {
@@ -107,11 +137,25 @@ export default function AttendancePage() {
         }
     }
 
+    // Deduplicate attendance stats by employee (worst status wins: ABSENT > LATE > PRESENT)
+    const statusPriority: Record<string, number> = { ABSENT: 3, LATE: 2, PRESENT: 1 }
+    const employeeStatusMap = new Map<string, string>()
+    for (const a of attendanceData) {
+        const empId = a.employeeId
+        if (!empId) continue
+        const current = employeeStatusMap.get(empId)
+        const currentP = current ? (statusPriority[current] || 0) : 0
+        const newP = statusPriority[a.status?.toUpperCase()] || 0
+        if (newP >= currentP) {
+            employeeStatusMap.set(empId, a.status?.toUpperCase())
+        }
+    }
+    const uniqueStatuses = Array.from(employeeStatusMap.values())
     const stats = {
-        present: attendanceData.filter(a => a.status === 'PRESENT').length,
-        late: attendanceData.filter(a => a.status === 'LATE').length,
-        absent: attendanceData.filter(a => a.status === 'ABSENT').length,
-        total: attendanceData.length
+        present: uniqueStatuses.filter(s => s === 'PRESENT').length,
+        late: uniqueStatuses.filter(s => s === 'LATE').length,
+        absent: uniqueStatuses.filter(s => s === 'ABSENT').length,
+        total: employeeStatusMap.size
     }
 
     if (loading && attendanceData.length === 0) return <PageLoading message="Synchronizing Attendance..." />
@@ -138,38 +182,47 @@ export default function AttendancePage() {
                                     <h2 className="text-2xl font-black text-white tracking-tight uppercase">Check-In / Out</h2>
                                 </div>
                                 <p className="text-slate-400 text-sm font-bold pr-10 leading-relaxed italic opacity-80">
-                                    {myStatus?.checkOut
-                                        ? "Shift completed. All metrics logged."
-                                        : (!myStatus ? "Please select your project site to check in." : "Active shift in progress.")}
+                                    {selectedSite && myStatus?.checkOut
+                                        ? "Shift completed for this site. Select another site to mark attendance."
+                                        : (selectedSite && myStatus && !myStatus.checkOut ? "Active shift in progress." : (hasDeployments ? "Select your deployment to check in." : "Select your project site to check in."))}
                                 </p>
                             </div>
 
                             <div className="flex flex-col md:flex-row items-center gap-5 w-full md:w-auto">
-                                {!myStatus ? (
-                                    <>
-                                        <div className="w-full md:w-72">
-                                            <Select onValueChange={setSelectedProject}>
-                                                <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:text-slate-900 font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
-                                                    <SelectValue placeholder="SELECT PROJECT SITE" />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 shadow-2xl p-2">
-                                                    {projects.map(p => (
-                                                        <SelectItem key={p.id} value={p.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white/70 focus:bg-white/10 focus:text-white data-[state=checked]:text-white data-[state=checked]:bg-white/5 transition-all cursor-pointer">
-                                                            {p.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <Button
-                                            onClick={handleCheckIn}
-                                            disabled={isChecking}
-                                            className="h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white px-12 font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl shadow-primary/30 transition-all w-full md:w-auto active:scale-95"
-                                        >
-                                            {isChecking ? "CHECKING..." : "CHECK IN"}
-                                        </Button>
-                                    </>
-                                ) : !myStatus.checkOut ? (
+                                {/* Always show project selector */}
+                                <div className="w-full md:w-72">
+                                    {hasDeployments ? (
+                                        <Select value={selectedDeployment} onValueChange={setSelectedDeployment}>
+                                            <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:text-slate-900 font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
+                                                <SelectValue placeholder="SELECT DEPLOYMENT" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 shadow-2xl p-2">
+                                                {activeDeployments.map(d => (
+                                                    <SelectItem key={d.id} value={d.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white/70 focus:bg-white/10 focus:text-white data-[state=checked]:text-white data-[state=checked]:bg-white/5 transition-all cursor-pointer">
+                                                        {d.client?.name || d.clientId} — {d.shift?.name || 'Shift'}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Select value={selectedProject} onValueChange={setSelectedProject}>
+                                            <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:text-slate-900 font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
+                                                <SelectValue placeholder="SELECT YOUR SITE" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 shadow-2xl p-2">
+                                                {projects.map(p => (
+                                                    <SelectItem key={p.id} value={p.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white/70 focus:bg-white/10 focus:text-white data-[state=checked]:text-white data-[state=checked]:bg-white/5 transition-all cursor-pointer">
+                                                        {p.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                </div>
+
+                                {/* Show appropriate button based on selected project status */}
+                                {selectedSite && myStatus && !myStatus.checkOut ? (
+                                    // Already checked in, show check out
                                     <div className="flex items-center gap-8">
                                         <div className="text-right hidden md:block border-r border-white/10 pr-8">
                                             <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-0.5">Checked In At</div>
@@ -183,7 +236,8 @@ export default function AttendancePage() {
                                             {isChecking ? "LOADING..." : "CHECK OUT"}
                                         </Button>
                                     </div>
-                                ) : (
+                                ) : selectedSite && myStatus?.checkOut ? (
+                                    // Completed shift
                                     <div className="flex items-center gap-6 bg-white/5 border border-white/10 px-10 py-5 rounded-[32px] backdrop-blur-xl shadow-2xl">
                                         <div className="h-12 w-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
                                             <CheckCircle2 className="h-6 w-6 text-emerald-500" />
@@ -193,7 +247,19 @@ export default function AttendancePage() {
                                             <div className="text-lg font-black text-white italic">{new Date(myStatus.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} Logged</div>
                                         </div>
                                     </div>
-                                )}
+                                ) : selectedSite ? (
+                                    // No attendance yet, show check in button
+                                    <Button
+                                        onClick={() => {
+                                            setAttendanceCheckInOpen(true)
+                                        }}
+                                        disabled={isChecking}
+                                        className="h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-16 font-black uppercase text-sm tracking-[0.2em] shadow-2xl shadow-emerald-500/30 transition-all w-full md:w-auto active:scale-95 flex items-center gap-3"
+                                    >
+                                        <Camera className="h-6 w-6" />
+                                        MARK ATTENDANCE
+                                    </Button>
+                                ) : null}
                             </div>
                         </div>
                     </div>
@@ -245,7 +311,7 @@ export default function AttendancePage() {
                                             <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center shadow-sm">
                                                 <Building2 className="h-3.5 w-3.5 text-slate-300" />
                                             </div>
-                                            <span className="text-[13px] font-black text-slate-900 tracking-tight">{record.project?.name || "General"}</span>
+                                            <span className="text-[13px] font-black text-slate-900 tracking-tight">{record.project?.name || record.deployment?.client?.name || "General"}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -269,6 +335,24 @@ export default function AttendancePage() {
                     </AnimatePresence>
                 </DataTable>
             </div>
+
+            {/* Attendance Check-In Flow (Photo → QR → GPS) - For all roles */}
+            {canMark && (
+                <AttendanceCheckIn
+                    open={attendanceCheckInOpen}
+                    onOpenChange={setAttendanceCheckInOpen}
+                    onSuccess={fetchData}
+                    {...(hasDeployments ? {
+                        deploymentId: selectedDeployment,
+                        projectName: activeDeployments.find(d => d.id === selectedDeployment)?.client?.name,
+                        projectLocation: activeDeployments.find(d => d.id === selectedDeployment)?.client?.address,
+                    } : {
+                        projectId: selectedProject,
+                        projectName: projects.find(p => p.id === selectedProject)?.name,
+                        projectLocation: projects.find(p => p.id === selectedProject)?.location,
+                    })}
+                />
+            )}
         </div>
     )
 }

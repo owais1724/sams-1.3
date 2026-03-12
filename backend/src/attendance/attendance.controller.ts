@@ -62,4 +62,10 @@ export class AttendanceController {
       data,
     );
   }
+
+  @Post('detect-absent')
+  @Permissions('view_attendance')
+  async detectAbsent(@Request() req) {
+    return this.attendanceService.detectAbsent(req.user.agencyId);
+  }
 }

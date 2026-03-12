@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
 import { TableCell } from "@/components/ui/table"
-import { Plus, Briefcase, MapPin, Activity, Globe, Shield, Clock, Search, Filter } from "lucide-react"
+import { Plus, Briefcase, MapPin, Activity, Globe, Shield, Clock, Search, Filter, Users } from "lucide-react"
 import { ProjectForm } from "@/components/agency/ProjectForm"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,6 +30,7 @@ export default function ProjectsPage() {
     const { user: authUser } = useAuthStore()
     const [projects, setProjects] = useState<any[]>([])
     const [clients, setClients] = useState<any[]>([])
+    const [employees, setEmployees] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
@@ -45,13 +46,15 @@ export default function ProjectsPage() {
 
     const fetchData = async () => {
         try {
-            const [projectsRes, clientsRes] = await Promise.allSettled([
+            const [projectsRes, clientsRes, employeesRes] = await Promise.allSettled([
                 api.get("/projects"),
-                canViewClients ? api.get("/clients") : Promise.resolve({ data: [] })
+                canViewClients ? api.get("/clients") : Promise.resolve({ data: [] }),
+                api.get("/employees")
             ])
 
             if (projectsRes.status === 'fulfilled') setProjects(projectsRes.value.data)
             if (clientsRes.status === 'fulfilled') setClients(clientsRes.value.data)
+            if (employeesRes.status === 'fulfilled') setEmployees(employeesRes.value.data)
         } catch (error) {
             toast.error("Failed to load project intelligence.")
         } finally {
@@ -114,11 +117,11 @@ export default function ProjectsPage() {
                 <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search project by name or location..." />
             </ControlPanel>
 
-            <DataTable columns={['Project Name', 'Client', 'Location', 'Status', 'Actions']}>
+            <DataTable columns={['Project Name', 'Client', 'Location', 'Assigned Staff', 'Status', 'Actions']}>
                 <AnimatePresence mode="popLayout">
                     {filteredProjects.length === 0 ? (
                         <TableRowEmpty
-                            colSpan={5}
+                            colSpan={6}
                             icon={<Briefcase className="h-10 w-10 text-slate-300" />}
                             title="No Results Identified"
                             description="No projects match your current search parameters."
@@ -161,6 +164,21 @@ export default function ProjectsPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-9 w-9 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center">
+                                            <Users className="h-4 w-4 text-emerald-600" />
+                                        </div>
+                                        <div>
+                                            <div className="font-black text-slate-900 text-sm">
+                                                {project._count?.assignedEmployees || 0}
+                                            </div>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                                {project._count?.assignedEmployees === 1 ? 'Guard' : 'Guards'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
                                     <StatusBadge status={project.isActive ? "ACTIVE" : "INACTIVE"} />
                                 </TableCell>
                                 <TableCell className="text-right px-4 sm:px-8">
@@ -189,6 +207,7 @@ export default function ProjectsPage() {
             >
                 <ProjectForm
                     clients={clients}
+                    employees={employees}
                     initialData={editingProject}
                     onSuccess={() => { setOpen(false); setEditingProject(null); fetchData() }}
                     onRefreshClients={fetchData}

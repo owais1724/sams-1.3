@@ -83,13 +83,28 @@ export default function StaffDashboard() {
       const projects = projRes.status === 'fulfilled' ? projRes.value.data : []
       const leaves = leaveRes.status === 'fulfilled' ? leaveRes.value.data : []
 
-      const presentToday = attendance.filter((a: any) => a.status === 'PRESENT').length
+      // Deduplicate attendance by employee — use worst status per employee
+      const employeeStatusMap = new Map<string, string>()
+      const statusPriority: Record<string, number> = { ABSENT: 3, LATE: 2, PRESENT: 1 }
+      for (const a of attendance) {
+        const empId = a.employeeId
+        if (!empId) continue
+        const current = employeeStatusMap.get(empId)
+        const currentP = current ? (statusPriority[current] || 0) : 0
+        const newP = statusPriority[a.status?.toUpperCase()] || 0
+        if (newP >= currentP) {
+          employeeStatusMap.set(empId, a.status?.toUpperCase())
+        }
+      }
+      const uniqueStatuses = Array.from(employeeStatusMap.values())
+      const presentToday = uniqueStatuses.filter(s => s === 'PRESENT').length
+      const absentToday = uniqueStatuses.filter(s => s === 'ABSENT').length
       const activeProjectsCount = projects.filter((p: any) => p.status === 'ACTIVE' || p.isActive).length
 
       setUserStats({
         totalStaff: employees.length,
         presentToday,
-        absentToday: 0,
+        absentToday,
         onLeave: leaves.length,
         activeProjects: activeProjectsCount,
         completedTasks: 0

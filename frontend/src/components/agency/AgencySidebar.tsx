@@ -12,9 +12,13 @@ import {
     CalendarDays,
     Wallet,
     ShieldCheck,
+    Shield,
     X,
     ChevronsLeft,
     ChevronsRight,
+    MapPin,
+    AlertTriangle,
+    Calendar,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -88,6 +92,29 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             href: `/${agencySlug}/attendance`,
             icon: Clock,
             permissions: ["view_attendance", "mark_attendance"]
+        },
+        {
+            name: "Shifts",
+            href: `/${agencySlug}/shifts`,
+            icon: Shield,
+            permissions: ["view_shifts", "manage_shifts"]
+        },
+        {
+            name: "Deployments",
+            href: `/${agencySlug}/deployments`,
+            icon: MapPin,
+            permissions: ["view_deployments", "manage_deployments"]
+        },
+        {
+            name: "Incidents",
+            href: `/${agencySlug}/incidents`,
+            icon: AlertTriangle,
+            permissions: ["view_incidents", "report_incident", "manage_incidents"]
+        },
+        {
+            name: "My Schedule",
+            href: `/${agencySlug}/my-schedule`,
+            icon: Calendar,
         },
         {
             name: "Leaves",

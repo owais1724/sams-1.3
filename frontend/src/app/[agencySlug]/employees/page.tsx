@@ -40,10 +40,12 @@ import {
     Mail,
     Phone,
     Settings2,
-    Search
+    Search,
+    Building2
 } from "lucide-react"
 import { toast } from "@/components/ui/sonner"
 import { EmployeeForm } from "@/components/agency/EmployeeForm"
+import { AssignProjectDialog } from "@/components/agency/AssignProjectDialog"
 import { DesignationManager } from "@/components/agency/DesignationManager"
 import { SearchBar } from "@/components/common/SearchBar"
 import { Input } from "@/components/ui/input"
@@ -65,6 +67,12 @@ export default function EmployeesPage() {
 
     const [deleting, setDeleting] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
+    
+    // Assignment Dialog State
+    const [assignDialog, setAssignDialog] = useState<{ open: boolean, employee: any | null }>({
+        open: false,
+        employee: null
+    })
 
     const { hasPermission } = usePermission();
 
@@ -214,6 +222,17 @@ export default function EmployeesPage() {
                                         <TableCell className="text-right px-4 sm:px-8">
                                             <div className="flex items-center justify-end gap-2">
                                                 <RowViewButton onClick={() => setProfileDialog({ open: true, employee: emp })} />
+                                                <PermissionGuard permission="edit_project">
+                                                    <Button
+                                                        onClick={() => setAssignDialog({ open: true, employee: emp })}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-9 px-3 rounded-xl border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all"
+                                                    >
+                                                        <Building2 className="h-3.5 w-3.5 mr-2 text-blue-600" />
+                                                        <span className="text-xs font-bold">Assign</span>
+                                                    </Button>
+                                                </PermissionGuard>
                                                 <PermissionGuard permission="edit_employee">
                                                     <RowEditButton onClick={() => { setEditingEmployee(emp); setOpenEnroll(true) }} />
                                                 </PermissionGuard>
@@ -325,6 +344,14 @@ export default function EmployeesPage() {
                 variant="danger"
                 description={`Are you sure you want to delete ${profileDialog.employee?.fullName}? This action is irreversible and will remove all employment history.`}
                 confirmText="Delete Record"
+            />
+
+            {/* Assign Project Dialog */}
+            <AssignProjectDialog
+                employee={assignDialog.employee}
+                open={assignDialog.open}
+                onOpenChange={(open) => !open && setAssignDialog({ open: false, employee: null })}
+                onSuccess={fetchData}
             />
         </div>
     )

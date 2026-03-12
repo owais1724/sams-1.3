@@ -24,6 +24,11 @@ const api = axios.create({
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Skip canceled/aborted requests (React strict-mode unmount, AbortController)
+        if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') {
+            return Promise.reject(error);
+        }
+
         const status = error.response?.status;
         const url = error.config?.url || 'Unknown URL';
         const method = error.config?.method?.toUpperCase() || 'UNKNOWN';

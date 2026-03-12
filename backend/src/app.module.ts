@@ -18,6 +18,11 @@ import { PayrollModule } from './payroll/payroll.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { PermissionsSeedModule } from './permissions-seed/permissions-seed.module';
+import { ShiftsModule } from './shifts/shifts.module';
+import { ShiftAssignmentsModule } from './shift-assignments/shift-assignments.module';
+import { DeploymentsModule } from './deployments/deployments.module';
+import { IncidentsModule } from './incidents/incidents.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -42,6 +47,11 @@ import { PermissionsSeedModule } from './permissions-seed/permissions-seed.modul
     AttendanceModule,
     AuditLogsModule,
     PermissionsSeedModule,
+    ShiftsModule,
+    ShiftAssignmentsModule,
+    DeploymentsModule,
+    IncidentsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
