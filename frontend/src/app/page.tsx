@@ -81,53 +81,67 @@ export default function RootLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F766E] font-outfit p-4 relative overflow-hidden selection:bg-teal-500/30">
-      {/* Soft Organic Teal Shapes */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute top-[10%] left-[10%] w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] lg:w-[400px] lg:h-[400px] bg-white/5 blur-[100px] rounded-full" />
-        <div className="absolute bottom-[10%] right-[10%] w-[150px] h-[150px] sm:w-[250px] sm:h-[250px] lg:w-[300px] lg:h-[300px] bg-teal-400/10 blur-[80px] rounded-full" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black font-inter p-4 relative overflow-hidden selection:bg-primary/30">
+      {/* Dynamic Background Effects */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-primary/10 blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full animate-pulse delay-700" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
       </div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-[460px] z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="w-full max-w-[500px] z-10"
       >
-        {/* Logo Section */}
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-16 h-16 bg-white shadow-2xl rounded-2xl flex items-center justify-center mb-5 ring-4 ring-white/10">
-            <ShieldCheck className="w-8 h-8 text-[#0F766E]" />
+        {/* Branding Hub */}
+        <div className="flex flex-col items-center mb-12">
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="w-20 h-20 bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] p-[2px] rounded-[24px] mb-6 shadow-[0_0_50px_rgba(255,184,0,0.3)]"
+          >
+            <div className="w-full h-full bg-black rounded-[22px] flex items-center justify-center">
+              <ShieldCheck className="w-10 h-10 text-primary" />
+            </div>
+          </motion.div>
+          <h1 className="text-3xl font-black text-white tracking-[0.4em] uppercase italic">HYPER<span className="text-primary not-italic">CORE</span></h1>
+          <div className="flex items-center gap-3 mt-4">
+            <div className="h-[1px] w-8 bg-primary/30" />
+            <span className="text-[10px] text-primary/60 font-black uppercase tracking-[0.5em]">Command & Control Hub</span>
+            <div className="h-[1px] w-8 bg-primary/30" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-[0.2em] uppercase">SAMS <span className="text-teal-300">PORTAL</span></h1>
         </div>
 
-        <Card className="border-none bg-white rounded-[2rem] md:rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] overflow-hidden relative" suppressHydrationWarning>
-          <CardContent className="p-6 md:p-14" suppressHydrationWarning>
-            <div className="mb-0 text-center">
-              <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Identity Verification</h2>
-              <p className="text-teal-600 font-bold text-[10px] mt-2 uppercase tracking-[0.3em] bg-teal-50 py-1 px-4 rounded-full inline-block italic">Global Security Ecosystem</p>
+        <Card className="border border-white/10 bg-black/60 backdrop-blur-3xl rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden relative">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+          <CardContent className="p-8 md:p-16">
+            <div className="mb-12 text-center">
+              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter uppercase italic">Authorize <span className="text-primary not-italic">Session</span></h2>
+              <p className="text-primary/50 font-black text-[9px] mt-4 uppercase tracking-[0.3em] inline-flex items-center gap-2 bg-primary/5 px-4 py-2 rounded-full border border-primary/10">
+                <Globe className="h-3 w-3" /> System level verification required
+              </p>
             </div>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Identification</FormLabel>
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em] pl-1">Authorized User ID</FormLabel>
                       <FormControl>
                         <div className="relative group">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
+                          <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
                           <Input
-                            placeholder="operator@sams-platform.com"
-                            className="pl-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
+                            placeholder="OPERATOR_CORE_ALPHA"
+                            className="h-16 pl-14 bg-white/5 border-white/5 text-white placeholder:text-white/10 rounded-2xl focus:border-primary/50 focus:bg-white/[0.08] transition-all font-black uppercase tracking-widest italic"
                             {...field}
                           />
                         </div>
                       </FormControl>
-                      <FormMessage className="text-[10px] text-red-500 font-bold" />
+                      <FormMessage className="text-[10px] text-rose-500 font-bold uppercase tracking-widest" />
                     </FormItem>
                   )}
                 />
@@ -135,52 +149,52 @@ export default function RootLoginPage() {
                   control={form.control}
                   name="password"
                   render={({ field }) => (
-                    <FormItem className="space-y-2">
-                      <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Security Key</FormLabel>
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em] pl-1">Cryptographic Token</FormLabel>
                       <FormControl>
                         <div className="relative group">
-                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
+                          <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
                           <Input
                             type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            className="pl-12 pr-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold"
+                            placeholder="••••••••••••"
+                            className="h-16 pl-14 pr-14 bg-white/5 border-white/5 text-white placeholder:text-white/10 rounded-2xl focus:border-primary/50 focus:bg-white/[0.08] transition-all font-black tracking-[0.5em]"
                             {...field}
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors flex items-center justify-center w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-100"
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                            suppressHydrationWarning={true}
+                            className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20 hover:text-primary transition-colors"
                           >
                             {showPassword ? (
-                              <EyeOff className="w-4 h-4" />
+                              <EyeOff className="w-5 h-5" />
                             ) : (
-                              <Eye className="w-4 h-4" />
+                              <Eye className="w-5 h-5" />
                             )}
                           </button>
                         </div>
                       </FormControl>
-                      <FormMessage className="text-[10px] text-red-500 font-bold" />
+                      <FormMessage className="text-[10px] text-rose-500 font-bold uppercase tracking-widest" />
                     </FormItem>
                   )}
                 />
 
                 <Button
                   type="submit"
-                  className="w-full h-14 bg-[#14B8A6] hover:bg-[#0D9488] text-white font-black rounded-2xl shadow-xl shadow-teal-500/20 transition-all active:scale-[0.98] flex items-center justify-center space-x-2 text-base mt-4 uppercase tracking-widest"
+                  variant="premium"
+                  size="cta"
+                  className="w-full h-20 shadow-[0_20px_40px_rgba(255,184,0,0.15)] mt-6 text-lg tracking-[0.2em]"
                   disabled={loading}
                 >
                   {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Verifying...</span>
-                    </>
+                    <div className="flex items-center gap-4">
+                      <div className="h-5 w-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      <span>Verifying Authority...</span>
+                    </div>
                   ) : (
-                    <>
-                      <span>Secure Authorization</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </>
+                    <div className="flex items-center gap-3">
+                      <span>Establish Connection</span>
+                      <ChevronRight className="w-5 h-5" />
+                    </div>
                   )}
                 </Button>
               </form>
@@ -188,11 +202,16 @@ export default function RootLoginPage() {
           </CardContent>
         </Card>
 
-        {/* Global Stats Footer */}
-        <div className="mt-12 text-center">
-          <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.4em]">
-            Enterprise Unified Access // SAMS SECURE
+        {/* Neural Grid Footer */}
+        <div className="mt-16 text-center">
+          <p className="text-[10px] text-white/30 font-black uppercase tracking-[0.6em] mb-4">
+            Unified Global Infrastructure // encrypted layer-7
           </p>
+          <div className="flex justify-center gap-6 opacity-30">
+            <div className="h-1 w-1 rounded-full bg-white animate-pulse" />
+            <div className="h-1 w-1 rounded-full bg-white animate-pulse delay-700" />
+            <div className="h-1 w-1 rounded-full bg-white animate-pulse delay-1000" />
+          </div>
         </div>
       </motion.div>
     </div>

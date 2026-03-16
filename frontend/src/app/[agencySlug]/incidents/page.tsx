@@ -79,17 +79,17 @@ const INCIDENT_TYPES = [
 ]
 
 const severityLabels: Record<number, { label: string; emoji: string; color: string }> = {
-    1: { label: "Low", emoji: "🟢", color: "bg-blue-50 text-blue-700 border-blue-100" },
-    2: { label: "Medium", emoji: "🟡", color: "bg-amber-50 text-amber-700 border-amber-100" },
-    3: { label: "High", emoji: "🔴", color: "bg-orange-50 text-orange-700 border-orange-100" },
-    4: { label: "Critical", emoji: "⚫", color: "bg-rose-50 text-rose-700 border-rose-100" },
+    1: { label: "Low", emoji: "🟢", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    2: { label: "Medium", emoji: "🟡", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    3: { label: "High", emoji: "🔴", color: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
+    4: { label: "Critical", emoji: "⚫", color: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
 }
 
 const incidentStatusColors: Record<string, string> = {
-    open: "bg-rose-50 text-rose-700 border-rose-100",
-    under_review: "bg-amber-50 text-amber-700 border-amber-100",
-    resolved: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    closed: "bg-slate-100 text-slate-600 border-slate-200",
+    open: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    under_review: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    resolved: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    closed: "bg-white/5 text-white/40 border-white/10",
 }
 
 export default function IncidentsPage() {
@@ -257,42 +257,42 @@ export default function IncidentsPage() {
                 ) : undefined}
             />
 
-            <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4">
-                <StatCard title="Total Incidents" value={stats.total} icon={<FileWarning />} color="slate" />
-                <StatCard title="Open" value={stats.open} icon={<AlertTriangle />} color="rose" />
-                <StatCard title="Under Review" value={stats.underReview} icon={<Clock />} color="amber" />
-                <StatCard title="High/Critical" value={stats.critical} icon={<Shield />} color="orange" />
+            <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4 px-4">
+                <StatCard title="Total Incidents" value={stats.total} icon={<FileWarning className="text-white/40" />} color="slate" className="bg-white/5 border-white/10" />
+                <StatCard title="Open" value={stats.open} icon={<AlertTriangle className="text-rose-400" />} color="rose" className="bg-white/5 border-white/10" />
+                <StatCard title="Under Review" value={stats.underReview} icon={<Clock className="text-amber-400" />} color="amber" className="bg-white/5 border-white/10" />
+                <StatCard title="High/Critical" value={stats.critical} icon={<Shield className="text-orange-400" />} color="orange" className="bg-white/5 border-white/10" />
             </div>
 
-            <ControlPanel count={filtered.length} totalLabel="Incidents">
+            <ControlPanel count={filtered.length} totalLabel="Incidents" className="bg-white/5 border-white/10 px-4">
                 <div className="flex items-center gap-3 flex-1 flex-wrap">
                     <Input
                         placeholder="Search by title or reporter..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="h-10 rounded-xl bg-slate-50 border-slate-200 w-full sm:max-w-xs"
+                        className="h-10 rounded-xl bg-transparent border-white/10 w-full sm:max-w-xs text-white placeholder:text-white/20"
                     />
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
-                        className="h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
+                        className="h-10 rounded-xl bg-white/5 border border-white/10 px-3 text-sm text-white focus:ring-0"
                     >
-                        <option value="">All Status</option>
-                        <option value="open">Open</option>
-                        <option value="under_review">Under Review</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="closed">Closed</option>
+                        <option value="" className="bg-black">All Status</option>
+                        <option value="open" className="bg-black">Open</option>
+                        <option value="under_review" className="bg-black">Under Review</option>
+                        <option value="resolved" className="bg-black">Resolved</option>
+                        <option value="closed" className="bg-black">Closed</option>
                     </select>
                     <select
                         value={severityFilter}
                         onChange={e => setSeverityFilter(e.target.value)}
-                        className="h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
+                        className="h-10 rounded-xl bg-white/5 border border-white/10 px-3 text-sm text-white focus:ring-0"
                     >
-                        <option value="">All Severity</option>
-                        <option value="1">Low</option>
-                        <option value="2">Medium</option>
-                        <option value="3">High</option>
-                        <option value="4">Critical</option>
+                        <option value="" className="bg-black">All Severity</option>
+                        <option value="1" className="bg-black">Low</option>
+                        <option value="2" className="bg-black">Medium</option>
+                        <option value="3" className="bg-black">High</option>
+                        <option value="4" className="bg-black">Critical</option>
                     </select>
                 </div>
             </ControlPanel>
@@ -307,22 +307,22 @@ export default function IncidentsPage() {
                     />
                 ) : (
                     filtered.map(inc => (
-                        <TableRow key={inc.id} className="group hover:bg-slate-50/50">
+                        <TableRow key={inc.id} className="group hover:bg-white/[0.02] border-b border-white/5 transition-colors">
                             <TableCell className="px-4 sm:px-8 py-5">
                                 <div>
-                                    <p className="font-bold text-slate-900">{inc.title}</p>
+                                    <p className="font-black text-white group-hover:text-[#D9A75B] transition-colors">{inc.title}</p>
                                     {inc.description && (
-                                        <p className="text-xs text-slate-400 mt-1 line-clamp-1 max-w-xs">{inc.description}</p>
+                                        <p className="text-[10px] text-white/30 font-bold mt-1 line-clamp-1 max-w-xs uppercase tracking-tight">{inc.description}</p>
                                     )}
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <span className="text-sm text-slate-600 capitalize">
+                                <span className="text-[13px] font-bold text-white/60 capitalize">
                                     {inc.type?.replace("_", " ") || "—"}
                                 </span>
                             </TableCell>
                             <TableCell>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-[13px] font-bold text-white/60">
                                     {inc.deployment?.client?.name || "—"}
                                 </p>
                             </TableCell>
@@ -343,9 +343,9 @@ export default function IncidentsPage() {
                                 </span>
                             </TableCell>
                             <TableCell>
-                                <p className="text-sm font-medium text-slate-700">{inc.reporter?.fullName || "Unknown"}</p>
+                                <p className="text-sm font-bold text-white/80">{inc.reporter?.fullName || "Unknown"}</p>
                             </TableCell>
-                            <TableCell className="text-sm text-slate-500">
+                            <TableCell className="text-[13px] font-bold text-white/40">
                                 {new Date(inc.createdAt).toLocaleDateString()}
                             </TableCell>
                             <TableCell className="px-4 sm:px-8">

@@ -61,7 +61,8 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
         {
             name: "Dashboard",
             href: isStaff ? `/${agencySlug}/staff/dashboard` : `/${agencySlug}/dashboard`,
-            icon: BarChart3
+            icon: BarChart3,
+            permissions: ["view_dashboard"]
         },
         {
             name: "Clients",
@@ -91,7 +92,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             name: "Attendance",
             href: `/${agencySlug}/attendance`,
             icon: Clock,
-            permissions: ["view_attendance", "mark_attendance"]
+            permissions: ["view_attendance", "record_attendance"]
         },
         {
             name: "Shifts",
@@ -138,7 +139,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
 
     if (loading) {
         return (
-            <div className="flex h-screen w-full flex-col bg-[#0d5c56] border-r border-white/5 animate-pulse">
+            <div className="flex h-screen w-full flex-col bg-black border-r border-white/5 animate-pulse">
                 <div className="h-24 border-b border-white/5 px-8 flex items-center gap-4">
                     <div className="h-12 w-12 bg-white/10 rounded-2xl" />
                     <div className="space-y-2">
@@ -276,3 +277,4 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
         </div>
     )
 }
+

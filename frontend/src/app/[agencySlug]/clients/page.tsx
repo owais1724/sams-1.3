@@ -62,11 +62,11 @@ export default function ClientsPage() {
                 }
             />
 
-            <ControlPanel count={clients.length} totalLabel="Active Clients">
-                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find client..." />
-                <Button variant="outline" className="h-14 px-6 rounded-2xl border-slate-100 hover:bg-slate-50 shadow-sm shrink-0">
+            <ControlPanel count={clients.length} totalLabel="Active Clients" className="bg-white/5 border-white/10 px-4">
+                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find client..." className="bg-transparent border-none text-white placeholder:text-white/20" />
+                <Button variant="outline" className="h-14 px-6 rounded-2xl border-white/10 hover:bg-white/5 shadow-sm shrink-0 bg-white/5">
                     <Filter className="h-4 w-4 mr-2" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Filter</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Filter</span>
                 </Button>
             </ControlPanel>
 
@@ -91,33 +91,33 @@ export default function ClientsPage() {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.98 }}
                                 transition={{ duration: 0.2, delay: idx * 0.03 }}
-                                className="group hover:bg-slate-50/50 transition-colors"
+                                className="group hover:bg-white/[0.02] transition-colors border-b border-white/5"
                             >
                                 <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-110 group-hover:border-primary/20 transition-all shrink-0">
-                                            <Building className="h-6 w-6 text-slate-300 group-hover:text-primary transition-colors" />
+                                        <div className="h-12 w-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:border-[#D9A75B]/20 transition-all shrink-0">
+                                            <Building className="h-6 w-6 text-white/40 group-hover:text-[#D9A75B] transition-colors" />
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="font-black text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors truncate">{client.name}</div>
+                                            <div className="font-black text-white text-lg tracking-tight group-hover:text-[#D9A75B] transition-colors truncate">{client.name}</div>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Client</span>
+                                                <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Verified Client</span>
                                             </div>
                                         </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="space-y-1">
-                                        <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
-                                            <Mail className="h-3.5 w-3.5 text-slate-400" />
+                                        <div className="flex items-center gap-2 text-white font-bold text-sm">
+                                            <Mail className="h-3.5 w-3.5 text-white/40" />
                                             {client.email || "N/A"}
                                         </div>
-                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-5">Primary Contact</p>
+                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-5">Primary Contact</p>
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge className="bg-slate-50 border border-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-xl">
+                                    <Badge className="bg-white/5 border border-white/10 text-white font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-xl">
                                         {client.projects?.length || 0} Projects
                                     </Badge>
                                 </TableCell>
@@ -141,10 +141,10 @@ export default function ClientsPage() {
             <FormSheet
                 open={open}
                 onOpenChange={(v) => { setOpen(v); if (!v) setEditingClient(null) }}
-                title={editingClient ? "Modify Client Record" : "Add New Client"}
+                title={editingClient ? "Modify Portfolio Content" : "Establish New Link"}
                 description={editingClient
-                    ? "Update client details and contact information."
-                    : "Add new client and project information."}
+                    ? "Update client assets and communication protocols."
+                    : "Initialize new client intelligence and project linkage."}
             >
                 <ClientForm
                     initialData={editingClient}

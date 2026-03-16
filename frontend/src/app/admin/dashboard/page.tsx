@@ -97,11 +97,19 @@ export default function AdminDashboard() {
     ]
 
     return (
-        <div className="space-y-10 max-w-7xl mx-auto px-4 py-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-12 max-w-7xl mx-auto px-6 py-12 font-inter selection:bg-primary/30">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
                 <div className="flex-1 min-w-0">
-                    <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-2 truncate">System Administration</h1>
-                    <p className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-widest truncate">Global infrastructure command & control</p>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_#FFB800]" />
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">System Level: Authoritative</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white mb-3 truncate italic uppercase">Infrastructure <span className="text-primary not-italic">Command</span></h1>
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.4em] truncate flex items-center gap-2">
+                        <Shield className="h-3 w-3 text-primary/50" />
+                        Global Network Node Management // SAMS HYPERCORE v4.0
+                    </p>
                 </div>
 
                 <Sheet open={open} onOpenChange={(val) => {
@@ -110,27 +118,31 @@ export default function AdminDashboard() {
                 }}>
                     <SheetTrigger asChild>
                         <Button
+                            variant="premium"
+                            size="cta"
                             onClick={() => {
                                 setEditingAgency(null)
                                 setOpen(true)
                             }}
-                            className="h-12 md:h-14 w-full md:w-auto px-6 md:px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-200 transition-all active:scale-[0.98] text-xs md:text-base"
+                            className="h-16 w-full md:w-auto px-10 uppercase tracking-[0.2em]"
                         >
-                            <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5 stroke-[3]" />
-                            INITIALIZE AGENCY
+                            <Plus className="mr-3 h-5 w-5 stroke-[4]" />
+                            Initialize Agency
                         </Button>
                     </SheetTrigger>
-                    <SheetContent className="sm:max-w-[540px] border-l-0 shadow-2xl p-0 rounded-l-[40px] overflow-hidden">
-                        <div className="h-full bg-slate-50/50 flex flex-col">
-                            <div className="p-8 pt-12 overflow-y-auto h-full">
-                                <SheetHeader className="mb-10">
-                                    <SheetTitle className="text-3xl font-black tracking-tight text-slate-900">
-                                        {editingAgency ? "Modify Agency" : "Entity Onboarding"}
+                    <SheetContent className="sm:max-w-[640px] border-l border-white/10 bg-black/95 backdrop-blur-3xl shadow-[0_0_100px_rgba(0,0,0,0.8)] p-0">
+                        <div className="h-full flex flex-col relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                            <div className="p-10 md:p-16 overflow-y-auto h-full relative z-10 scrollbar-hide">
+                                <SheetHeader className="mb-12">
+                                    <div className="h-1 w-12 bg-primary mb-6" />
+                                    <SheetTitle className="text-4xl font-black tracking-tighter text-white uppercase italic">
+                                        {editingAgency ? "Modify Entity" : "Entity Onboarding"}
                                     </SheetTitle>
-                                    <SheetDescription className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-loose">
+                                    <SheetDescription className="text-xs font-black text-primary/60 uppercase tracking-[0.3em] leading-relaxed mt-4">
                                         {editingAgency
-                                            ? "Update agency infrastructure and operational status"
-                                            : "Deploying new security infrastructure instance"}
+                                            ? "Adjust specific node infrastructure and operational parameters"
+                                            : "Provisioning new high-security institutional node instance"}
                                     </SheetDescription>
                                 </SheetHeader>
                                 <AgencyForm
@@ -147,118 +159,125 @@ export default function AdminDashboard() {
                 </Sheet>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            {/* Stat Matrix */}
+            <div className="grid gap-8 md:grid-cols-3">
                 {stats.map((stat) => (
-                    <Card key={stat.title} className="border-slate-100 shadow-xl shadow-slate-200/50 rounded-[32px] p-2 transition-all hover:scale-[1.02] duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 p-6">
-                            <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{stat.title}</CardTitle>
-                            <div className={`p-3 rounded-2xl bg-slate-50`}>
-                                <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                    <Card key={stat.title} className="bg-card border-white/5 shadow-2xl rounded-[40px] p-2 transition-all hover:translate-y-[-4px] hover:border-primary/20 duration-500 group overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 p-8">
+                            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em]">{stat.title}</CardTitle>
+                            <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:border-primary/30 transition-all duration-500">
+                                <stat.icon className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
                             </div>
                         </CardHeader>
-                        <CardContent className="p-6 pt-0">
-                            <div className="text-4xl font-black text-slate-900 tracking-tight">{stat.value}</div>
+                        <CardContent className="p-8 pt-0">
+                            <div className="text-5xl font-black text-white tracking-tighter italic">{stat.value}</div>
+                            <div className="h-1 w-8 bg-primary/30 rounded-full mt-4 group-hover:w-16 transition-all duration-500" />
                         </CardContent>
                     </Card>
                 ))}
             </div>
 
-            <div className="rounded-[32px] border border-slate-100 bg-white shadow-2xl shadow-slate-200/60 overflow-hidden">
-                <div className="px-4 sm:px-8 py-4 sm:py-7 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+            {/* Data Table */}
+            <div className="rounded-[48px] border border-white/5 bg-card shadow-3xl overflow-hidden group/table">
+                <div className="px-8 sm:px-12 py-8 bg-white/[0.02] border-b border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div>
-                        <h3 className="text-lg font-black text-slate-900">Agency Directory</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Active Network Nodes</p>
+                        <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Network Directory</h3>
+                        <p className="text-[10px] font-black text-primary/60 uppercase tracking-[0.5em] mt-2">Active Infrastructure Nodes // Authorized Entities</p>
                     </div>
-                    <Badge className="bg-blue-600/10 text-blue-600 border-none font-black text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-xl">
-                        {agencies.length} Total Entities
-                    </Badge>
+                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-3 rounded-2xl shadow-inner">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                        <span className="text-[11px] text-white font-black uppercase tracking-widest">{agencies.length} Total Systems</span>
+                    </div>
                 </div>
-                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200">
-                    <Table className="min-w-[640px]">
-                        <TableHeader className="bg-slate-50/30">
-                            <TableRow className="hover:bg-transparent border-slate-100 h-14">
-                                <TableHead className="px-4 sm:px-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Entity</TableHead>
-                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Private Endpoint</TableHead>
-                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Status</TableHead>
-                                <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployed Since</TableHead>
-                                <TableHead className="text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pr-4 sm:pr-8">Operations</TableHead>
+                <div className="overflow-x-auto scrollbar-hide">
+                    <Table className="min-w-[800px]">
+                        <TableHeader>
+                            <TableRow className="hover:bg-transparent border-white/5 h-16">
+                                <TableHead className="px-8 sm:px-12 text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Operational Node</TableHead>
+                                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Cyber Endpoint</TableHead>
+                                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Node Status</TableHead>
+                                <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Deployment Date</TableHead>
+                                <TableHead className="text-right text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] pr-8 sm:px-12">Operations Hub</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-20">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning Network...</p>
+                                <TableRow className="hover:bg-transparent border-none">
+                                    <TableCell colSpan={5} className="text-center py-32">
+                                        <div className="flex flex-col items-center gap-6">
+                                            <div className="h-16 w-16 border-t-2 border-r-2 border-primary rounded-full animate-spin shadow-[0_0_20px_rgba(255,184,0,0.2)]" />
+                                            <p className="text-xs font-black text-primary/60 uppercase tracking-[0.6em] animate-pulse">Deep Packet Search...</p>
                                         </div>
                                     </TableCell>
                                 </TableRow>
                             ) : agencies.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-32">
-                                        <Building2 className="mx-auto h-16 w-16 text-slate-100 mb-6 animate-bounce" />
-                                        <h3 className="text-xl font-black text-slate-900">No Entities Found</h3>
-                                        <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-2">Initialize your first entity to begin management</p>
+                                <TableRow className="hover:bg-transparent border-none">
+                                    <TableCell colSpan={5} className="text-center py-40">
+                                        <div className="relative inline-block mb-10">
+                                            <Building2 className="h-24 w-24 text-white/5 animate-pulse" />
+                                            <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full opacity-20" />
+                                        </div>
+                                        <h3 className="text-3xl font-black text-white uppercase italic tracking-widest">Network Zero</h3>
+                                        <p className="text-muted-foreground font-black uppercase text-[10px] tracking-[0.4em] mt-4">Initialize first node to establish grid presence</p>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 agencies.map((agency) => (
-                                    <TableRow key={agency.id} className="group hover:bg-slate-50/50 transition-colors border-slate-50 sm:h-24">
-                                        <TableCell className="pl-4 sm:pl-8">
-                                            <div className="flex flex-col">
-                                                <span className="text-sm sm:text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors">{agency.name}</span>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">ID: {agency.id.slice(-8).toUpperCase()}</span>
+                                    <TableRow key={agency.id} className="group/row hover:bg-white/[0.02] transition-all duration-500 border-white/5 sm:h-28">
+                                        <TableCell className="pl-8 sm:pl-12">
+                                            <div className="flex flex-col gap-2">
+                                                <span className="text-lg font-black text-white group-hover/row:text-primary transition-colors uppercase italic">{agency.name}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.1em] bg-white/5 px-2 py-0.5 rounded border border-white/5">NODE_{agency.id.slice(-6).toUpperCase()}</span>
+                                                </div>
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <div className="h-1 w-1 rounded-full bg-blue-400" />
-                                                <code className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-2xl border border-blue-100/50 uppercase font-mono tracking-wider">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-primary/40 group-hover/row:bg-primary transition-colors" />
+                                                <code className="text-xs font-black text-primary bg-primary/5 px-4 py-2 rounded-2xl border border-primary/20 uppercase font-mono tracking-widest shadow-inner">
                                                     /{agency.slug}
                                                 </code>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <Badge className={cn(
-                                                "rounded-xl px-4 py-1.5 border-none font-black text-[10px] uppercase tracking-widest shadow-sm",
+                                                "rounded-xl px-5 py-2 border-none font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl transition-all duration-500",
                                                 agency.isActive
-                                                    ? "bg-emerald-500 text-white shadow-emerald-200"
-                                                    : "bg-slate-500 text-white shadow-slate-200"
+                                                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                                    : "bg-rose-500/10 text-rose-500 border border-rose-500/20"
                                             )}>
-                                                {agency.isActive ? "Active" : "Locked"}
+                                                {agency.isActive ? "Online" : "Locked"}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-sm font-bold text-slate-500">
+                                        <TableCell className="text-sm font-black text-muted-foreground/60 uppercase tracking-widest">
                                             {new Date(agency.createdAt).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: 'numeric'
                                             })}
                                         </TableCell>
-                                        <TableCell className="pr-4 sm:pr-8 text-right">
-                                            <div className="flex items-center justify-end gap-1 sm:gap-2 flex-wrap">
-                                                {/* Toggle Button */}
+                                        <TableCell className="pr-8 sm:px-12 text-right">
+                                            <div className="flex items-center justify-end gap-3 opacity-60 group-hover/row:opacity-100 transition-all duration-500 translate-x-4 group-hover/row:translate-x-0">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
                                                     className={cn(
-                                                        "h-11 px-4 font-black rounded-2xl transition-all active:scale-95 shadow-sm text-xs",
+                                                        "h-12 px-6 font-black rounded-xl transition-all active:scale-95 shadow-lg text-[10px] uppercase tracking-widest",
                                                         agency.isActive
-                                                            ? "bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white shadow-amber-100/50"
-                                                            : "bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white shadow-emerald-100/50"
+                                                            ? "bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-black border border-amber-500/20"
+                                                            : "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black border border-emerald-500/20"
                                                     )}
                                                     onClick={() => setToggleModal({ open: true, id: agency.id, name: agency.name, currentStatus: agency.isActive })}
                                                 >
                                                     {agency.isActive
-                                                        ? <><PowerOff className="h-3.5 w-3.5 mr-1.5" />DEACTIVATE</>
-                                                        : <><Power className="h-3.5 w-3.5 mr-1.5" />ACTIVATE</>
+                                                        ? <><PowerOff className="h-4 w-4 mr-2" />Lock</>
+                                                        : <><Power className="h-4 w-4 mr-2" />Boot</>
                                                     }
                                                 </Button>
-                                                {/* Edit Button */}
-                                                <RowEditButton onClick={() => { setEditingAgency(agency); setOpen(true) }} />
-                                                {/* Remove Button */}
-                                                <RowDeleteButton onClick={() => setDeleteModal({ open: true, id: agency.id, name: agency.name })} label="REMOVE" />
+                                                <RowEditButton className="h-12 w-12 p-0 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10" label="" onClick={() => { setEditingAgency(agency); setOpen(true) }} />
+                                                <RowDeleteButton className="h-12 w-12 p-0 bg-rose-500/5 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl border border-white/5" label="" onClick={() => setDeleteModal({ open: true, id: agency.id, name: agency.name })} />
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -269,32 +288,31 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            {/* ── Toggle Status Modal ── */}
+            {/* Modals styling similarly updated in their components */}
             <AlertModal
                 isOpen={toggleModal.open}
                 onClose={() => setToggleModal({ ...toggleModal, open: false })}
                 onConfirm={handleToggleStatus}
                 loading={isToggling}
-                title={toggleModal.currentStatus ? "DEACTIVATE AGENCY" : "ACTIVATE AGENCY"}
+                title={toggleModal.currentStatus ? "NODE DEACTIVATION" : "NODE ACTIVATION"}
                 variant={toggleModal.currentStatus ? "danger" : "success"}
                 description={
                     toggleModal.currentStatus
-                        ? `Deactivating ${toggleModal.name} will block all logins for this agency. Data is preserved and you can reactivate anytime.`
-                        : `Activating ${toggleModal.name} will restore full access for all agency admins and staff.`
+                        ? `Initiating global lock on ${toggleModal.name}. All endpoint access will be terminated immediately. Operational data remains encrypted.`
+                        : `Authorizing re-activation of ${toggleModal.name}. Infrastructure access will be restored across all sectors.`
                 }
-                confirmText={toggleModal.currentStatus ? "Deactivate" : "Activate"}
+                confirmText={toggleModal.currentStatus ? "Authorize Lock" : "Authorize Boot"}
             />
 
-            {/* ── Delete Modal ── */}
             <AlertModal
                 isOpen={deleteModal.open}
                 onClose={() => setDeleteModal({ ...deleteModal, open: false })}
                 onConfirm={handleDelete}
                 loading={isDeleting}
-                title="TERMINATE ENTITY"
+                title="SYSTEM TERMINATION"
                 variant="danger"
-                description={`This action will permanently delete ${deleteModal.name} and all associated data from the network. This cannot be undone.`}
-                confirmText="Confirm Termination"
+                description={`This action will permanently purge ${deleteModal.name} and all derivative data from the HYPERCORE network. This operation is IRREVERSIBLE.`}
+                confirmText="Execute Purge"
             />
         </div>
     )

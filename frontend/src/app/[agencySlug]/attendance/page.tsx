@@ -50,7 +50,7 @@ export default function AttendancePage() {
     const isStaff = user?.role?.toLowerCase().includes('staff') || user?.role?.toLowerCase().includes('guard')
     const isAdmin = user?.role?.toLowerCase().includes('admin')
     const isHR = user?.role?.toLowerCase().includes('hr') || user?.role?.toLowerCase().includes('human resource')
-    const canMark = user?.permissions?.includes('mark_attendance') || isStaff || isHR || isAdmin
+    const canMark = user?.permissions?.includes('record_attendance') || isStaff || isHR || isAdmin
 
     const fetchData = async () => {
         setLoading(true)
@@ -170,9 +170,9 @@ export default function AttendancePage() {
 
             {/* Attendance Matrix Controls */}
             {canMark && (
-                <div className="bg-slate-950 rounded-[40px] p-1 shadow-2xl overflow-hidden relative group">
+                <div className="bg-black rounded-[40px] p-5 sm:p-10 relative z-10 border border-white/5 shadow-2xl relative group overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 group-hover:bg-primary/20 transition-all duration-700" />
-                    <div className="bg-slate-900 rounded-[38px] p-5 sm:p-10 relative z-10 border border-white/5">
+                    <div className="relative z-10">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-10">
                             <div className="flex-1 space-y-3">
                                 <div className="flex items-center gap-3">
@@ -196,7 +196,7 @@ export default function AttendancePage() {
                                             <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:text-slate-900 font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
                                                 <SelectValue placeholder="SELECT DEPLOYMENT" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 shadow-2xl p-2">
+                                            <SelectContent className="rounded-[28px] border-white/10 bg-black shadow-2xl p-2">
                                                 {activeDeployments.map(d => (
                                                     <SelectItem key={d.id} value={d.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white/70 focus:bg-white/10 focus:text-white data-[state=checked]:text-white data-[state=checked]:bg-white/5 transition-all cursor-pointer">
                                                         {d.client?.name || d.clientId} — {d.shift?.name || 'Shift'}
@@ -209,7 +209,7 @@ export default function AttendancePage() {
                                             <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:text-slate-900 font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
                                                 <SelectValue placeholder="SELECT YOUR SITE" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-[28px] border-white/10 bg-slate-900 shadow-2xl p-2">
+                                            <SelectContent className="rounded-[28px] border-white/10 bg-black shadow-2xl p-2">
                                                 {projects.map(p => (
                                                     <SelectItem key={p.id} value={p.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white/70 focus:bg-white/10 focus:text-white data-[state=checked]:text-white data-[state=checked]:bg-white/5 transition-all cursor-pointer">
                                                         {p.name}
@@ -267,11 +267,11 @@ export default function AttendancePage() {
             )}
 
             {/* Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                <StatCard title="Present" value={stats.present} icon={<CheckCircle2 />} color="emerald" />
-                <StatCard title="Late" value={stats.late} icon={<Clock />} color="amber" />
-                <StatCard title="Absent" value={stats.absent} icon={<XCircle />} color="rose" />
-                <StatCard title="Total Staff" value={stats.total} icon={<Users />} color="blue" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 px-4">
+                <StatCard title="Present" value={stats.present} icon={<CheckCircle2 className="text-emerald-400" />} color="emerald" className="bg-white/5 border-white/10" />
+                <StatCard title="Late" value={stats.late} icon={<Clock className="text-amber-400" />} color="amber" className="bg-white/5 border-white/10" />
+                <StatCard title="Absent" value={stats.absent} icon={<XCircle className="text-rose-400" />} color="rose" className="bg-white/5 border-white/10" />
+                <StatCard title="Total Staff" value={stats.total} icon={<Users className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
             </div>
 
             {/* List */}
@@ -291,38 +291,38 @@ export default function AttendancePage() {
                                     initial={{ opacity: 0, scale: 0.98 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ duration: 0.2, delay: idx * 0.02 }}
-                                    className="group hover:bg-slate-50/50 transition-colors"
+                                    className="group hover:bg-white/[0.02] border-b border-white/5 transition-colors"
                                 >
                                     <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                                         <div className="flex items-center gap-4">
-                                            <Avatar className="h-12 w-12 rounded-2xl border-2 border-slate-50 group-hover:border-primary/20 group-hover:scale-110 transition-all shadow-sm">
-                                                <AvatarFallback className="bg-gradient-to-tr from-slate-100 to-slate-200 text-slate-500 font-black text-xs uppercase">
+                                            <Avatar className="h-12 w-12 rounded-2xl border-2 border-white/5 group-hover:border-[#D9A75B]/20 group-hover:scale-110 transition-all shadow-xl">
+                                                <AvatarFallback className="bg-black text-white/50 font-black text-xs uppercase">
                                                     {record.employee?.fullName?.split(' ').map((n: string) => n[0]).join('') || '?'}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="min-w-0">
-                                                <div className="font-extrabold text-slate-900 group-hover:text-primary transition-colors truncate">{record.employee?.fullName}</div>
-                                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">DESIGNATION: {record.employee?.designation?.name || "EMPLOYEE"}</div>
+                                                <div className="font-extrabold text-white group-hover:text-[#D9A75B] transition-colors truncate uppercase">{record.employee?.fullName}</div>
+                                                <div className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-1">DESIGNATION: {record.employee?.designation?.name || "EMPLOYEE"}</div>
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center shadow-sm">
-                                                <Building2 className="h-3.5 w-3.5 text-slate-300" />
+                                            <div className="h-8 w-8 rounded-lg bg-black border border-white/10 flex items-center justify-center group-hover:border-[#D9A75B]/20 transition-all">
+                                                <Building2 className="h-3.5 w-3.5 text-white/20 group-hover:text-[#D9A75B]" />
                                             </div>
-                                            <span className="text-[13px] font-black text-slate-900 tracking-tight">{record.project?.name || record.deployment?.client?.name || "General"}</span>
+                                            <span className="text-[13px] font-black text-white uppercase tracking-tight">{record.project?.name || record.deployment?.client?.name || "General"}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center text-[13px] font-black text-slate-900 italic">
-                                            <Clock className="h-3.5 w-3.5 mr-2.5 text-slate-300" />
+                                        <div className="flex items-center text-[13px] font-black text-white/80 italic">
+                                            <Clock className="h-3.5 w-3.5 mr-2.5 text-white/20" />
                                             {record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "--:--"}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center text-[13px] font-black text-slate-900 italic">
-                                            <Clock className="h-3.5 w-3.5 mr-2.5 text-slate-300" />
+                                        <div className="flex items-center text-[13px] font-black text-white/80 italic">
+                                            <Clock className="h-3.5 w-3.5 mr-2.5 text-white/20" />
                                             {record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "--:--"}
                                         </div>
                                     </TableCell>

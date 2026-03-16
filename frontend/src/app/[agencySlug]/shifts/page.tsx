@@ -127,7 +127,7 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
     if (result) onChange(result)
   }
 
-  const selectClass = "h-12 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm font-semibold appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+  const selectClass = "h-12 rounded-xl bg-white/5 border border-white/10 px-3 text-sm font-semibold appearance-none cursor-pointer focus:ring-2 focus:ring-[#D9A75B]/20 focus:border-[#D9A75B] transition-all text-white"
 
   return (
     <div className="flex items-center gap-2">
@@ -137,21 +137,21 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
         className={cn(selectClass, "flex-1")}
         required
       >
-        <option value="" disabled>HH</option>
+        <option value="" disabled className="bg-black text-white">HH</option>
         {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
-          <option key={h} value={h.toString()}>{h}</option>
+          <option key={h} value={h.toString()} className="bg-black text-white">{h}</option>
         ))}
       </select>
-      <span className="text-lg font-black text-slate-400">:</span>
+      <span className="text-lg font-black text-white/20">:</span>
       <select
         value={minute}
         onChange={(e) => update(hour || "12", e.target.value, period)}
         className={cn(selectClass, "flex-1")}
         required
       >
-        <option value="" disabled>MM</option>
+        <option value="" disabled className="bg-black text-white">MM</option>
         {["00", "15", "30", "45"].map((m) => (
-          <option key={m} value={m}>{m}</option>
+          <option key={m} value={m} className="bg-black text-white">{m}</option>
         ))}
       </select>
       <select
@@ -159,18 +159,18 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
         onChange={(e) => update(hour || "12", minute || "00", e.target.value)}
         className={cn(selectClass, "w-20")}
       >
-        <option value="AM">AM</option>
-        <option value="PM">PM</option>
+        <option value="AM" className="bg-black text-white">AM</option>
+        <option value="PM" className="bg-black text-white">PM</option>
       </select>
     </div>
   )
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  SCHEDULED: { label: "Scheduled", color: "bg-blue-50 text-blue-700", icon: <Clock className="h-3 w-3" /> },
-  COMPLETED: { label: "Completed", color: "bg-emerald-50 text-emerald-700", icon: <CheckCircle2 className="h-3 w-3" /> },
-  LATE: { label: "Late Arrival", color: "bg-amber-50 text-amber-700", icon: <AlertTriangle className="h-3 w-3" /> },
-  MISSED: { label: "Missed", color: "bg-rose-50 text-rose-700", icon: <XCircle className="h-3 w-3" /> },
+  SCHEDULED: { label: "Scheduled", color: "bg-blue-500/10 text-blue-400 border border-blue-500/20", icon: <Clock className="h-3 w-3" /> },
+  COMPLETED: { label: "Completed", color: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20", icon: <CheckCircle2 className="h-3 w-3" /> },
+  LATE: { label: "Late Arrival", color: "bg-amber-500/10 text-amber-400 border border-amber-500/20", icon: <AlertTriangle className="h-3 w-3" /> },
+  MISSED: { label: "Missed", color: "bg-rose-500/10 text-rose-400 border border-rose-500/20", icon: <XCircle className="h-3 w-3" /> },
 }
 
 export default function ShiftsPage() {
@@ -394,11 +394,11 @@ export default function ShiftsPage() {
                 <DialogTrigger asChild>
                   <CreateButton label="Create Shift" icon={<Plus className="h-4 w-4" />} />
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-                  <DialogHeader className="p-10 bg-slate-900 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                    <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase">New Shift</DialogTitle>
-                    <DialogDescription className="text-slate-400 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Define shift name and timings</DialogDescription>
+                <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-[#0A0A0A]">
+                  <DialogHeader className="p-10 bg-black text-white relative overflow-hidden border-b border-white/5">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                    <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase italic">New Shift</DialogTitle>
+                    <DialogDescription className="text-white/40 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Define shift name and timings</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateShift} className="p-10 space-y-8">
                     <div className="space-y-0">
@@ -440,19 +440,19 @@ export default function ShiftsPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <StatCard title="Total Shifts" value={shifts.length} icon={<Shield />} color="teal" />
-        <StatCard title="Assignments Today" value={totalAssignments} icon={<Users />} color="blue" />
-        <StatCard title="Late Arrivals" value={lateCount} icon={<AlertTriangle />} color="amber" />
-        <StatCard title="Missed Shifts" value={missedCount} icon={<XCircle />} color="rose" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 px-4">
+        <StatCard title="Total Shifts" value={shifts.length} icon={<Shield className="text-[#D9A75B]" />} color="amber" className="bg-white/5 border-white/10" />
+        <StatCard title="Assignments Today" value={totalAssignments} icon={<Users className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
+        <StatCard title="Late Arrivals" value={lateCount} icon={<AlertTriangle className="text-amber-400" />} color="amber" className="bg-white/5 border-white/10" />
+        <StatCard title="Missed Shifts" value={missedCount} icon={<XCircle className="text-rose-400" />} color="rose" className="bg-white/5 border-white/10" />
       </div>
 
       <Tabs defaultValue="assignments" className="space-y-8">
-        <TabsList className="bg-slate-100 rounded-2xl p-1.5 h-auto">
-          <TabsTrigger value="assignments" className="rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-3">
+        <TabsList className="bg-white/5 rounded-2xl p-1.5 h-auto border border-white/10 backdrop-blur-xl ml-4">
+          <TabsTrigger value="assignments" className="rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-[#D9A75B] data-[state=active]:text-black data-[state=active]:shadow-sm px-6 py-3 text-white/40">
             Shift Assignments
           </TabsTrigger>
-          <TabsTrigger value="shifts" className="rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-3">
+          <TabsTrigger value="shifts" className="rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-[#D9A75B] data-[state=active]:text-black data-[state=active]:shadow-sm px-6 py-3 text-white/40">
             Shift Templates
           </TabsTrigger>
         </TabsList>
@@ -460,28 +460,28 @@ export default function ShiftsPage() {
         {/* ─── ASSIGNMENTS TAB ─── */}
         <TabsContent value="assignments" className="space-y-6">
           {/* Filters & Actions Bar */}
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4 px-4">
             <div className="flex items-center gap-2">
-              <FormLabelBase label="Date" />
+              <FormLabelBase label="Date" className="text-white/40" />
               <Input
                 type="date"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
-                className="rounded-2xl bg-white border-slate-200 h-11 w-44 font-bold text-sm"
+                className="rounded-2xl bg-white/5 border-white/10 h-11 w-44 font-bold text-sm text-white"
               />
             </div>
             <div className="flex items-center gap-2">
-              <FormLabelBase label="Status" />
+              <FormLabelBase label="Status" className="text-white/40" />
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="rounded-2xl bg-white border-slate-200 h-11 w-40 font-bold text-sm">
+                <SelectTrigger className="rounded-2xl bg-white/5 border-white/10 h-11 w-40 font-bold text-sm text-white">
                   <SelectValue placeholder="All" />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-slate-100 p-2">
-                  <SelectItem value="ALL" className="py-3 font-bold rounded-xl">All</SelectItem>
-                  <SelectItem value="SCHEDULED" className="py-3 font-bold rounded-xl">Scheduled</SelectItem>
-                  <SelectItem value="COMPLETED" className="py-3 font-bold rounded-xl">Completed</SelectItem>
-                  <SelectItem value="LATE" className="py-3 font-bold rounded-xl">Late</SelectItem>
-                  <SelectItem value="MISSED" className="py-3 font-bold rounded-xl">Missed</SelectItem>
+                <SelectContent className="rounded-2xl border-white/10 p-2 bg-black text-white">
+                  <SelectItem value="ALL" className="py-3 font-bold rounded-xl focus:bg-white/5">All</SelectItem>
+                  <SelectItem value="SCHEDULED" className="py-3 font-bold rounded-xl focus:bg-white/5">Scheduled</SelectItem>
+                  <SelectItem value="COMPLETED" className="py-3 font-bold rounded-xl focus:bg-white/5">Completed</SelectItem>
+                  <SelectItem value="LATE" className="py-3 font-bold rounded-xl focus:bg-white/5">Late</SelectItem>
+                  <SelectItem value="MISSED" className="py-3 font-bold rounded-xl focus:bg-white/5">Missed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -497,16 +497,16 @@ export default function ShiftsPage() {
                 </Button>
                 <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-slate-900 hover:bg-slate-800 text-white px-6">
+                    <Button className="h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white text-black hover:bg-[#D9A75B] transition-all px-6">
                       <UserPlus className="h-3.5 w-3.5 mr-2" />
                       Assign Guard
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-                    <DialogHeader className="p-10 bg-slate-900 text-white relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                      <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase">Assign Guard</DialogTitle>
-                      <DialogDescription className="text-slate-400 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Assign a security guard to a shift</DialogDescription>
+                  <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-[#0A0A0A]">
+                    <DialogHeader className="p-10 bg-black text-white relative overflow-hidden border-b border-white/5">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                      <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase italic">Assign Guard</DialogTitle>
+                      <DialogDescription className="text-white/40 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Assign a security guard to a shift</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleAssignGuard} className="p-10 space-y-8">
                       <div className="space-y-0">
@@ -585,29 +585,29 @@ export default function ShiftsPage() {
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.2, delay: idx * 0.02 }}
-                      className="group hover:bg-slate-50/50 transition-colors"
+                      className="group hover:bg-white/[0.02] transition-colors border-b border-white/5"
                     >
                       <TableCell className="px-4 sm:px-8 py-5">
                         <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 font-black group-hover:border-primary/20 group-hover:text-primary group-hover:scale-110 transition-all shadow-sm">
+                          <div className="h-12 w-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center text-white/20 font-black group-hover:border-[#D9A75B]/20 group-hover:text-[#D9A75B] group-hover:scale-110 transition-all shadow-xl">
                             {a.employee?.fullName?.charAt(0) || "?"}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-extrabold text-slate-900 leading-tight group-hover:text-primary transition-colors truncate">{a.employee?.fullName}</div>
-                            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{a.employee?.employeeCode}</div>
+                            <div className="font-extrabold text-white leading-tight group-hover:text-[#D9A75B] transition-colors truncate">{a.employee?.fullName}</div>
+                            <div className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-1">{a.employee?.employeeCode}</div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-black text-slate-900 text-[13px] tracking-tight">{a.shift?.name}</span>
-                          <span className="text-[10px] text-slate-400 font-bold mt-0.5">
+                          <span className="font-black text-white text-[13px] tracking-tight uppercase">{a.shift?.name}</span>
+                          <span className="text-[10px] text-white/30 font-bold mt-0.5">
                             {formatTime12(a.shift?.startTime)} – {formatTime12(a.shift?.endTime)}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-bold text-slate-600 text-[13px]">{a.project?.name || "—"}</span>
+                        <span className="font-bold text-white/60 text-[13px]">{a.project?.name || "—"}</span>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-0.5">

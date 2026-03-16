@@ -94,14 +94,14 @@ export function SubmitButton({
             type="submit"
             disabled={disabled || loading}
             className={cn(
-                "w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black shadow-lg shadow-slate-200/50 transition-all active:scale-[0.98] uppercase tracking-widest mt-4 shrink-0 text-xs sm:text-sm",
+                "w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-black hover:bg-white hover:text-black border border-white/10 text-white font-black shadow-2xl transition-all active:scale-[0.98] uppercase tracking-[0.2em] mt-4 shrink-0 text-xs sm:text-sm italic",
                 className
             )}
         >
             {loading ? (
                 <div className="flex items-center gap-3">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Processing...</span>
+                    <Loader2 className="h-4 w-4 animate-spin text-[#D9A75B]" />
+                    <span className="text-[#D9A75B]">SYNCHRONIZING...</span>
                 </div>
             ) : (
                 label
@@ -191,14 +191,14 @@ export function PageHeader({
 type StatCardColor = "teal" | "blue" | "emerald" | "amber" | "rose" | "slate" | "orange" | "violet"
 
 const statCardColorMap: Record<StatCardColor, { icon: string; value: string; badge: string }> = {
-    teal: { icon: "bg-primary/10 text-primary", value: "text-primary", badge: "bg-primary/10 text-primary border-primary/20" },
-    blue: { icon: "bg-blue-500/10 text-blue-400", value: "text-blue-500", badge: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-    emerald: { icon: "bg-emerald-500/10 text-emerald-400", value: "text-emerald-500", badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-    amber: { icon: "bg-amber-500/10 text-amber-400", value: "text-amber-500", badge: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-    rose: { icon: "bg-rose-500/10 text-rose-400", value: "text-rose-500", badge: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
-    slate: { icon: "bg-slate-500/10 text-slate-400", value: "text-slate-500", badge: "bg-slate-500/10 text-slate-400 border-slate-500/20" },
-    orange: { icon: "bg-orange-500/10 text-orange-400", value: "text-orange-500", badge: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
-    violet: { icon: "bg-violet-500/10 text-violet-400", value: "text-violet-500", badge: "bg-violet-500/10 text-violet-400 border-violet-500/20" },
+    teal: { icon: "bg-[#D9A75B]/10 text-[#D9A75B]", value: "text-white", badge: "bg-[#D9A75B]/10 text-[#D9A75B] border-[#D9A75B]/20" },
+    blue: { icon: "bg-blue-500/10 text-blue-400", value: "text-white", badge: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    emerald: { icon: "bg-emerald-500/10 text-emerald-400", value: "text-white", badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+    amber: { icon: "bg-[#D9A75B]/10 text-[#D9A75B]", value: "text-white", badge: "bg-[#D9A75B]/10 text-[#D9A75B] border-[#D9A75B]/20" },
+    rose: { icon: "bg-rose-500/10 text-rose-400", value: "text-white", badge: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
+    slate: { icon: "bg-white/5 text-slate-400", value: "text-white", badge: "bg-white/5 text-slate-400 border-white/10" },
+    orange: { icon: "bg-orange-500/10 text-orange-400", value: "text-white", badge: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
+    violet: { icon: "bg-violet-500/10 text-violet-400", value: "text-white", badge: "bg-violet-500/10 text-violet-400 border-violet-500/20" },
 }
 
 interface StatCardProps {
@@ -213,13 +213,14 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, color = "teal", trend, className }: StatCardProps) {
     const colors = statCardColorMap[color]
     return (
-        <Card className={cn("rounded-2xl sm:rounded-[32px] border-slate-100/10 bg-card p-4 sm:p-6 flex items-center justify-between group hover:border-primary/50 transition-all duration-500", className)}>
-            <div>
-                <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{title}</p>
-                <h3 className={cn("text-2xl sm:text-4xl font-black mt-1 tracking-tighter", colors.value)}>{value}</h3>
-                {trend && <p className="text-[10px] font-medium text-emerald-500 mt-1">{trend}</p>}
+        <Card className={cn("rounded-2xl sm:rounded-[40px] border-white/5 bg-white/[0.03] p-4 sm:p-8 flex items-center justify-between group hover:border-[#D9A75B]/40 transition-all duration-500 backdrop-blur-3xl overflow-hidden relative", className)}>
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#D9A75B]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="relative z-10">
+                <p className="text-[9px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.2em] underline decoration-[#D9A75B]/20 underline-offset-4 mb-4">{title}</p>
+                <h3 className={cn("text-2xl sm:text-4xl font-black mt-1 tracking-tighter text-white")}>{value}</h3>
+                {trend && <p className="text-[10px] font-bold text-emerald-400 mt-2 bg-emerald-500/10 px-2 py-0.5 rounded w-fit capitalize">{trend}</p>}
             </div>
-            <div className={cn("h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-lg shadow-black/20", colors.icon)}>
+            <div className={cn("h-10 w-10 sm:h-16 sm:w-16 rounded-xl sm:rounded-3xl flex items-center justify-center transition-all group-hover:scale-105 duration-500 border border-white/5 shadow-2xl relative z-10", colors.icon)}>
                 {icon}
             </div>
         </Card>
@@ -243,7 +244,7 @@ export function DataTable({ columns, children, className, minWidth = "720px" }: 
         <TableCardWrapper className={className} minWidth={minWidth}>
             <Table>
                 <TableHeader>
-                    <TableRow className="border-b border-slate-50 hover:bg-transparent">
+                    <TableRow className="border-b border-white/5 hover:bg-transparent">
                         {columns.map((col, i) => (
                             <TableColHead
                                 key={i}
@@ -399,7 +400,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     const statusLabel = status.toUpperCase()
     const badgeStyles: Record<string, string> = {
         ACTIVE: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-        INACTIVE: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+        INACTIVE: "bg-white/5 text-white/40 border-white/10",
         PENDING: "bg-amber-500/10 text-amber-400 border-amber-500/20",
         APPROVED: "bg-blue-500/10 text-blue-400 border-blue-500/20",
         REJECTED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
@@ -441,11 +442,11 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
             onClick={onClick}
             title={collapsed ? name : undefined}
             className={cn(
-                "group flex items-center rounded-xl px-4 py-4 text-sm font-bold transition-all duration-300 relative overflow-hidden",
+                "group flex items-center rounded-xl px-4 py-4 text-xs font-black transition-all duration-300 relative overflow-hidden uppercase tracking-[0.1em] italic",
                 collapsed && "justify-center px-3",
                 isActive
-                    ? "bg-primary text-white shadow-xl shadow-primary/20"
-                    : "text-slate-300/60 hover:text-white hover:bg-white/5",
+                    ? "bg-white text-black shadow-xl shadow-white/10"
+                    : "text-white/40 hover:text-white hover:bg-white/5",
                 className
             )}
         >
@@ -488,11 +489,12 @@ export function SidebarLogout({ onClick, label = "Sign Out", className, collapse
     )
 }
 
-export function SidebarSectionLabel({ children, collapsed }: { children: React.ReactNode, collapsed?: boolean }) {
+export function SidebarSectionLabel({ children, collapsed, className }: { children: React.ReactNode, collapsed?: boolean, className?: string }) {
     return (
         <p className={cn(
-            "px-3 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-40 transition-all duration-300 whitespace-nowrap",
-            collapsed && "opacity-0 h-0 mb-0 overflow-hidden"
+            "px-4 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-3 transition-opacity duration-300",
+            collapsed ? "opacity-0 h-0" : "opacity-100",
+            className
         )}>
             {children}
         </p>
@@ -624,10 +626,10 @@ export function FormCard({ children, className }: { children: React.ReactNode, c
 
 export function FormHeader({ title, color = "blue" }: { title: string, color?: "blue" | "emerald" | "amber" | "rose" }) {
     const dotColors = {
-        blue: "bg-blue-600",
-        emerald: "bg-emerald-600",
-        amber: "bg-amber-600",
-        rose: "bg-rose-600"
+        blue: "bg-[#D9A75B]",
+        emerald: "bg-emerald-500",
+        amber: "bg-amber-500",
+        rose: "bg-rose-500"
     }
     return (
         <div className="flex items-center gap-3 mb-2">
@@ -724,6 +726,6 @@ export function FormLabelBase({ label, required, className }: { label: string, r
 // ─────────────────────────────────────────────────────────────────────────────
 // 18. PREMIUM INPUT CLASSES
 // ─────────────────────────────────────────────────────────────────────────────
-export const inputVariants = "h-12 sm:h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-xl sm:rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4 sm:px-6 text-sm sm:text-base"
+export const inputVariants = "h-12 sm:h-14 bg-white/5 border-white/5 text-white placeholder:text-white/20 rounded-xl sm:rounded-2xl focus:bg-white/10 focus:border-[#D9A75B]/20 transition-all font-semibold italic px-4 sm:px-6 text-sm sm:text-base selection:bg-[#D9A75B]/30"
 
-export const selectVariants = "h-12 sm:h-14 bg-slate-50 border-transparent text-slate-900 rounded-xl sm:rounded-2xl focus:bg-white focus:border-primary/20 transition-all font-semibold italic px-4 sm:px-6 w-full appearance-none text-sm sm:text-base"
+export const selectVariants = "h-12 sm:h-14 bg-white/5 border-white/5 text-white rounded-xl sm:rounded-2xl focus:bg-white/10 focus:border-[#D9A75B]/20 transition-all font-semibold italic px-4 sm:px-6 w-full appearance-none text-sm sm:text-base selection:bg-[#D9A75B]/30"

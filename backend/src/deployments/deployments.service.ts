@@ -134,10 +134,10 @@ export class DeploymentsService {
   }
 
   async update(agencyId: string, id: string, dto: UpdateDeploymentDto, userId?: string) {
-    const deployment = await this.prisma.deployment.findFirst({
-      where: { id, agencyId },
-    });
-    if (!deployment) throw new NotFoundException('Deployment not found');
+    const deploymentExists = await this.prisma.deployment.findUnique({ where: { id } });
+    if (!deploymentExists) throw new NotFoundException('Deployment not found');
+    if (deploymentExists.agencyId !== agencyId) throw new ForbiddenException('Access to this deployment is forbidden');
+    const deployment = deploymentExists;
 
     // Prevent modification of completed/cancelled deployments
     if (['completed', 'cancelled'].includes(deployment.status) && dto.status !== 'active') {
@@ -178,10 +178,10 @@ export class DeploymentsService {
       throw new BadRequestException(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
     }
 
-    const deployment = await this.prisma.deployment.findFirst({
-      where: { id, agencyId },
-    });
-    if (!deployment) throw new NotFoundException('Deployment not found');
+    const deploymentExists = await this.prisma.deployment.findUnique({ where: { id } });
+    if (!deploymentExists) throw new NotFoundException('Deployment not found');
+    if (deploymentExists.agencyId !== agencyId) throw new ForbiddenException('Access to this deployment is forbidden');
+    const deployment = deploymentExists;
 
     const updated = await this.prisma.deployment.update({
       where: { id },
@@ -204,11 +204,13 @@ export class DeploymentsService {
   }
 
   async assignGuards(agencyId: string, deploymentId: string, guardIds: string[]) {
-    const deployment = await this.prisma.deployment.findFirst({
-      where: { id: deploymentId, agencyId },
-      include: { shift: true },
+    const deploymentExists = await this.prisma.deployment.findUnique({ where: { id: deploymentId } });
+    if (!deploymentExists) throw new NotFoundException('Deployment not found');
+    if (deploymentExists.agencyId !== agencyId) throw new ForbiddenException('Access to this deployment is forbidden');
+    const deployment = await this.prisma.deployment.findUnique({
+      where: { id: deploymentId },
+      include: { shift: true }
     });
-    if (!deployment) throw new NotFoundException('Deployment not found');
 
     // Validate all guards belong to this agency
     const users = await this.prisma.user.findMany({
@@ -297,9 +299,10 @@ export class DeploymentsService {
 
   async removeGuard(agencyId: string, deploymentId: string, guardId: string) {
     const guard = await this.prisma.deploymentGuard.findFirst({
-      where: { deploymentId, userId: guardId, agencyId },
+      where: { deploymentId, userId: guardId },
     });
     if (!guard) throw new NotFoundException('Guard assignment not found');
+    if (guard.agencyId !== agencyId) throw new ForbiddenException('Access to this guard assignment is forbidden');
 
     return this.prisma.deploymentGuard.delete({ where: { id: guard.id } });
   }
@@ -325,10 +328,10 @@ export class DeploymentsService {
   }
 
   async remove(agencyId: string, id: string, userId?: string) {
-    const deployment = await this.prisma.deployment.findFirst({
-      where: { id, agencyId },
-    });
-    if (!deployment) throw new NotFoundException('Deployment not found');
+    const deploymentExists = await this.prisma.deployment.findUnique({ where: { id } });
+    if (!deploymentExists) throw new NotFoundException('Deployment not found');
+    if (deploymentExists.agencyId !== agencyId) throw new ForbiddenException('Access to this deployment is forbidden');
+    const deployment = deploymentExists;
 
     if (deployment.status === 'active') {
       throw new BadRequestException('Cannot delete an active deployment. Cancel it first.');

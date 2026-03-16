@@ -120,11 +120,13 @@ export class IncidentsService {
 
     // If deploymentId is set, validate it belongs to agency and user is assigned
     if (deploymentId) {
-      const deployment = await this.prisma.deployment.findFirst({
-        where: { id: deploymentId, agencyId },
+      const deploymentExists = await this.prisma.deployment.findUnique({ where: { id: deploymentId } });
+      if (!deploymentExists) throw new NotFoundException('Deployment not found');
+      if (deploymentExists.agencyId !== agencyId) throw new ForbiddenException('Access to this deployment is forbidden');
+      const deployment = await this.prisma.deployment.findUnique({
+        where: { id: deploymentId },
         include: { guards: true },
       });
-      if (!deployment) throw new BadRequestException('Deployment not found');
 
       const isGuard = deployment.guards.some(g => g.userId === userId);
       const user = await this.prisma.user.findUnique({
@@ -171,10 +173,10 @@ export class IncidentsService {
   }
 
   async updateStatus(agencyId: string, id: string, status: string, userId?: string, notes?: string) {
-    const incident = await this.prisma.incident.findFirst({
-      where: { id, agencyId },
-    });
-    if (!incident) throw new NotFoundException('Incident not found');
+    const incidentExists = await this.prisma.incident.findUnique({ where: { id } });
+    if (!incidentExists) throw new NotFoundException('Incident not found');
+    if (incidentExists.agencyId !== agencyId) throw new ForbiddenException('Access to this incident is forbidden');
+    const incident = incidentExists;
 
     // Enforce sequential status transitions:
     // open → under_review → resolved → closed

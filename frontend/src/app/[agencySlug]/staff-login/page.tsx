@@ -90,32 +90,36 @@ export default function StaffLogin() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F766E] font-outfit p-4 relative overflow-hidden selection:bg-teal-500/30">
-            {/* Soft Organic Teal Shapes */}
+        <div className="min-h-screen flex flex-col items-center justify-center bg-black font-inter p-4 relative overflow-hidden selection:bg-primary/30">
+            {/* Premium Gold Glows */}
             <div className="absolute inset-0 z-0">
-                <div className="absolute top-[10%] left-[10%] w-[400px] h-[400px] bg-white/5 blur-[100px] rounded-full" />
-                <div className="absolute bottom-[10%] right-[10%] w-[300px] h-[300px] bg-teal-400/10 blur-[80px] rounded-full" />
+                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-[#D9A75B]/5 blur-[100px] rounded-full" />
             </div>
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6 }}
+                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
                 className="w-full max-w-[460px] z-10"
             >
                 {/* Logo Section */}
                 <div className="flex flex-col items-center mb-10">
-                    <div className="w-16 h-16 bg-white shadow-2xl rounded-2xl flex items-center justify-center mb-5 ring-4 ring-white/10">
-                        <Contact className="w-8 h-8 text-[#0F766E]" />
+                    <div className="w-20 h-20 bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] shadow-[0_0_40px_rgba(255,184,0,0.3)] rounded-[24px] flex items-center justify-center mb-6 transform rotate-3 hover:rotate-6 transition-transform">
+                        <Contact className="w-10 h-10 text-black" />
                     </div>
-                    <h1 className="text-2xl font-black text-white tracking-[0.2em] uppercase">SAMS <span className="text-teal-300">STAFF</span></h1>
+                    <h1 className="text-3xl font-black text-white tracking-[0.25em] uppercase italic">SAMS <span className="text-primary not-italic">STAFF</span></h1>
+                    <div className="h-1 w-12 bg-primary/40 rounded-full mt-3" />
                 </div>
 
-                <Card className="border-none bg-white rounded-[2rem] md:rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] overflow-hidden relative" suppressHydrationWarning>
-                    <CardContent className="p-6 md:p-14" suppressHydrationWarning>
-                        <div className="mb-6 md:mb-10 text-center">
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Employee</h2>
-                            <p className="text-teal-600 font-bold text-[10px] mt-2 uppercase tracking-[0.3em] bg-teal-50 py-1 px-4 rounded-full inline-block italic">Unit: @{agencySlug}</p>
+                <Card className="border border-white/10 bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] shadow-[0_80px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden relative" suppressHydrationWarning>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                    <CardContent className="p-8 md:p-14" suppressHydrationWarning>
+                        <div className="mb-8 md:mb-12 text-center">
+                            <h2 className="text-2xl md:text-3xl font-black text-white tracking-widest uppercase italic">Operational Sync</h2>
+                            <p className="text-primary font-bold text-[10px] mt-3 uppercase tracking-[0.3em] bg-white/5 py-1.5 px-6 rounded-full inline-block border border-white/5">
+                                FIELD NODE: <span className="italic">@{agencySlug}</span>
+                            </p>
                         </div>
 
                         <Form {...form}>
@@ -125,19 +129,19 @@ export default function StaffLogin() {
                                     name="email"
                                     render={({ field }) => (
                                         <FormItem className="space-y-2">
-                                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Device ID / Email</FormLabel>
+                                            <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Personnel ID</FormLabel>
                                             <FormControl>
                                                 <div className="relative group">
-                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
+                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
-                                                        placeholder="name@agency.com"
-                                                        className="pl-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
+                                                        placeholder="operator@agency.ops"
+                                                        className="pl-12 h-14 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:bg-white/[0.08] focus:border-primary/30 transition-all font-black uppercase tracking-wider text-xs italic"
                                                         {...field}
                                                     />
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-[10px] text-red-500 font-bold" />
+                                            <FormMessage className="text-[10px] text-rose-500 font-bold" />
                                         </FormItem>
                                     )}
                                 />
@@ -146,21 +150,21 @@ export default function StaffLogin() {
                                     name="password"
                                     render={({ field }) => (
                                         <FormItem className="space-y-2">
-                                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Duty Key</FormLabel>
+                                            <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Operational Cipher</FormLabel>
                                             <FormControl>
                                                 <div className="relative group">
-                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
+                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
                                                         type={showPassword ? "text" : "password"}
                                                         placeholder="••••••••"
-                                                        className="pl-12 pr-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold"
+                                                        className="pl-12 pr-12 h-14 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:bg-white/[0.08] focus:border-primary/30 transition-all font-semibold"
                                                         {...field}
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowPassword(!showPassword)}
-                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors"
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
                                                     >
                                                         {showPassword ? (
                                                             <EyeOff className="w-4 h-4" />
@@ -170,7 +174,7 @@ export default function StaffLogin() {
                                                     </button>
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-[10px] text-red-500 font-bold" />
+                                            <FormMessage className="text-[10px] text-rose-500 font-bold" />
                                         </FormItem>
                                     )}
                                 />
@@ -178,19 +182,21 @@ export default function StaffLogin() {
                                 <Button
                                     suppressHydrationWarning
                                     type="submit"
-                                    className="w-full h-14 bg-[#14B8A6] hover:bg-[#0D9488] text-white font-black rounded-2xl shadow-xl shadow-teal-500/20 transition-all active:scale-[0.98] flex items-center justify-center space-x-2 text-sm mt-4 uppercase tracking-widest"
+                                    variant="premium"
+                                    size="cta"
+                                    className="w-full h-16 mt-6 uppercase tracking-[0.2em]"
                                     disabled={loading}
                                 >
                                     {loading ? (
                                         <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            <span>Verifying...</span>
+                                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                            <span>Establishing Secure Link...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Fingerprint className="w-4 h-4" />
-                                            <span>BEGIN DUTY</span>
-                                            <ChevronRight className="w-4 h-4 ml-1" />
+                                            <Fingerprint className="w-5 h-5 mr-3" />
+                                            <span>Begin Duty Cycle</span>
+                                            <ChevronRight className="w-4 h-4 ml-2" />
                                         </>
                                     )}
                                 </Button>
@@ -200,10 +206,13 @@ export default function StaffLogin() {
                 </Card>
 
                 {/* Footer Section */}
-                <div className="mt-12 text-center">
-                    <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.4em]">
-                        Duty Node: {agencySlug} // SAMS_v3.0 SECURE
-                    </p>
+                <div className="mt-16 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.5em]">
+                            Deployment Portal // Node: {agencySlug}
+                        </p>
+                    </div>
                 </div>
             </motion.div>
         </div>

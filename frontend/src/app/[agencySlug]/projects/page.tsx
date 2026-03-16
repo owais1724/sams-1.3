@@ -105,16 +105,16 @@ export default function ProjectsPage() {
                 }
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Total Projects" value={projects.length} icon={<Briefcase />} color="teal" />
-                <StatCard title="Active Deployments" value={activeProjectCount} icon={<Activity />} color="emerald" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+                <StatCard title="Total Projects" value={projects.length} icon={<Briefcase className="text-[#D9A75B]" />} color="amber" className="bg-white/5 border-white/10" />
+                <StatCard title="Active Deployments" value={activeProjectCount} icon={<Activity className="text-emerald-400" />} color="emerald" className="bg-white/5 border-white/10" />
                 <PermissionGuard permission="view_clients">
-                    <StatCard title="Client Contracts" value={clients.length} icon={<Shield />} color="blue" />
+                    <StatCard title="Client Contracts" value={clients.length} icon={<Shield className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
                 </PermissionGuard>
             </div>
 
-            <ControlPanel count={projects.length} totalLabel="Registered Projects">
-                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search project by name or location..." />
+            <ControlPanel count={projects.length} totalLabel="Registered Projects" className="bg-white/5 border-white/10 px-4">
+                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search project by name or location..." className="bg-transparent border-none text-white placeholder:text-white/20" />
             </ControlPanel>
 
             <DataTable columns={['Project Name', 'Client', 'Location', 'Assigned Staff', 'Status', 'Actions']}>
@@ -134,45 +134,45 @@ export default function ProjectsPage() {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.98 }}
                                 transition={{ duration: 0.2, delay: idx * 0.03 }}
-                                className="group hover:bg-slate-50/50 transition-colors"
+                                className="group hover:bg-white/[0.02] transition-colors border-b border-white/5"
                             >
                                 <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-110 group-hover:border-primary/20 transition-all shrink-0">
-                                            <Globe className="h-6 w-6 text-slate-300 group-hover:text-primary transition-colors" />
+                                        <div className="h-12 w-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:border-[#D9A75B]/20 transition-all shrink-0">
+                                            <Globe className="h-6 w-6 text-white/40 group-hover:text-[#D9A75B] transition-colors" />
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="font-black text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors truncate">{project.name}</div>
+                                            <div className="font-black text-white text-lg tracking-tight group-hover:text-[#D9A75B] transition-colors truncate">{project.name}</div>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">ID: {project.id.slice(-6).toUpperCase()}</span>
+                                                <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">ID: {project.id.slice(-6).toUpperCase()}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center gap-2 font-black text-slate-900 text-[13px] tracking-tight">
-                                        <Shield className="h-3.5 w-3.5 text-primary" />
+                                    <div className="flex items-center gap-2 font-black text-white text-[13px] tracking-tight">
+                                        <Shield className="h-3.5 w-3.5 text-[#D9A75B]" />
                                         {project.client?.name || "No Client Assigned"}
                                     </div>
-                                    <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest pl-5 mt-0.5">Verified Client</p>
+                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-5 mt-0.5">Verified Client</p>
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex items-center text-slate-500 font-bold text-sm">
-                                        <MapPin className="h-3.5 w-3.5 mr-2 text-slate-400" />
+                                    <div className="flex items-center text-white/60 font-bold text-sm">
+                                        <MapPin className="h-3.5 w-3.5 mr-2 text-white/40" />
                                         <span className="truncate max-w-[150px]">{project.location || "N/A"}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2">
-                                        <div className="h-9 w-9 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center">
-                                            <Users className="h-4 w-4 text-emerald-600" />
+                                        <div className="h-9 w-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                            <Users className="h-4 w-4 text-emerald-500" />
                                         </div>
                                         <div>
-                                            <div className="font-black text-slate-900 text-sm">
+                                            <div className="font-black text-white text-sm">
                                                 {project._count?.assignedEmployees || 0}
                                             </div>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                            <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">
                                                 {project._count?.assignedEmployees === 1 ? 'Guard' : 'Guards'}
                                             </p>
                                         </div>

@@ -111,7 +111,7 @@ export default function AgencyDashboard() {
     if (loading) return <PageLoading message="Loading Dashboard..." />
 
     const sevLabel = (s: number) => ["", "Low", "Medium", "High", "Critical"][s] || "Unknown"
-    const sevColor = (s: number) => ["", "text-blue-600 bg-blue-50", "text-amber-600 bg-amber-50", "text-orange-600 bg-orange-50", "text-rose-600 bg-rose-50"][s] || "text-slate-600 bg-slate-50"
+    const sevColor = (s: number) => ["", "text-blue-400 bg-blue-500/10 border border-blue-500/20", "text-amber-400 bg-amber-500/10 border border-amber-500/20", "text-orange-400 bg-orange-500/10 border border-orange-500/20", "text-rose-400 bg-rose-500/10 border border-rose-500/20"][s] || "text-white/40 bg-white/5 border border-white/10"
 
     return (
         <div className="space-y-10 pb-20">

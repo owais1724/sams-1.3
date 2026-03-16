@@ -82,54 +82,62 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F766E] font-outfit p-4 relative overflow-hidden selection:bg-teal-500/30">
-            {/* Soft Organic Teal Shapes */}
+        <div className="min-h-screen flex flex-col items-center justify-center bg-black font-inter p-4 relative overflow-hidden selection:bg-primary/30">
+            {/* Premium Gold Glows */}
             <div className="absolute inset-0 z-0 overflow-hidden">
-                <div className="absolute top-[10%] left-[10%] w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] lg:w-[400px] lg:h-[400px] bg-white/5 blur-[100px] rounded-full" />
-                <div className="absolute bottom-[10%] right-[10%] w-[150px] h-[150px] sm:w-[250px] sm:h-[250px] lg:w-[300px] lg:h-[300px] bg-teal-400/10 blur-[80px] rounded-full" />
+                <div className="absolute top-[-15%] left-[-10%] w-[600px] h-[600px] bg-primary/10 blur-[130px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[-15%] right-[-10%] w-[500px] h-[500px] bg-[#D9A75B]/5 blur-[110px] rounded-full" />
             </div>
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6 }}
+                initial={{ opacity: 0, scale: 0.98, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
                 className="w-full max-w-[460px] z-10"
             >
                 {/* Logo Section */}
-                <div className="flex flex-col items-center mb-10">
-                    <div className="w-16 h-16 bg-white shadow-2xl rounded-2xl flex items-center justify-center mb-5 ring-4 ring-white/10">
-                        <ShieldCheck className="w-8 h-8 text-[#0F766E]" />
+                <div className="flex flex-col items-center mb-12">
+                    <div className="w-24 h-24 bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] shadow-[0_0_50px_rgba(255,184,0,0.3)] rounded-[32px] flex items-center justify-center mb-6 transform -rotate-3 hover:rotate-0 transition-all duration-500">
+                        <ShieldCheck className="w-12 h-12 text-black" />
                     </div>
-                    <h1 className="text-2xl font-black text-white tracking-[0.2em] uppercase">SAMS <span className="text-teal-300">ADMIN</span></h1>
+                    <h1 className="text-4xl font-black text-white tracking-[0.3em] uppercase italic">HYPER<span className="text-primary not-italic">CORE</span></h1>
+                    <div className="flex items-center gap-2 mt-4">
+                        <div className="h-[2px] w-8 bg-primary/30" />
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">Global Control</span>
+                        <div className="h-[2px] w-8 bg-primary/30" />
+                    </div>
                 </div>
 
-                <Card className="border-none bg-white rounded-[2rem] md:rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] overflow-hidden relative" suppressHydrationWarning>
-                    <CardContent className="p-6 md:p-14" suppressHydrationWarning>
-                        <div className="mb-6 md:mb-10 text-center">
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Access Control</h2>
-                            <p className="text-teal-600 font-bold text-[10px] mt-2 uppercase tracking-[0.3em] bg-teal-50 py-1 px-4 rounded-full inline-block italic">MASTER_NODE // SECURE</p>
+                <Card className="border border-white/10 bg-white/[0.03] backdrop-blur-3xl rounded-[3rem] shadow-[0_100px_120px_-20px_rgba(0,0,0,0.9)] overflow-hidden relative" suppressHydrationWarning>
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+                    <CardContent className="p-10 md:p-16" suppressHydrationWarning>
+                        <div className="mb-10 md:mb-14 text-center">
+                            <h2 className="text-2xl md:text-3xl font-black text-white tracking-widest uppercase italic border-b border-white/5 pb-4">Master Access</h2>
+                            <p className="text-primary font-black text-[9px] mt-6 uppercase tracking-[0.4em] bg-white/5 py-2 px-8 rounded-full inline-block border border-white/5 shadow-inner">
+                                NODE_STAT: <span className="italic">AUTHORITATIVE</span>
+                            </p>
                         </div>
 
                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                                 <FormField
                                     control={form.control}
                                     name="email"
                                     render={({ field }) => (
-                                        <FormItem className="space-y-2">
-                                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Administrator ID</FormLabel>
+                                        <FormItem className="space-y-3">
+                                            <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] pl-1">Superuser ID</FormLabel>
                                             <FormControl>
                                                 <div className="relative group">
-                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
+                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
-                                                        placeholder="admin@sams.io"
-                                                        className="pl-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
+                                                        placeholder="root@sams.global"
+                                                        className="pl-12 h-16 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:bg-white/[0.08] focus:border-primary/40 transition-all font-black uppercase tracking-[0.15em] text-xs italic"
                                                         {...field}
                                                     />
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-[10px] text-red-500 font-bold" />
+                                            <FormMessage className="text-[10px] text-rose-500 font-bold" />
                                         </FormItem>
                                     )}
                                 />
@@ -137,32 +145,32 @@ export default function LoginPage() {
                                     control={form.control}
                                     name="password"
                                     render={({ field }) => (
-                                        <FormItem className="space-y-2">
-                                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Master Key</FormLabel>
+                                        <FormItem className="space-y-3">
+                                            <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] pl-1">Master Cipher</FormLabel>
                                             <FormControl>
                                                 <div className="relative group">
-                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
+                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
                                                         type={showPassword ? "text" : "password"}
                                                         placeholder="••••••••"
-                                                        className="pl-12 pr-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold"
+                                                        className="pl-12 pr-12 h-16 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:bg-white/[0.08] focus:border-primary/40 transition-all font-semibold"
                                                         {...field}
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowPassword(!showPassword)}
-                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors"
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
                                                     >
                                                         {showPassword ? (
-                                                            <EyeOff className="w-4 h-4" />
+                                                            <EyeOff className="w-5 h-5" />
                                                         ) : (
-                                                            <Eye className="w-4 h-4" />
+                                                            <Eye className="w-5 h-5" />
                                                         )}
                                                     </button>
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-[10px] text-red-500 font-bold" />
+                                            <FormMessage className="text-[10px] text-rose-500 font-bold" />
                                         </FormItem>
                                     )}
                                 />
@@ -170,18 +178,20 @@ export default function LoginPage() {
                                 <Button
                                     suppressHydrationWarning
                                     type="submit"
-                                    className="w-full h-14 bg-[#14B8A6] hover:bg-[#0D9488] text-white font-black rounded-2xl shadow-xl shadow-teal-500/20 transition-all active:scale-[0.98] flex items-center justify-center space-x-2 text-sm mt-4 uppercase tracking-widest"
+                                    variant="premium"
+                                    size="cta"
+                                    className="w-full h-18 mt-8 uppercase tracking-[0.25em] text-sm italic"
                                     disabled={loading}
                                 >
                                     {loading ? (
                                         <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            <span>Signing In...</span>
+                                            <Loader2 className="w-6 h-6 animate-spin mr-3" />
+                                            <span>Decrypting...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span>Sign In</span>
-                                            <ChevronRight className="w-4 h-4 ml-1" />
+                                            <span>Authorize Login</span>
+                                            <ChevronRight className="w-5 h-5 ml-2" />
                                         </>
                                     )}
                                 </Button>
@@ -191,10 +201,14 @@ export default function LoginPage() {
                 </Card>
 
                 {/* Secure Marker */}
-                <div className="mt-12 text-center">
-                    <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.4em]">
-                        SAMS GLOBAL NODE // SECURE
-                    </p>
+                <div className="mt-20 text-center">
+                    <div className="flex items-center justify-center gap-3 mb-6">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_#FFB800]" />
+                        <p className="text-[11px] text-white/40 font-black uppercase tracking-[0.6em]">
+                            Global Root Node // Master_SAMS_Engine
+                        </p>
+                    </div>
+                    <p className="text-[10px] text-white/20 font-medium tracking-widest uppercase">© 2026 SAMS HYPERCORE SOLUTIONS. END-TO-END ENCRYPTED.</p>
                 </div>
             </motion.div>
         </div>

@@ -58,24 +58,22 @@ export default function StaffDashboard() {
       // Update auth store with fresh permissions so PermissionGuard works correctly
       login(user)
 
-      const PLATFORM_PERMISSIONS = [
-        'create_agency', 'edit_agency', 'delete_agency', 'view_agencies',
-        'create_agency_admin', 'edit_agency_admin', 'delete_agency_admin',
-        'view_audit_logs_platform',
-      ]
-      const perms: string[] = (user.permissions || []).filter(
-        (p: string) => !PLATFORM_PERMISSIONS.includes(p)
-      )
+      const perms = user.permissions || []
       setUserPermissions(perms)
 
-      const isAdmin = user?.role === 'Super Admin' || user?.role === 'Agency Admin'
-      const hasPerm = (p: string) => isAdmin || perms.includes(p)
+      // Permission check
+      const isAdmin = user?.role?.toLowerCase().includes('admin')
+      if (!isAdmin && !perms.includes('view_dashboard')) {
+        toast.error("Unauthorized Access: Terminal restricted.")
+        router.push(`/${agencySlug}/my-schedule`)
+        return
+      }
 
       const [empRes, attRes, projRes, leaveRes] = await Promise.allSettled([
-        hasPerm('view_employee') ? api.get('/employees') : Promise.reject('No permission'),
-        hasPerm('view_attendance') ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'),
-        hasPerm('view_projects') ? api.get('/projects') : Promise.reject('No permission'),
-        hasPerm('view_leaves') ? api.get('/leaves') : Promise.reject('No permission')
+        (isAdmin || perms.includes('view_employee')) ? api.get('/employees') : Promise.reject('No permission'),
+        (isAdmin || perms.includes('view_attendance')) ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'),
+        (isAdmin || perms.includes('view_projects')) ? api.get('/projects') : Promise.reject('No permission'),
+        (isAdmin || perms.includes('view_leaves')) ? api.get('/leaves') : Promise.reject('No permission')
       ])
 
       const employees = empRes.status === 'fulfilled' ? empRes.value.data : []
@@ -124,7 +122,7 @@ export default function StaffDashboard() {
       })) as any)
 
     } catch (error: any) {
-      toast.error("Failed to load dashboard.")
+      toast.error("Critical failure in mission data retrieval.")
     } finally {
       setLoading(false)
     }
@@ -134,91 +132,91 @@ export default function StaffDashboard() {
     fetchDashboardData()
   }, [])
 
-  if (loading) return <PageLoading message="Loading Dashboard..." />
+  if (loading) return <PageLoading message="Synchronizing HUD..." />
 
   return (
-    <div className="space-y-10 pb-20">
+    <div className="space-y-10 pb-20 font-inter">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-primary/10">Staff Dashboard</div>
-            <Badge className="bg-emerald-500 text-white border-none text-[9px] font-black tracking-widest px-2 py-0.5 animate-pulse">SYSTEM LIVE</Badge>
+            <div className="bg-[#D9A75B]/10 text-[#D9A75B] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-[#D9A75B]/20">Station Command</div>
+            <Badge className="bg-[#D9A75B] text-black border-none text-[9px] font-black tracking-widest px-2 py-0.5 animate-pulse">TERMINAL LIVE</Badge>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
-            Staff <span className="text-primary">Dashboard</span>
+          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-none uppercase italic">
+            Mission <span className="text-[#D9A75B]">Control</span>
           </h1>
-          <p className="text-slate-500 font-bold text-sm mt-4 uppercase tracking-widest max-w-lg leading-relaxed">
-            Overview of your activity and status within <span className="text-primary italic font-black">{userData?.agencyName || 'SAMS Operations'}</span>.
+          <p className="text-white/40 font-bold text-sm mt-4 uppercase tracking-[0.2em] max-w-lg leading-relaxed">
+            Real-time interface for <span className="text-[#D9A75B] italic font-black">{userData?.agencyName || 'Institutional Matrix'}</span> operations.
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-white p-4 rounded-[32px] border border-slate-100 shadow-xl shadow-slate-200/50">
-          <Avatar className="h-14 w-14 rounded-2xl border-2 border-slate-50">
-            <AvatarFallback className="bg-slate-900 text-white font-black">{userData?.fullName?.charAt(0)}</AvatarFallback>
+        <div className="flex items-center gap-4 bg-white/5 p-4 rounded-[32px] border border-white/10 shadow-2xl backdrop-blur-xl">
+          <Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10 bg-black/40">
+            <AvatarFallback className="bg-gradient-to-tr from-[#D9A75B] to-[#FFB800] text-black font-black">{userData?.fullName?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">User Profile</div>
-            <div className="text-lg font-black text-slate-900 leading-tight">{userData?.fullName}</div>
+            <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">OPERATOR IDENTITY</div>
+            <div className="text-lg font-black text-white leading-tight">{userData?.fullName}</div>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{userData?.role || 'Employee'}</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#D9A75B]" />
+              <span className="text-[10px] font-bold text-[#D9A75B] uppercase tracking-[0.2em]">{userData?.role || 'Level 1 Personnel'}</span>
             </div>
           </div>
         </div>
       </div>
 
       <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4">
-        <StatCard title="Total Staff" value={userStats.totalStaff} icon={<Users />} color="blue" />
-        <StatCard title="Present Today" value={userStats.presentToday} icon={<Zap />} color="emerald" />
-        <StatCard title="Active Projects" value={userStats.activeProjects} icon={<Target />} color="violet" />
-        <StatCard title="Pending Leaves" value={userStats.onLeave} icon={<CalendarDays />} color="amber" />
+        <StatCard title="Personnel Count" value={userStats.totalStaff} icon={<Users className="text-[#D9A75B]" />} color="amber" className="bg-white/5 border-white/10" />
+        <StatCard title="Active Duty" value={userStats.presentToday} icon={<Zap className="text-emerald-400" />} color="emerald" className="bg-white/5 border-white/10" />
+        <StatCard title="Project Matrix" value={userStats.activeProjects} icon={<Target className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
+        <StatCard title="Pending Status" value={userStats.onLeave} icon={<CalendarDays className="text-amber-400" />} color="amber" className="bg-white/5 border-white/10" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
         <div className="lg:col-span-2 space-y-10">
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
-                <Zap className="h-5 w-5 text-primary" />
-                Quick Access
+              <h2 className="text-xl font-black text-white uppercase tracking-[0.1em] flex items-center gap-3 italic">
+                <Zap className="h-5 w-5 text-[#D9A75B]" />
+                Command Links
               </h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
-                { label: 'Attendance', icon: Clock, path: '/attendance', perm: 'mark_attendance', color: 'slate' },
-                { label: 'Employees', icon: Users, path: '/employees', perm: 'view_employee', color: 'teal' },
-                { label: 'Projects', icon: Briefcase, path: '/projects', perm: 'view_projects', color: 'emerald' },
-                { label: 'Clients', icon: Building2, path: '/clients', perm: 'view_clients', color: 'blue' },
-                { label: 'Payroll', icon: Wallet, path: '/payroll', perm: 'view_payroll', color: 'amber' },
-                { label: 'Leaves', icon: CalendarDays, path: '/leaves', perm: 'apply_leave', color: 'orange' },
-              ].filter(link => userPermissions.includes(link.perm) || userData?.role === 'Super Admin' || userData?.role === 'Agency Admin').map((link) => (
+                { label: 'Attendance', icon: Clock, path: '/attendance', perm: 'record_attendance' },
+                { label: 'Personnel', icon: Users, path: '/employees', perm: 'view_employee' },
+                { label: 'Projects', icon: Briefcase, path: '/projects', perm: 'view_projects' },
+                { label: 'Clients', icon: Building2, path: '/clients', perm: 'view_clients' },
+                { label: 'Payroll', icon: Wallet, path: '/payroll', perm: 'view_payroll' },
+                { label: 'Leave Logs', icon: CalendarDays, path: '/leaves', perm: 'apply_leave' },
+              ].filter(link => userPermissions.includes(link.perm) || userData?.role?.toLowerCase().includes('admin')).map((link) => (
                 <Button
                   key={link.label}
                   variant="outline"
-                  className="h-32 flex-col gap-3 rounded-[32px] border-slate-100 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all shadow-sm group relative overflow-hidden bg-white"
+                  className="h-32 flex-col gap-3 rounded-[32px] border-white/10 bg-white/5 hover:border-[#D9A75B]/50 hover:bg-[#D9A75B]/10 hover:text-[#D9A75B] transition-all shadow-xl group relative overflow-hidden backdrop-blur-md text-white/70"
                   onClick={() => router.push(`/${agencySlug}${link.path}`)}
                 >
                   <link.icon className="h-7 w-7 transition-transform group-hover:scale-110 duration-500" />
-                  <span className="text-xs font-black uppercase tracking-widest">{link.label}</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{link.label}</span>
                   <ArrowRight className="h-3 w-3 absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                 </Button>
               ))}
             </div>
           </div>
 
-          <div className="bg-slate-50/50 p-8 rounded-[40px] border border-slate-100 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-5 sm:p-10 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-700">
-              <ShieldCheck className="h-40 w-40" />
+          <div className="bg-white/5 p-8 rounded-[40px] border border-white/10 relative overflow-hidden group backdrop-blur-3xl">
+            <div className="absolute top-0 right-0 p-5 sm:p-10 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity duration-700">
+              <ShieldCheck className="h-40 w-40 text-[#D9A75B]" />
             </div>
             <div className="relative z-10">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Permissions & Access</h3>
+              <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] mb-6 underline decoration-[#D9A75B]/30 decoration-2 underline-offset-8">Access Privileges</h3>
               <div className="flex flex-wrap gap-2">
                 {userPermissions.map(p => (
-                  <Badge key={p} className="bg-white text-slate-600 border border-slate-100 shadow-sm px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase tracking-wider">
+                  <Badge key={p} className="bg-[#D9A75B]/10 text-[#D9A75B] border border-[#D9A75B]/20 shadow-lg px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest">
                     {p.replaceAll('_', ' ')}
                   </Badge>
                 ))}
-                {userPermissions.length === 0 && <span className="text-xs font-medium text-slate-400 italic">No specific privileges assigned to this node.</span>}
+                {userPermissions.length === 0 && <span className="text-xs font-medium text-white/30 italic uppercase tracking-widest">Unauthorized Terminal Access.</span>}
               </div>
             </div>
           </div>
@@ -227,44 +225,44 @@ export default function StaffDashboard() {
         <div className="space-y-10">
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Activity Log</h2>
+              <h2 className="text-xl font-black text-white uppercase tracking-[0.1em] italic">Telemetry</h2>
             </div>
             <div className="space-y-4">
               {recentActivities.map((activity: any, idx) => (
-                <div key={idx} className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-center gap-4 group">
-                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", activity.color === 'emerald' ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600")}>
+                <div key={idx} className="bg-white/5 p-5 rounded-[28px] border border-white/10 shadow-xl hover:bg-white/10 transition-all flex items-center gap-4 group backdrop-blur-md">
+                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg", activity.color === 'emerald' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20")}>
                     <Activity className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-black text-slate-900 leading-tight group-hover:text-primary transition-colors truncate">{activity.title}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{activity.time} — Verified</p>
+                    <p className="text-[11px] font-black text-white/80 leading-tight group-hover:text-[#D9A75B] transition-colors truncate uppercase tracking-wider">{activity.title}</p>
+                    <p className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">{activity.time} — SECTOR 7</p>
                   </div>
                 </div>
               ))}
-              {recentActivities.length === 0 && <p className="text-center py-10 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No activities logged in current cycle.</p>}
+              {recentActivities.length === 0 && <p className="text-center py-10 text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">No telemetry detected in current cycle.</p>}
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Agency Staff</h2>
+              <h2 className="text-xl font-black text-white uppercase tracking-[0.1em] italic">Node Directory</h2>
             </div>
             <div className="space-y-4">
               {topPerformers.map((performer: any, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                <div key={idx} className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/10 shadow-lg">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 rounded-xl border border-white">
-                      <AvatarFallback className="bg-slate-200 text-slate-600 font-bold text-xs">{performer.initials}</AvatarFallback>
+                    <Avatar className="h-10 w-10 rounded-xl border border-white/10">
+                      <AvatarFallback className="bg-black/40 text-[#D9A75B] font-black text-xs">{performer.initials}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="text-xs font-black text-slate-900 leading-tight">{performer.name}</div>
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{performer.designation}</div>
+                      <div className="text-xs font-black text-white leading-tight uppercase tracking-wider">{performer.name}</div>
+                      <div className="text-[9px] font-bold text-white/30 uppercase tracking-[0.15em]">{performer.designation}</div>
                     </div>
                   </div>
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 mr-2" />
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                 </div>
               ))}
-              {topPerformers.length === 0 && <p className="text-center py-10 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">No staff members found.</p>}
+              {topPerformers.length === 0 && <p className="text-center py-10 text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Sector manifest empty.</p>}
             </div>
           </div>
         </div>
