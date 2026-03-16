@@ -67,7 +67,7 @@ export class AttendanceService {
     return localNow > lateThreshold ? 'LATE' : 'PRESENT';
   }
 
-  async findAll(agencyId: string, todayOnly: boolean, employeeId?: string) {
+  async findAll(agencyId: string, todayOnly: boolean, employeeId?: string, page?: number, limit?: number) {
     if (!agencyId) return [];
     const where: any = { agencyId };
 
@@ -88,29 +88,35 @@ export class AttendanceService {
       };
     }
 
-    const records = await this.prisma.attendance.findMany({
-      where,
-      include: {
-        employee: {
-          include: {
-            designation: true,
-            user: { select: { fullName: true } },
+    const skip = page && limit ? (page - 1) * limit : undefined;
+    
+    const [records, total] = await Promise.all([
+      this.prisma.attendance.findMany({
+        where,
+        include: {
+          employee: {
+            include: {
+              designation: true,
+              user: { select: { fullName: true } },
+            },
+          },
+          project: true,
+          deployment: {
+            select: {
+              id: true,
+              clientId: true,
+              client: { select: { name: true } },
+              shift: { select: { name: true, startTime: true, endTime: true } },
+            },
           },
         },
-        project: true,
-        deployment: {
-          select: {
-            id: true,
-            clientId: true,
-            client: { select: { name: true } },
-            shift: { select: { name: true, startTime: true, endTime: true } },
-          },
+        orderBy: {
+          createdAt: 'desc',
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+        ...(skip && limit ? { skip, take: limit } : {}),
+      }),
+      this.prisma.attendance.count({ where })
+    ]);
 
     // Deduplicate: per employee per site, keep only the latest record.
     // Site key = deploymentId or projectId (whichever is set).
@@ -153,7 +159,24 @@ export class AttendanceService {
       }
     }
 
-    return Array.from(seen.values());
+    const finalRecords = Array.from(seen.values());
+    
+    // Return paginated result
+    if (page && limit) {
+      return {
+        data: finalRecords,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1
+        }
+      };
+    }
+    
+    return finalRecords;
   }
 
   async checkIn(agencyId: string, userId: string, data: any) {

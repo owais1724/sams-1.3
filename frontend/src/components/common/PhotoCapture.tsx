@@ -33,16 +33,6 @@ export function PhotoCapture({
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const streamRef = useRef<MediaStream | null>(null)
 
-    useEffect(() => {
-        if (open) {
-            startCamera()
-        }
-
-        return () => {
-            stopCamera()
-        }
-    }, [open])
-
     const startCamera = async () => {
         try {
             setError("")
@@ -72,6 +62,16 @@ export function PhotoCapture({
         }
         setStreaming(false)
     }
+
+    useEffect(() => {
+        if (open) {
+            startCamera()
+        }
+
+        return () => {
+            stopCamera()
+        }
+    }, [open])
 
     const capturePhoto = () => {
         if (videoRef.current && canvasRef.current) {

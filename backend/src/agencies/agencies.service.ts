@@ -45,7 +45,7 @@ export class AgenciesService {
         'view_clients', 'create_client', 'edit_client', 'delete_client',
         'view_projects', 'create_project', 'edit_project', 'delete_project',
         'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
-        'manage_roles', 'assign_staff', 'view_attendance', 'mark_attendance',
+        'manage_roles', 'assign_staff', 'view_attendance', 'record_attendance',
         'approve_leave', 'apply_leave', 'view_leaves', 'manage_payroll',
         'view_payroll', 'view_reports'
       ];

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
@@ -39,6 +40,16 @@ export class DeploymentsService {
   }
 
   async findOne(agencyId: string, id: string) {
+    // First check if deployment exists at all
+    const deploymentExists = await this.prisma.deployment.findUnique({
+      where: { id },
+    });
+
+    if (!deploymentExists) {
+      throw new NotFoundException('Deployment not found');
+    }
+
+    // Then check if it belongs to the requesting agency
     const deployment = await this.prisma.deployment.findFirst({
       where: { id, agencyId },
       include: {
@@ -58,7 +69,11 @@ export class DeploymentsService {
         },
       },
     });
-    if (!deployment) throw new NotFoundException('Deployment not found');
+
+    if (!deployment) {
+      throw new ForbiddenException('Access to this deployment is forbidden');
+    }
+
     return deployment;
   }
 

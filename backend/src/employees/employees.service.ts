@@ -56,7 +56,7 @@ export class EmployeesService {
       if (!role) {
         // Ensure essential permissions exist (including full project permissions)
         const essentialActions = [
-          'mark_attendance',
+          'record_attendance',
           'apply_leave',
           'view_projects',
           'create_project',

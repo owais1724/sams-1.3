@@ -28,22 +28,29 @@ const buttonVariants = cva(
          * primary — Teal brand CTA button (Create Client, Create Employee, etc.)
          * Was: className="h-12 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 ..."
          */
+        /**
+         * primary — Gold brand CTA button
+         */
         primary:
-          "bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 font-bold rounded-xl active:scale-[0.98]",
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/30 font-bold rounded-xl active:scale-[0.98] uppercase tracking-wider",
 
         /**
-         * admin — Blue admin portal button (Initialize Agency, etc.)
-         * Was: className="bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl ..."
+         * premium — Metallic gold variant with gradient and glow
+         */
+        premium:
+          "bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] text-black font-black rounded-xl shadow-[0_0_20px_rgba(255,184,0,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-[0.1em]",
+
+        /**
+         * admin — Deep primary variant
          */
         admin:
-          "bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200 font-black rounded-2xl active:scale-[0.98]",
+          "bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-200/20 font-black rounded-2xl active:scale-[0.98]",
 
         /**
-         * danger-solid — Red confirmation / destructive action
-         * Was: className="bg-red-600 hover:bg-red-700 text-white font-bold ..."
+         * danger-solid — Red confirmation
          */
         "danger-solid":
-          "bg-red-600 text-white hover:bg-red-700 shadow-lg font-bold rounded-xl active:scale-[0.98]",
+          "bg-rose-600 text-white hover:bg-rose-700 shadow-lg font-bold rounded-xl active:scale-[0.98]",
 
         /**
          * success — Green check-in / approve action

@@ -164,16 +164,16 @@ export function PageHeader({
     className,
 }: PageHeaderProps) {
     return (
-        <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8", className)}>
+        <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-8 sm:mb-12", className)}>
             <div className="flex-1 min-w-0">
-                <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-foreground tracking-tighter leading-none mb-4">
                     {title}{" "}
                     {titleHighlight && (
-                        <span className="text-primary">{titleHighlight}</span>
+                        <span className="text-primary italic">{titleHighlight}</span>
                     )}
                 </h1>
                 {subtitle && (
-                    <p className="text-xs sm:text-sm md:text-base text-slate-500 font-medium mt-1.5 sm:mt-2 leading-relaxed max-w-2xl">
+                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium mt-1 leading-relaxed max-w-2xl border-l-2 border-primary/20 pl-4">
                         {subtitle}
                     </p>
                 )}
@@ -191,14 +191,14 @@ export function PageHeader({
 type StatCardColor = "teal" | "blue" | "emerald" | "amber" | "rose" | "slate" | "orange" | "violet"
 
 const statCardColorMap: Record<StatCardColor, { icon: string; value: string; badge: string }> = {
-    teal: { icon: "bg-teal-50 text-teal-600", value: "text-teal-700", badge: "bg-teal-50 text-teal-600 border-teal-100" },
-    blue: { icon: "bg-blue-50 text-blue-600", value: "text-blue-700", badge: "bg-blue-50 text-blue-600 border-blue-100" },
-    emerald: { icon: "bg-emerald-50 text-emerald-600", value: "text-emerald-700", badge: "bg-emerald-50 text-emerald-600 border-emerald-100" },
-    amber: { icon: "bg-amber-50 text-amber-600", value: "text-amber-700", badge: "bg-amber-50 text-amber-600 border-amber-100" },
-    rose: { icon: "bg-rose-50 text-rose-600", value: "text-rose-700", badge: "bg-rose-50 text-rose-600 border-rose-100" },
-    slate: { icon: "bg-slate-100 text-slate-600", value: "text-slate-700", badge: "bg-slate-50 text-slate-600 border-slate-100" },
-    orange: { icon: "bg-orange-50 text-orange-600", value: "text-orange-700", badge: "bg-orange-50 text-orange-600 border-orange-100" },
-    violet: { icon: "bg-violet-50 text-violet-600", value: "text-violet-700", badge: "bg-violet-50 text-violet-600 border-violet-100" },
+    teal: { icon: "bg-primary/10 text-primary", value: "text-primary", badge: "bg-primary/10 text-primary border-primary/20" },
+    blue: { icon: "bg-blue-500/10 text-blue-400", value: "text-blue-500", badge: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    emerald: { icon: "bg-emerald-500/10 text-emerald-400", value: "text-emerald-500", badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+    amber: { icon: "bg-amber-500/10 text-amber-400", value: "text-amber-500", badge: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    rose: { icon: "bg-rose-500/10 text-rose-400", value: "text-rose-500", badge: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
+    slate: { icon: "bg-slate-500/10 text-slate-400", value: "text-slate-500", badge: "bg-slate-500/10 text-slate-400 border-slate-500/20" },
+    orange: { icon: "bg-orange-500/10 text-orange-400", value: "text-orange-500", badge: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
+    violet: { icon: "bg-violet-500/10 text-violet-400", value: "text-violet-500", badge: "bg-violet-500/10 text-violet-400 border-violet-500/20" },
 }
 
 interface StatCardProps {
@@ -213,13 +213,13 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, color = "teal", trend, className }: StatCardProps) {
     const colors = statCardColorMap[color]
     return (
-        <Card className={cn("rounded-2xl sm:rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 p-4 sm:p-6 flex items-center justify-between", className)}>
+        <Card className={cn("rounded-2xl sm:rounded-[32px] border-slate-100/10 bg-card p-4 sm:p-6 flex items-center justify-between group hover:border-primary/50 transition-all duration-500", className)}>
             <div>
-                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{title}</p>
-                <h3 className={cn("text-2xl sm:text-3xl font-black mt-1", colors.value)}>{value}</h3>
-                {trend && <p className="text-[10px] font-medium text-slate-400 mt-1">{trend}</p>}
+                <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{title}</p>
+                <h3 className={cn("text-2xl sm:text-4xl font-black mt-1 tracking-tighter", colors.value)}>{value}</h3>
+                {trend && <p className="text-[10px] font-medium text-emerald-500 mt-1">{trend}</p>}
             </div>
-            <div className={cn("h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center", colors.icon)}>
+            <div className={cn("h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-lg shadow-black/20", colors.icon)}>
                 {icon}
             </div>
         </Card>
@@ -274,8 +274,8 @@ export function TableCardWrapper({
 }) {
     return (
         <div className={cn(
-            "bg-white rounded-[32px] md:rounded-[40px]",
-            "border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden",
+            "bg-card rounded-[32px] md:rounded-[40px]",
+            "border border-white/5 shadow-2xl overflow-hidden",
             className
         )}>
             <div className="overflow-x-auto">
@@ -367,17 +367,17 @@ interface EmptyStateProps {
 export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
     return (
         <div className={cn(
-            "flex flex-col items-center justify-center py-24 px-6 text-center bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50",
+            "flex flex-col items-center justify-center py-24 px-6 text-center bg-card rounded-[40px] border border-white/5 shadow-2xl",
             className
         )}>
             {icon && (
-                <div className="h-24 w-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 border border-slate-100 shadow-sm mb-8 group-hover:scale-110 transition-transform shrink-0">
+                <div className="h-24 w-24 bg-white/5 rounded-full flex items-center justify-center text-primary border border-white/10 shadow-xl mb-8 group-hover:scale-110 transition-transform shrink-0">
                     <span className="scale-125">{icon}</span>
                 </div>
             )}
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2 uppercase">{title}</h3>
+            <h3 className="text-2xl font-black text-foreground tracking-tight mb-2 uppercase">{title}</h3>
             {description && (
-                <p className="text-slate-500 font-medium max-w-sm mx-auto mb-10 text-sm leading-relaxed">
+                <p className="text-muted-foreground font-medium max-w-sm mx-auto mb-10 text-sm leading-relaxed">
                     {description}
                 </p>
             )}
@@ -398,17 +398,17 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, className }: StatusBadgeProps) {
     const statusLabel = status.toUpperCase()
     const badgeStyles: Record<string, string> = {
-        ACTIVE: "bg-emerald-50 text-emerald-700 border-emerald-100",
-        INACTIVE: "bg-slate-100 text-slate-600 border-slate-200",
-        PENDING: "bg-amber-50 text-amber-700 border-amber-100",
-        APPROVED: "bg-blue-50 text-blue-700 border-blue-100",
-        REJECTED: "bg-rose-50 text-rose-700 border-rose-100",
-        LATE: "bg-orange-50 text-orange-700 border-orange-100",
+        ACTIVE: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+        INACTIVE: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+        PENDING: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+        APPROVED: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+        REJECTED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+        LATE: "bg-orange-500/10 text-orange-400 border-orange-500/20",
     }
     const style = badgeStyles[statusLabel] || badgeStyles.INACTIVE
     return (
         <span className={cn(
-            "inline-flex items-center px-3 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wide border",
+            "inline-flex items-center px-3 py-1 rounded-lg font-bold text-[10px] uppercase tracking-[0.1em] border backdrop-blur-sm",
             style,
             className
         )}>
@@ -691,14 +691,14 @@ interface ControlPanelProps {
 export function ControlPanel({ count, totalLabel, children, className }: ControlPanelProps) {
     return (
         <div className={cn(
-            "flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl sm:rounded-[32px] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 mb-6 sm:mb-8",
+            "flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl sm:rounded-[32px] bg-card border border-white/5 shadow-2xl mb-6 sm:mb-8",
             className
         )}>
             <div className="flex items-center gap-3 sm:gap-4 px-1 sm:px-2">
-                <div className="h-9 w-9 sm:h-10 sm:w-10 bg-primary/10 text-primary rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm">
+                <div className="h-9 w-9 sm:h-10 sm:w-10 bg-primary/20 text-primary rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm shadow-inner shadow-black/20">
                     {count}
                 </div>
-                <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-[0.15em] sm:tracking-[0.2em]">
+                <span className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">
                     {totalLabel}
                 </span>
             </div>

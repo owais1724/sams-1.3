@@ -19,7 +19,7 @@ async function main() {
         'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
         'manage_roles', // Create/Edit roles
         'assign_staff',
-        'view_attendance', 'mark_attendance',
+        'view_attendance', 'record_attendance',
         'approve_leave', 'apply_leave', 'view_leaves',
         'manage_payroll', 'view_payroll',
         'view_reports'
@@ -66,7 +66,7 @@ async function main() {
     const staffPermissions = await prisma.permission.findMany({
         where: {
             action: {
-                in: ['mark_attendance', 'apply_leave']
+                in: ['record_attendance', 'apply_leave']
             }
         }
     });

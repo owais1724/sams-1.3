@@ -20,13 +20,7 @@ SAMS is built with three core pillars: **Security**, **Scalability**, and **Simp
 - **Dynamic RBAC Dashboard**: Real-time permission mapping for agency-specific roles.
 
 ### 📅 Operational Excellence
-- **Shift Management**: Create and manage shift templates (Morning, Afternoon, Night) with time windows.
-- **Deployment Management**: Assign guards to client sites with conflict detection and overlapping prevention.
-- **Attendance System**: 
-  - Project-locked check-in/out with multi-method support (Web, QR, Photo)
-  - Automatic status calculation (Present/Late/Absent) with configurable grace periods
-  - Duplicate check-in prevention and deployment validation
-- **Incident Reporting**: Real-time incident logging with severity levels and status lifecycle.
+- **Attendance System**: Project-locked check-in/out with multi-method support.
 - **Intelligent Leave Management**: 
   - Hierarchical approval flow (Supervisor → HR → Admin).
   - **Emergency Flow**: Automatic approval with post-action audit acceptance.
@@ -145,67 +139,7 @@ SAMS utilizes a **Bulletproof API Interceptor** layer to handle authentication:
 
 ---
 
-## � Week 2 API Routes & Permissions
-
-### Operational Module Endpoints
-
-#### Deployments Management
-- `GET /deployments` - List all deployments (`view_deployments`)
-- `POST /deployments` - Create deployment (`manage_deployments`)
-- `PATCH /deployments/:id` - Update deployment (`manage_deployments`)
-- `DELETE /deployments/:id` - Cancel deployment (`manage_deployments`)
-- `POST /deployments/:id/guards` - Assign guards (`manage_deployments`)
-- `DELETE /deployments/:id/guards/:guardId` - Remove guard (`manage_deployments`)
-
-#### Shift Management
-- `GET /shifts` - List shifts (`view_shifts`)
-- `POST /shifts` - Create shift (`manage_shifts`)
-- `PATCH /shifts/:id` - Update shift (`manage_shifts`)
-- `DELETE /shifts/:id` - Deactivate shift (`manage_shifts`)
-
-#### Attendance Tracking
-- `GET /attendance` - View attendance (`view_attendance`, `record_attendance`)
-  - Query params: `today`, `employeeId`, `page`, `limit`
-- `POST /attendance/check-in` - Check in (`record_attendance`)
-- `POST /attendance/check-out` - Check out (`record_attendance`)
-- `POST /attendance/detect-absent` - Auto-mark absent (`view_attendance`)
-
-#### Incident Reporting
-- `GET /incidents` - List incidents (`view_incidents`)
-  - Query params: `status`, `severity`, `deploymentId`, `page`, `limit`
-- `POST /incidents` - Report incident (`report_incident`)
-- `PATCH /incidents/:id/status` - Update status (`manage_incidents`)
-
-#### Dashboard (Agency Admin Only)
-- `GET /dashboard/agency` - Full dashboard (`view_dashboard`)
-- `GET /dashboard/today-deployments` - Today's deployments (`view_dashboard`)
-- `GET /dashboard/attendance-summary` - Attendance summary (`view_dashboard`)
-- `GET /dashboard/open-incidents` - Open incidents count (`view_dashboard`)
-- `GET /dashboard/guards-on-duty` - Guards on duty (`view_dashboard`)
-- `GET /dashboard/recent-activity` - Recent activity feed (`view_dashboard`)
-
-### Extended RBAC Permissions
-
-| Permission | Description | Typical Roles |
-|------------|-------------|---------------|
-| `manage_deployments` | Create/edit/cancel deployments | Agency Admin, Supervisor |
-| `manage_shifts` | Define shift schedules | Agency Admin, Supervisor |
-| `record_attendance` | Check-in/out from shifts | Guard, Supervisor |
-| `view_attendance` | View attendance records | Agency Admin, Supervisor |
-| `report_incident` | Submit incident reports | Guard, Supervisor |
-| `manage_incidents` | Review/close incidents | Agency Admin, Supervisor |
-| `view_dashboard` | Access operational dashboard | Agency Admin |
-
-### Security Features
-- **Cross-Agency IDOR Protection**: Returns 403 (not 404) for cross-tenant access attempts
-- **Duplicate Check-in Prevention**: Guards cannot check in twice for same deployment/day
-- **Deployment Conflict Detection**: Prevents overlapping guard assignments
-- **Real-time Dashboard**: Auto-refreshes every 30 seconds
-- **Pagination Support**: Attendance and incidents lists support `page` and `limit` parameters
-
----
-
-## �📄 License
+## 📄 License
 
 This project is proprietary and intended for professional security agency operations.
 

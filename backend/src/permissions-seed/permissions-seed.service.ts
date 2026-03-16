@@ -38,7 +38,7 @@ export class PermissionsSeedService implements OnModuleInit {
         // Staff Assignment
         'assign_staff',
         // Attendance
-        'view_attendance', 'mark_attendance',
+        'view_attendance', 'record_attendance',
         // Leaves
         'view_leaves', 'apply_leave', 'approve_leave',
         // Payroll

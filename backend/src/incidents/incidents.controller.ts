@@ -28,12 +28,17 @@ export class IncidentsController {
     @Query('status') status?: string,
     @Query('severity') severity?: string,
     @Query('deploymentId') deploymentId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
+    const pageNum = page ? parseInt(page, 10) : undefined;
+    const limitNum = limit ? parseInt(limit, 10) : undefined;
+    
     return this.incidentsService.findAll(req.user.agencyId, {
       status,
       severity: severity ? parseInt(severity, 10) : undefined,
       deploymentId,
-    });
+    }, pageNum, limitNum);
   }
 
   @Get('my-incidents')

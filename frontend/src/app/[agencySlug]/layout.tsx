@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
 import api from "@/lib/api"
 import { Menu, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 
 export default function AgencyLayout({
     children,
@@ -158,6 +158,7 @@ export default function AgencyLayout({
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[#0d5c56] overflow-hidden rounded-r-[40px]">
+                            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                             <AgencySidebar onItemClick={() => setSidebarOpen(false)} />
                         </SheetContent>
                     </Sheet>

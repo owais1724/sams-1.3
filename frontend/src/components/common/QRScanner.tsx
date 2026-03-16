@@ -34,26 +34,6 @@ export function QRScanner({
     const scannerRef = useRef<Html5Qrcode | null>(null)
     const qrReaderElementId = "qr-reader"
 
-    useEffect(() => {
-        if (open && !scannerRef.current) {
-            // Wait for DOM to be ready before starting scanner
-            const timer = setTimeout(() => {
-                const element = document.getElementById(qrReaderElementId)
-                if (element) {
-                    startScanner()
-                }
-            }, 100)
-            
-            return () => clearTimeout(timer)
-        }
-
-        return () => {
-            if (!open) {
-                stopScanner()
-            }
-        }
-    }, [open])
-
     const startScanner = async () => {
         try {
             // Ensure element exists
@@ -118,6 +98,26 @@ export function QRScanner({
         setScanning(false)
         setSuccess(false)
     }
+
+    useEffect(() => {
+        if (open && !scannerRef.current) {
+            // Wait for DOM to be ready before starting scanner
+            const timer = setTimeout(() => {
+                const element = document.getElementById(qrReaderElementId)
+                if (element) {
+                    startScanner()
+                }
+            }, 100)
+            
+            return () => clearTimeout(timer)
+        }
+
+        return () => {
+            if (!open) {
+                stopScanner()
+            }
+        }
+    }, [open])
 
     const handleClose = () => {
         stopScanner()

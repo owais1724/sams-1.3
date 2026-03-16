@@ -117,53 +117,56 @@ export default function AgencyDashboard() {
         <div className="space-y-10 pb-20">
             <PageHeader
                 title="Agency"
-                titleHighlight="Dashboard"
-                subtitle={`Real-time operational overview for ${authUser?.agencyName || agencySlug}.`}
+                titleHighlight="Command"
+                subtitle={`Operational Control Center for ${authUser?.agencyName || agencySlug}. System online.`}
                 action={
-                    <Badge className="bg-emerald-500/10 text-emerald-600 border-none font-black text-[10px] uppercase tracking-widest px-4 py-2 animate-pulse">
-                        Live
-                    </Badge>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
+                            Live Node
+                        </span>
+                    </div>
                 }
             />
 
             {/* ── Stat Cards ── */}
             <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-5">
-                <StatCard title="Active Deployments" value={stats.activeDeployments} icon={<MapPin />} color="violet" />
-                <StatCard title="Guards on Duty" value={stats.guardsOnDuty} icon={<Zap />} color="emerald" />
+                <StatCard title="Active Deployments" value={stats.activeDeployments} icon={<Target />} color="teal" />
+                <StatCard title="Guards on Duty" value={stats.guardsOnDuty} icon={<ShieldCheck />} color="teal" />
                 <StatCard title="Open Incidents" value={stats.openIncidents} icon={<AlertTriangle />} color="rose" />
                 <StatCard title="Total Clients" value={stats.clients} icon={<Building2 />} color="teal" />
-                <StatCard title="Total Personnel" value={stats.employees} icon={<Users />} color="blue" />
+                <StatCard title="Total Personnel" value={stats.employees} icon={<Users />} color="teal" />
             </div>
 
             {/* ── Panel 1: Attendance Summary ── */}
-            <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-                <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center gap-3">
-                    <div className="h-8 w-8 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <Card className="rounded-[40px] border-white/5 bg-card overflow-hidden shadow-2xl">
+                <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center gap-3">
+                    <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Today&apos;s Attendance Summary</h3>
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Attendance Protocol Summary</h3>
                 </div>
-                <CardContent className="p-4 sm:p-8">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-                        <div className="text-center p-4 bg-emerald-50/50 rounded-2xl">
-                            <p className="text-3xl font-black text-emerald-600">{stats.attendanceSummary.present}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-500 mt-1">Present</p>
+                <CardContent className="p-4 sm:p-10">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-10">
+                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
+                            <p className="text-4xl font-black text-emerald-500">{stats.attendanceSummary.present}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground mt-2">Verified Present</p>
                         </div>
-                        <div className="text-center p-4 bg-amber-50/50 rounded-2xl">
-                            <p className="text-3xl font-black text-amber-600">{stats.attendanceSummary.late}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500 mt-1">Late</p>
+                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
+                            <p className="text-4xl font-black text-amber-500">{stats.attendanceSummary.late}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground mt-2">Late Arrival</p>
                         </div>
-                        <div className="text-center p-4 bg-rose-50/50 rounded-2xl">
-                            <p className="text-3xl font-black text-rose-600">{stats.attendanceSummary.absent}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-rose-500 mt-1">Absent</p>
+                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
+                            <p className="text-4xl font-black text-rose-500">{stats.attendanceSummary.absent}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground mt-2">Unaccounted</p>
                         </div>
-                        <div className="text-center p-4 bg-slate-50 rounded-2xl">
-                            <p className="text-3xl font-black text-slate-700">{stats.attendanceSummary.total}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">Total Records</p>
+                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
+                            <p className="text-4xl font-black text-primary">{stats.attendanceSummary.total}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground mt-2">Total Complement</p>
                         </div>
                     </div>
                     {stats.attendanceSummary.total > 0 && (
-                        <div className="mt-6 h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                        <div className="mt-10 h-2 w-full bg-white/5 rounded-full overflow-hidden flex shadow-inner">
                             <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.present / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1 }} className="bg-emerald-500 h-full" />
                             <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.late / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1, delay: 0.2 }} className="bg-amber-500 h-full" />
                             <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.absent / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1, delay: 0.4 }} className="bg-rose-500 h-full" />
@@ -172,41 +175,41 @@ export default function AgencyDashboard() {
                 </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {/* ── Panel 2: Today's Active Deployments ── */}
-                <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50">
-                    <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
+                <Card className="rounded-[40px] border-white/5 bg-card shadow-2xl">
+                    <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-violet-50 rounded-xl flex items-center justify-center shrink-0">
-                                <MapPin className="h-4 w-4 text-violet-600" />
+                            <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
+                                <MapPin className="h-5 w-5 text-primary" />
                             </div>
-                            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Today&apos;s Deployments</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Mission Matrix</h3>
                         </div>
-                        <Badge variant="outline" className="font-black text-[10px]">{todayDeployments.length}</Badge>
+                        <Badge className="bg-primary/10 text-primary border-primary/20 font-black text-[10px] uppercase">{todayDeployments.length}</Badge>
                     </div>
-                    <CardContent className="p-4 sm:p-6 max-h-[400px] overflow-y-auto">
+                    <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {todayDeployments.length === 0 ? (
-                            <div className="text-center py-12">
-                                <CalendarDays className="h-10 w-10 text-slate-200 mx-auto mb-3" />
-                                <p className="text-sm font-bold text-slate-400">No deployments today</p>
+                            <div className="text-center py-20 opacity-40">
+                                <CalendarDays className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                                <p className="text-xs font-black uppercase tracking-widest">No Active Deployments</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {todayDeployments.map((dep: any) => (
-                                    <div key={dep.id} className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl hover:bg-slate-50 transition-colors">
-                                        <div className="h-10 w-10 bg-violet-50 rounded-xl flex items-center justify-center shrink-0">
-                                            <Building2 className="h-4 w-4 text-violet-600" />
+                                    <div key={dep.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-white/[0.04] transition-all hover:border-primary/20 group">
+                                        <div className="h-12 w-12 bg-primary/5 rounded-2xl flex items-center justify-center shrink-0 border border-primary/10 transition-transform group-hover:scale-105">
+                                            <Building2 className="h-5 w-5 text-primary" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-slate-900 text-sm truncate">{dep.client?.name}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                {dep.shift?.name} • {dep.shift?.startTime}–{dep.shift?.endTime} • {dep._count?.guards || 0} guards
+                                            <p className="font-black text-foreground text-base tracking-tight truncate uppercase italic">{dep.client?.name}</p>
+                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5">
+                                                {dep.shift?.name} • <span className="text-primary/60">{dep.shift?.startTime} – {dep.shift?.endTime}</span> • {dep._count?.guards || 0} PERS
                                             </p>
                                         </div>
-                                        <span className={cn(
-                                            "px-2.5 py-1 rounded-lg font-bold text-[9px] uppercase tracking-wide border shrink-0",
-                                            dep.status === "active" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-blue-50 text-blue-700 border-blue-100"
-                                        )}>{dep.status}</span>
+                                        <Badge className={cn(
+                                            "rounded-lg font-black text-[8px] uppercase tracking-widest shrink-0 border",
+                                            dep.status === "active" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-primary/10 text-primary border-primary/20"
+                                        )}>{dep.status}</Badge>
                                     </div>
                                 ))}
                             </div>
@@ -215,38 +218,38 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 3: Guards on Duty ── */}
-                <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50">
-                    <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
+                <Card className="rounded-[40px] border-white/5 bg-card shadow-2xl">
+                    <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
-                                <Shield className="h-4 w-4 text-emerald-600" />
+                            <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
+                                <Shield className="h-5 w-5 text-primary" />
                             </div>
-                            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Guards on Duty</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Personnel On-Site</h3>
                         </div>
-                        <Badge variant="outline" className="font-black text-[10px]">{guardsOnDutyList.length}</Badge>
+                        <Badge className="bg-primary/10 text-primary border-primary/20 font-black text-[10px] uppercase">{guardsOnDutyList.length}</Badge>
                     </div>
-                    <CardContent className="p-4 sm:p-6 max-h-[400px] overflow-y-auto">
+                    <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {guardsOnDutyList.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Users className="h-10 w-10 text-slate-200 mx-auto mb-3" />
-                                <p className="text-sm font-bold text-slate-400">No guards currently on duty</p>
+                            <div className="text-center py-20 opacity-40">
+                                <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                                <p className="text-xs font-black uppercase tracking-widest">No Personnel Logged</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {guardsOnDutyList.map((g: any, i: number) => (
-                                    <div key={i} className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl">
-                                        <div className="h-10 w-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-                                            <span className="text-sm font-black text-emerald-700">{g.name?.charAt(0)?.toUpperCase()}</span>
+                                    <div key={i} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl group">
+                                        <div className="h-12 w-12 bg-gradient-to-tr from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20 transition-transform group-hover:scale-105">
+                                            <span className="text-lg font-black text-primary italic">{g.name?.charAt(0)?.toUpperCase()}</span>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-slate-900 text-sm truncate">{g.name}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                {g.deployment || g.project || "On site"} • In at {new Date(g.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            <p className="font-black text-foreground text-base tracking-tight truncate uppercase">{g.name}</p>
+                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5">
+                                                {g.deployment || g.project || "Sector Default"} • <span className="text-primary/60">IN: {new Date(g.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                                            <span className="text-[9px] font-black text-emerald-600 uppercase">Active</span>
+                                        <div className="flex items-center gap-2 shrink-0 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
                                         </div>
                                     </div>
                                 ))}
@@ -256,41 +259,42 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 4: Open Incidents ── */}
-                <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50">
-                    <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
+                <Card className="rounded-[40px] border-white/5 bg-card shadow-2xl">
+                    <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-rose-50 rounded-xl flex items-center justify-center shrink-0">
-                                <AlertTriangle className="h-4 w-4 text-rose-600" />
+                            <div className="h-10 w-10 bg-rose-500/10 rounded-2xl flex items-center justify-center shrink-0 border border-rose-500/20">
+                                <AlertTriangle className="h-5 w-5 text-rose-500" />
                             </div>
-                            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Open Incidents</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Breach Reports</h3>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary" asChild>
-                            <Link href={`/${agencySlug}/incidents`}>View All <ArrowRight className="h-3 w-3 ml-1" /></Link>
+                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-all" asChild>
+                            <Link href={`/${agencySlug}/incidents`}>Intercept All <ArrowRight className="h-3 w-3 ml-2" /></Link>
                         </Button>
                     </div>
-                    <CardContent className="p-4 sm:p-6 max-h-[400px] overflow-y-auto">
+                    <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {recentIncidents.length === 0 ? (
-                            <div className="text-center py-12">
-                                <ShieldCheck className="h-10 w-10 text-slate-200 mx-auto mb-3" />
-                                <p className="text-sm font-bold text-slate-400">No open incidents — all clear!</p>
+                            <div className="text-center py-20 opacity-40">
+                                <ShieldCheck className="h-16 w-16 text-emerald-500/50 mx-auto mb-4" />
+                                <p className="text-xs font-black uppercase tracking-widest">Sector Secure – No Threats</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {recentIncidents.map((inc: any) => (
-                                    <div key={inc.id} className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl hover:bg-slate-50 transition-colors">
-                                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", sevColor(inc.severity))}>
-                                            <AlertTriangle className="h-4 w-4" />
+                                    <div key={inc.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-rose-500/[0.02] transition-all hover:border-rose-500/20 group">
+                                        <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105", 
+                                            inc.severity >= 3 ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "bg-amber-500/20 border-amber-500/40 text-amber-500")}>
+                                            <AlertTriangle className="h-5 w-5" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-slate-900 text-sm truncate">{inc.title}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                {inc.reporter?.fullName} • {inc.deployment?.client?.name || "General"} • {sevLabel(inc.severity)}
+                                            <p className="font-black text-foreground text-base tracking-tight truncate uppercase italic">{inc.title}</p>
+                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5 font-sans">
+                                                {inc.reporter?.fullName} • {inc.deployment?.client?.name || "General Sector"} • <span className="opacity-70 font-black tracking-widest">{sevLabel(inc.severity)}</span>
                                             </p>
                                         </div>
-                                        <span className={cn(
-                                            "px-2.5 py-1 rounded-lg font-bold text-[9px] uppercase tracking-wide border shrink-0",
-                                            inc.status === "open" ? "bg-rose-50 text-rose-600 border-rose-100" : "bg-amber-50 text-amber-600 border-amber-100"
-                                        )}>{inc.status?.replace("_", " ")}</span>
+                                        <Badge className={cn(
+                                            "rounded-lg font-black text-[8px] uppercase tracking-widest shrink-0 border",
+                                            inc.status === "open" ? "bg-rose-500/20 text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]" : "bg-amber-500/20 text-amber-400 border-amber-500/20"
+                                        )}>{inc.status?.replace("_", " ")}</Badge>
                                     </div>
                                 ))}
                             </div>
@@ -299,44 +303,43 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 5: Recent Activity Feed ── */}
-                <Card className="rounded-[32px] border-slate-100 shadow-xl shadow-slate-200/50">
-                    <div className="px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between">
+                <Card className="rounded-[40px] border-white/5 bg-card shadow-2xl">
+                    <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                                <Activity className="h-4 w-4 text-blue-600" />
+                            <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
+                                <Activity className="h-5 w-5 text-primary" />
                             </div>
-                            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-700">Recent Activity</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Operational Feed</h3>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary" asChild>
-                            <Link href={`/${agencySlug}/audit-logs`}>Full Log <ArrowRight className="h-3 w-3 ml-1" /></Link>
+                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-all" asChild>
+                            <Link href={`/${agencySlug}/audit-logs`}>Full Stream <ArrowRight className="h-3 w-3 ml-2" /></Link>
                         </Button>
                     </div>
-                    <CardContent className="p-4 sm:p-6 max-h-[400px] overflow-y-auto">
+                    <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {recentActivity.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Clock className="h-10 w-10 text-slate-200 mx-auto mb-3" />
-                                <p className="text-sm font-bold text-slate-400">No recent activity</p>
+                            <div className="text-center py-20 opacity-40">
+                                <Clock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                                <p className="text-xs font-black uppercase tracking-widest">No Recent Activity</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {recentActivity.map((log: any) => (
-                                    <div key={log.id} className="flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl">
+                                    <div key={log.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl">
                                         <div className={cn(
-                                            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
-                                            log.severity === 'CRITICAL' ? "bg-red-50 text-red-600" :
-                                            log.action?.includes('LOGIN') ? "bg-blue-50 text-blue-600" :
-                                            log.action?.includes('CHECK') ? "bg-emerald-50 text-emerald-600" :
-                                            "bg-teal-50 text-teal-600"
+                                            "h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border",
+                                            log.severity === 'CRITICAL' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" :
+                                            log.action?.includes('LOG') ? "bg-blue-500/10 border-blue-500/20 text-blue-500" :
+                                            "bg-primary/10 border-primary/20 text-primary"
                                         )}>
-                                            {log.action?.includes('CHECK') ? <LogIn className="h-4 w-4" /> :
-                                             log.action?.includes('INCIDENT') ? <AlertTriangle className="h-4 w-4" /> :
-                                             <Activity className="h-4 w-4" />}
+                                            {log.action?.includes('CHECK') ? <LogIn className="h-5 w-5" /> :
+                                             log.action?.includes('INCIDENT') ? <AlertTriangle className="h-5 w-5" /> :
+                                             <Activity className="h-5 w-5" />}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[11px] font-black text-slate-800 uppercase tracking-tight truncate">{log.action?.replace(/_/g, ' ')}</p>
-                                            <p className="text-[10px] font-bold text-slate-400 truncate">{log.user?.fullName || "System"}</p>
+                                            <p className="text-[11px] font-black text-foreground uppercase tracking-tight truncate italic">{log.action?.replace(/_/g, ' ')}</p>
+                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1 opacity-60 font-sans">{log.user?.fullName || "SYSTEM ENGINE"}</p>
                                         </div>
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase whitespace-nowrap shrink-0">
+                                        <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest whitespace-nowrap shrink-0 ml-2">
                                             {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
@@ -348,29 +351,28 @@ export default function AgencyDashboard() {
             </div>
 
             {/* Quick Nav Banner */}
-            <div className="bg-slate-950 rounded-[40px] p-5 sm:p-10 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 group-hover:bg-primary/20 transition-all duration-1000" />
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="bg-black rounded-[50px] p-6 sm:p-14 relative overflow-hidden group border border-white/10 shadow-3xl">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] translate-x-1/2 -translate-y-1/2 group-hover:bg-primary/20 transition-all duration-1000" />
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#D9A75B]/5 rounded-full blur-[80px] -translate-x-1/3 translate-y-1/3" />
+                
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-10">
                     <div>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/10 backdrop-blur-md">
-                                <ShieldCheck className="h-5 w-5 text-primary" />
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="h-14 w-14 bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(255,184,0,0.2)]">
+                                <ShieldCheck className="h-8 w-8 text-black" />
                             </div>
-                            <h3 className="text-xl font-black text-white uppercase tracking-tight">Quick Actions</h3>
+                            <h3 className="text-3xl font-black text-white uppercase tracking-tighter italic">Unified Command</h3>
                         </div>
-                        <p className="text-slate-400 font-medium max-w-md leading-relaxed">
-                            Manage deployments, review incidents, and monitor guard attendance.
+                        <p className="text-muted-foreground font-medium max-w-xl leading-relaxed text-sm lg:text-base border-l-2 border-primary/20 pl-6">
+                            Execute protocols across the entire agency infrastructure. Deploy personnel, intercept threats, and monitor operational integrity from a single node.
                         </p>
                     </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <Button className="h-12 px-6 rounded-2xl bg-white text-slate-950 hover:bg-primary hover:text-white font-black uppercase tracking-widest text-[10px] transition-all shadow-xl" onClick={() => router.push(`/${agencySlug}/deployments`)}>
-                            Deployments
+                    <div className="flex items-center gap-4 flex-wrap">
+                        <Button variant="premium" size="cta" className="h-16 px-10 rounded-[20px]" onClick={() => router.push(`/${agencySlug}/deployments`)}>
+                            Mission Deploy
                         </Button>
-                        <Button className="h-12 px-6 rounded-2xl bg-white/10 text-white hover:bg-white hover:text-slate-950 font-black uppercase tracking-widest text-[10px] transition-all border border-white/20" onClick={() => router.push(`/${agencySlug}/incidents`)}>
-                            Incidents
-                        </Button>
-                        <Button className="h-12 px-6 rounded-2xl bg-white/10 text-white hover:bg-white hover:text-slate-950 font-black uppercase tracking-widest text-[10px] transition-all border border-white/20" onClick={() => router.push(`/${agencySlug}/attendance`)}>
-                            Attendance
+                        <Button variant="outline" className="h-16 px-10 rounded-[20px] bg-white/5 border-white/10 text-white hover:bg-white hover:text-black font-black uppercase tracking-widest transition-all" onClick={() => router.push(`/${agencySlug}/incidents`)}>
+                            Threat Intel
                         </Button>
                     </div>
                 </div>

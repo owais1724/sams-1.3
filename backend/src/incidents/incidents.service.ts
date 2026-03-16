@@ -15,30 +15,63 @@ export class IncidentsService {
     private auditLogsService: AuditLogsService,
   ) {}
 
-  async findAll(agencyId: string, filters?: { status?: string; severity?: number; deploymentId?: string }) {
+  async findAll(agencyId: string, filters?: { status?: string; severity?: number; deploymentId?: string }, page?: number, limit?: number) {
     if (!agencyId) return [];
     const where: any = { agencyId };
     if (filters?.status) where.status = filters.status;
     if (filters?.severity) where.severity = filters.severity;
     if (filters?.deploymentId) where.deploymentId = filters.deploymentId;
 
-    return this.prisma.incident.findMany({
-      where,
-      include: {
-        reporter: { select: { id: true, fullName: true, email: true } },
-        deployment: {
-          select: {
-            id: true,
-            client: { select: { name: true } },
-            shift: { select: { name: true } },
+    const skip = page && limit ? (page - 1) * limit : undefined;
+
+    const [incidents, total] = await Promise.all([
+      this.prisma.incident.findMany({
+        where,
+        include: {
+          reporter: { select: { id: true, fullName: true, email: true } },
+          deployment: {
+            select: {
+              id: true,
+              client: { select: { name: true } },
+              shift: { select: { name: true } },
+            },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        ...(skip && limit ? { skip, take: limit } : {}),
+      }),
+      this.prisma.incident.count({ where })
+    ]);
+
+    // Return paginated result
+    if (page && limit) {
+      return {
+        data: incidents,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1
+        }
+      };
+    }
+
+    return incidents;
   }
 
   async findOne(agencyId: string, id: string) {
+    // First check if incident exists at all
+    const incidentExists = await this.prisma.incident.findUnique({
+      where: { id },
+    });
+
+    if (!incidentExists) {
+      throw new NotFoundException('Incident not found');
+    }
+
+    // Then check if it belongs to the requesting agency
     const incident = await this.prisma.incident.findFirst({
       where: { id, agencyId },
       include: {
@@ -51,7 +84,11 @@ export class IncidentsService {
         },
       },
     });
-    if (!incident) throw new NotFoundException('Incident not found');
+
+    if (!incident) {
+      throw new ForbiddenException('Access to this incident is forbidden');
+    }
+
     return incident;
   }
 

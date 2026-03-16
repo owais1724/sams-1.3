@@ -123,4 +123,114 @@ export class DashboardService {
       recentActivity: recentAuditLogs,
     };
   }
+
+  async getTodayDeployments(agencyId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayDeployments = await this.prisma.deployment.findMany({
+      where: {
+        agencyId,
+        status: { in: ['active', 'planned'] },
+        startDate: { lte: tomorrow },
+        endDate: { gte: today },
+      },
+      include: {
+        client: { select: { name: true } },
+        shift: { select: { name: true, startTime: true, endTime: true } },
+        _count: { select: { guards: true } },
+      },
+    });
+
+    return {
+      count: todayDeployments.length,
+      deployments: todayDeployments,
+    };
+  }
+
+  async getAttendanceSummary(agencyId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const attendanceToday = await this.prisma.attendance.findMany({
+      where: {
+        agencyId,
+        date: { gte: today, lt: tomorrow },
+      },
+    });
+
+    // Compute attendance summary — deduplicate by employee
+    const employeeStatusMap = new Map<string, string>();
+    const statusPriority: Record<string, number> = { ABSENT: 3, absent: 3, LATE: 2, late: 2, PRESENT: 1, present: 1 };
+
+    for (const a of attendanceToday) {
+      const current = employeeStatusMap.get(a.employeeId);
+      const currentPriority = current ? (statusPriority[current] || 0) : 0;
+      const newPriority = statusPriority[a.status] || 0;
+      if (newPriority >= currentPriority) {
+        employeeStatusMap.set(a.employeeId, a.status.toUpperCase());
+      }
+    }
+
+    const uniqueStatuses = Array.from(employeeStatusMap.values());
+    const present = uniqueStatuses.filter(s => s === 'PRESENT').length;
+    const late = uniqueStatuses.filter(s => s === 'LATE').length;
+    const absent = uniqueStatuses.filter(s => s === 'ABSENT').length;
+
+    return {
+      present,
+      late,
+      absent,
+      total: employeeStatusMap.size,
+    };
+  }
+
+  async getOpenIncidents(agencyId: string) {
+    const openIncidents = await this.prisma.incident.count({
+      where: {
+        agencyId,
+        status: { in: ['open', 'under_review'] },
+      },
+    });
+
+    return { count: openIncidents };
+  }
+
+  async getGuardsOnDuty(agencyId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const attendanceToday = await this.prisma.attendance.findMany({
+      where: {
+        agencyId,
+        date: { gte: today, lt: tomorrow },
+      },
+    });
+
+    // Guards currently on duty (checked in but not yet checked out today) — deduplicate by employee
+    const onDutyEmployees = new Set(
+      attendanceToday.filter(a => a.checkIn && !a.checkOut).map(a => a.employeeId),
+    );
+
+    return { count: onDutyEmployees.size };
+  }
+
+  async getRecentActivity(agencyId: string) {
+    const recentAuditLogs = await this.prisma.auditLog.findMany({
+      where: { agencyId },
+      include: {
+        user: { select: { fullName: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
+
+    return { activities: recentAuditLogs };
+  }
 }
