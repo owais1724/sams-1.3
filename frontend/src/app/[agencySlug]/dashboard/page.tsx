@@ -139,30 +139,32 @@ export default function AgencyDashboard() {
             </div>
 
             {/* ── Panel 1: Attendance Summary ── */}
-            <Card className="rounded-[40px] border-white/5 bg-card overflow-hidden shadow-2xl">
-                <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center gap-3">
-                    <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
-                        <CheckCircle2 className="h-5 w-5 text-primary" />
+            <Card className="rounded-[40px] border-white/5 bg-black overflow-hidden shadow-3xl">
+                <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
+                            <CheckCircle2 className="h-6 w-6 text-primary" />
+                        </div>
+                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Attendance Protocol Summary</h3>
                     </div>
-                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Attendance Protocol Summary</h3>
                 </div>
                 <CardContent className="p-4 sm:p-10">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-10">
-                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
-                            <p className="text-4xl font-black text-emerald-500">{stats.attendanceSummary.present}</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground mt-2">Verified Present</p>
+                        <div className="text-center p-8 bg-white/[0.02] border border-white/5 rounded-[32px] group hover:border-emerald-500/30 transition-all">
+                            <p className="text-5xl font-black text-emerald-500 italic tracking-tighter">{stats.attendanceSummary.present}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mt-3">Verified Present</p>
                         </div>
-                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
-                            <p className="text-4xl font-black text-amber-500">{stats.attendanceSummary.late}</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground mt-2">Late Arrival</p>
+                        <div className="text-center p-8 bg-white/[0.02] border border-white/5 rounded-[32px] group hover:border-amber-500/30 transition-all">
+                            <p className="text-5xl font-black text-amber-500 italic tracking-tighter">{stats.attendanceSummary.late}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mt-3">Late Arrival</p>
                         </div>
-                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
-                            <p className="text-4xl font-black text-rose-500">{stats.attendanceSummary.absent}</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground mt-2">Unaccounted</p>
+                        <div className="text-center p-8 bg-white/[0.02] border border-white/5 rounded-[32px] group hover:border-rose-500/30 transition-all">
+                            <p className="text-5xl font-black text-rose-500 italic tracking-tighter">{stats.attendanceSummary.absent}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mt-3">Unaccounted</p>
                         </div>
-                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
-                            <p className="text-4xl font-black text-primary">{stats.attendanceSummary.total}</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground mt-2">Total Complement</p>
+                        <div className="text-center p-8 bg-white/[0.02] border border-white/5 rounded-[32px] group hover:border-primary/30 transition-all">
+                            <p className="text-5xl font-black text-primary italic tracking-tighter">{stats.attendanceSummary.total}</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mt-3">Total Complement</p>
                         </div>
                     </div>
                     {stats.attendanceSummary.total > 0 && (
@@ -177,13 +179,13 @@ export default function AgencyDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {/* ── Panel 2: Today's Active Deployments ── */}
-                <Card className="rounded-[40px] border-white/5 bg-card shadow-2xl">
-                    <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
-                                <MapPin className="h-5 w-5 text-primary" />
+                <Card className="rounded-[40px] border-white/5 bg-black shadow-3xl">
+                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
+                                <MapPin className="h-6 w-6 text-primary" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Mission Matrix</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Mission Matrix</h3>
                         </div>
                         <Badge className="bg-primary/10 text-primary border-primary/20 font-black text-[10px] uppercase">{todayDeployments.length}</Badge>
                     </div>
@@ -218,13 +220,13 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 3: Guards on Duty ── */}
-                <Card className="rounded-[40px] border-white/5 bg-card shadow-2xl">
-                    <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
-                                <Shield className="h-5 w-5 text-primary" />
+                <Card className="rounded-[40px] border-white/5 bg-black shadow-3xl">
+                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
+                                <Shield className="h-6 w-6 text-primary" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Personnel On-Site</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Personnel On-Site</h3>
                         </div>
                         <Badge className="bg-primary/10 text-primary border-primary/20 font-black text-[10px] uppercase">{guardsOnDutyList.length}</Badge>
                     </div>
@@ -259,13 +261,13 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 4: Open Incidents ── */}
-                <Card className="rounded-[40px] border-white/5 bg-card shadow-2xl">
-                    <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-rose-500/10 rounded-2xl flex items-center justify-center shrink-0 border border-rose-500/20">
-                                <AlertTriangle className="h-5 w-5 text-rose-500" />
+                <Card className="rounded-[40px] border-white/5 bg-black shadow-3xl">
+                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 bg-rose-500/10 rounded-2xl flex items-center justify-center shrink-0 border border-rose-500/20">
+                                <AlertTriangle className="h-6 w-6 text-rose-500" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Breach Reports</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Breach Reports</h3>
                         </div>
                         <Button variant="ghost" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-all" asChild>
                             <Link href={`/${agencySlug}/incidents`}>Intercept All <ArrowRight className="h-3 w-3 ml-2" /></Link>
@@ -303,13 +305,13 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 5: Recent Activity Feed ── */}
-                <Card className="rounded-[40px] border-white/5 bg-card shadow-2xl">
-                    <div className="px-4 sm:px-8 py-6 border-b border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
-                                <Activity className="h-5 w-5 text-primary" />
+                <Card className="rounded-[40px] border-white/5 bg-black shadow-3xl">
+                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
+                                <Activity className="h-6 w-6 text-primary" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground">Operational Feed</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Operational Feed</h3>
                         </div>
                         <Button variant="ghost" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-all" asChild>
                             <Link href={`/${agencySlug}/audit-logs`}>Full Stream <ArrowRight className="h-3 w-3 ml-2" /></Link>

@@ -213,14 +213,14 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, color = "teal", trend, className }: StatCardProps) {
     const colors = statCardColorMap[color]
     return (
-        <Card className={cn("rounded-2xl sm:rounded-[40px] border-white/5 bg-white/[0.03] p-4 sm:p-8 flex items-center justify-between group hover:border-[#D9A75B]/40 transition-all duration-500 backdrop-blur-3xl overflow-hidden relative", className)}>
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#D9A75B]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        <Card className={cn("rounded-[40px] border-white/5 bg-black p-8 flex items-center justify-between group hover:border-[#D9A75B]/40 transition-all duration-500 backdrop-blur-3xl overflow-hidden relative shadow-2xl", className)}>
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#D9A75B]/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             <div className="relative z-10">
-                <p className="text-[9px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.2em] underline decoration-[#D9A75B]/20 underline-offset-4 mb-4">{title}</p>
-                <h3 className={cn("text-2xl sm:text-4xl font-black mt-1 tracking-tighter text-white")}>{value}</h3>
-                {trend && <p className="text-[10px] font-bold text-emerald-400 mt-2 bg-emerald-500/10 px-2 py-0.5 rounded w-fit capitalize">{trend}</p>}
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">{title}</p>
+                <h3 className="text-4xl font-black mt-1 tracking-tighter text-white italic">{value}</h3>
+                {trend && <p className="text-[10px] font-bold text-emerald-400 mt-3 bg-emerald-500/10 px-2 py-0.5 rounded w-fit uppercase tracking-widest">{trend}</p>}
             </div>
-            <div className={cn("h-10 w-10 sm:h-16 sm:w-16 rounded-xl sm:rounded-3xl flex items-center justify-center transition-all group-hover:scale-105 duration-500 border border-white/5 shadow-2xl relative z-10", colors.icon)}>
+            <div className={cn("h-16 w-16 rounded-3xl flex items-center justify-center transition-all group-hover:scale-110 duration-500 border border-white/5 shadow-2xl relative z-10", colors.icon)}>
                 {icon}
             </div>
         </Card>
@@ -442,10 +442,10 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
             onClick={onClick}
             title={collapsed ? name : undefined}
             className={cn(
-                "group flex items-center rounded-xl px-4 py-4 text-xs font-black transition-all duration-300 relative overflow-hidden uppercase tracking-[0.1em] italic",
+                "group flex items-center rounded-xl px-4 py-4 text-xs font-black transition-all duration-300 relative overflow-hidden uppercase tracking-[0.1em] italic select-none",
                 collapsed && "justify-center px-3",
                 isActive
-                    ? "bg-white text-black shadow-xl shadow-white/10"
+                    ? "bg-white text-black shadow-xl shadow-white/20"
                     : "text-white/40 hover:text-white hover:bg-white/5",
                 className
             )}

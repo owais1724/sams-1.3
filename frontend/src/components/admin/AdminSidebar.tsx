@@ -87,7 +87,7 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
                                 isActive={pathname === item.href}
                                 onClick={onItemClick}
                                 collapsed={collapsed}
-                                className="hover:bg-primary/5 text-muted-foreground hover:text-white transition-all duration-300"
+                                className="hover:bg-primary/5 transition-all duration-300"
                             />
                         ))}
                     </nav>
@@ -96,7 +96,7 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
 
             {/* User Profile Section */}
             <div className={cn(
-                "bg-card/40 backdrop-blur-3xl border border-white/5 mb-10 rounded-[40px] shadow-2xl shrink-0 group/profile overflow-hidden relative transition-all duration-500",
+                "bg-black/40 backdrop-blur-3xl border border-white/5 mb-10 rounded-[40px] shadow-2xl shrink-0 group/profile overflow-hidden relative transition-all duration-500",
                 collapsed ? "mx-3 p-4" : "mx-6 p-8"
             )}>
                 <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-transparent opacity-0 group-hover/profile:opacity-100 transition-opacity duration-700" />

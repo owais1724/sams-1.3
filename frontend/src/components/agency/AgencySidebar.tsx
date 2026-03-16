@@ -224,7 +224,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
                                 isActive={pathname === item.href}
                                 onClick={onItemClick}
                                 collapsed={collapsed}
-                                className="text-slate-400 hover:text-white hover:bg-white/5"
+                                className="hover:bg-white/5"
                             />
                         ))}
                     </nav>

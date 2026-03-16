@@ -14,36 +14,36 @@ const variantStyles: Record<ToastVariant, {
     glow: string
 }> = {
     success: {
-        bg: "bg-white/80",
-        border: "border-emerald-100",
+        bg: "bg-black/95",
+        border: "border-[#D9A75B]/40",
         icon: CheckCircle2,
-        color: "text-emerald-600",
-        progress: "bg-emerald-500",
-        glow: "shadow-emerald-500/10",
+        color: "text-[#D9A75B]",
+        progress: "bg-[#D9A75B]",
+        glow: "shadow-[#D9A75B]/20",
     },
     error: {
-        bg: "bg-white/80",
-        border: "border-red-100",
+        bg: "bg-black/95",
+        border: "border-rose-500/40",
         icon: XCircle,
-        color: "text-red-600",
-        progress: "bg-red-500",
-        glow: "shadow-red-500/10",
+        color: "text-rose-500",
+        progress: "bg-rose-500",
+        glow: "shadow-rose-500/20",
     },
     info: {
-        bg: "bg-white/80",
-        border: "border-blue-100",
+        bg: "bg-black/95",
+        border: "border-[#D9A75B]/40",
         icon: Info,
-        color: "text-blue-600",
-        progress: "bg-blue-500",
-        glow: "shadow-blue-500/10",
+        color: "text-[#D9A75B]",
+        progress: "bg-[#D9A75B]",
+        glow: "shadow-[#D9A75B]/20",
     },
     warning: {
-        bg: "bg-white/80",
-        border: "border-amber-100",
+        bg: "bg-black/95",
+        border: "border-amber-500/40",
         icon: AlertTriangle,
-        color: "text-amber-600",
+        color: "text-amber-500",
         progress: "bg-amber-500",
-        glow: "shadow-amber-500/10",
+        glow: "shadow-amber-500/20",
     },
 }
 
@@ -77,25 +77,25 @@ export function ToastProvider() {
                                 <div className={cn(
                                     "h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110",
                                     style.color,
-                                    "bg-white border border-slate-50 shadow-sm"
+                                    "bg-white/5 border border-white/10 shadow-inner"
                                 )}>
                                     <Icon className="h-6 w-6 stroke-[2.5]" />
                                 </div>
 
                                 <div className="flex-1 min-w-0 py-1">
                                     {t.title && (
-                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1 leading-none">
+                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 leading-none">
                                             {t.title}
                                         </div>
                                     )}
-                                    <p className="text-sm font-bold text-slate-700 leading-tight">
+                                    <p className="text-sm font-bold text-white leading-tight">
                                         {t.message}
                                     </p>
                                 </div>
 
                                 <button
                                     onClick={() => removeToast(t.id)}
-                                    className="shrink-0 h-8 w-8 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-900 transition-all active:scale-90"
+                                    className="shrink-0 h-8 w-8 rounded-xl flex items-center justify-center text-white/40 hover:bg-white/10 hover:text-white transition-all active:scale-90"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>

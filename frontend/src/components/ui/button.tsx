@@ -38,13 +38,13 @@ const buttonVariants = cva(
          * premium — Metallic gold variant with gradient and glow
          */
         premium:
-          "bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] text-black font-black rounded-xl shadow-[0_0_20px_rgba(255,184,0,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-[0.1em]",
+          "bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] text-black font-black rounded-xl shadow-[0_0_30px_rgba(255,184,0,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all uppercase tracking-[0.2em] italic",
 
         /**
          * admin — Deep primary variant
          */
         admin:
-          "bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-200/20 font-black rounded-2xl active:scale-[0.98]",
+          "bg-white text-black hover:bg-[#D9A75B] shadow-xl shadow-white/10 font-black rounded-2xl active:scale-[0.98] uppercase tracking-widest text-[11px]",
 
         /**
          * danger-solid — Red confirmation

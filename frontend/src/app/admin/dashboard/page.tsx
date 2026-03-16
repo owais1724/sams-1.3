@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Building2, Shield, Users, Edit3, Power, PowerOff } from "lucide-react"
-import { RowEditButton, RowDeleteButton } from "@/components/ui/design-system"
+import { RowEditButton, RowDeleteButton, StatCard } from "@/components/ui/design-system"
 import { cn } from "@/lib/utils"
 import {
     Sheet,
@@ -162,24 +162,19 @@ export default function AdminDashboard() {
             {/* Stat Matrix */}
             <div className="grid gap-8 md:grid-cols-3">
                 {stats.map((stat) => (
-                    <Card key={stat.title} className="bg-card border-white/5 shadow-2xl rounded-[40px] p-2 transition-all hover:translate-y-[-4px] hover:border-primary/20 duration-500 group overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 p-8">
-                            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em]">{stat.title}</CardTitle>
-                            <div className="p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:border-primary/30 transition-all duration-500">
-                                <stat.icon className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-8 pt-0">
-                            <div className="text-5xl font-black text-white tracking-tighter italic">{stat.value}</div>
-                            <div className="h-1 w-8 bg-primary/30 rounded-full mt-4 group-hover:w-16 transition-all duration-500" />
-                        </CardContent>
-                    </Card>
+                    <StatCard
+                        key={stat.title}
+                        title={stat.title}
+                        value={stat.value}
+                        icon={<stat.icon className="h-6 w-6" />}
+                        color={stat.color.includes('blue') ? 'blue' : stat.color.includes('emerald') ? 'emerald' : 'violet'}
+                        className="h-full"
+                    />
                 ))}
             </div>
 
             {/* Data Table */}
-            <div className="rounded-[48px] border border-white/5 bg-card shadow-3xl overflow-hidden group/table">
+            <div className="rounded-[48px] border border-white/5 bg-black shadow-3xl overflow-hidden group/table">
                 <div className="px-8 sm:px-12 py-8 bg-white/[0.02] border-b border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div>
                         <h3 className="text-2xl font-black text-white italic tracking-tight uppercase">Network Directory</h3>
