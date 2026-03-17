@@ -45,22 +45,21 @@ interface DashboardStats {
 
 const StatCard = ({ title, value, icon, color }: { title: string; value: number | string; icon: React.ReactNode; color: 'teal' | 'rose' | 'amber' | 'blue' }) => {
     const colorMap = {
-        teal: "from-teal-500/10 to-teal-500/5 text-teal-500 border-teal-500/20",
-        rose: "from-rose-500/10 to-rose-500/5 text-rose-500 border-rose-500/20",
-        amber: "from-amber-500/10 to-amber-500/5 text-amber-500 border-amber-500/20",
-        blue: "from-blue-500/10 to-blue-500/5 text-white border-white/10"
+        teal: "bg-emerald-50 text-emerald-600 border-emerald-100",
+        rose: "bg-rose-50 text-rose-600 border-rose-100",
+        amber: "bg-amber-50 text-amber-600 border-amber-100",
+        blue: "bg-blue-50 text-blue-600 border-blue-100"
     }
 
     return (
-        <Card className={cn("overflow-hidden border border-white/5 bg-[#111111] shadow-2xl relative group")}>
-            <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50 transition-opacity group-hover:opacity-70", colorMap[color])} />
-            <CardContent className="p-6 relative">
+        <Card className="overflow-hidden border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow rounded-2xl">
+            <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">{title}</p>
-                        <h4 className="text-3xl font-black text-white tracking-tighter italic">{value}</h4>
+                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">{title}</p>
+                        <h4 className="text-2xl font-bold text-slate-900 tracking-tight">{value}</h4>
                     </div>
-                    <div className={cn("p-3 rounded-2xl border bg-black/50", colorMap[color])}>
+                    <div className={cn("p-3 rounded-xl border", colorMap[color])}>
                         {icon}
                     </div>
                 </div>
@@ -91,7 +90,7 @@ export default function AgencyDashboard() {
     const fetchData = async () => {
         setLoading(true)
         try {
-            const isAdmin = authUser?.role === 'Super Admin' || authUser?.role === 'Agency Admin'
+            const isAdmin = authUser?.role === 'Agency Admin' || authUser?.role === 'Super Admin'
             const hasPerm = (p: string) => isAdmin || authUser?.permissions?.includes(p)
 
             const [
@@ -101,8 +100,7 @@ export default function AgencyDashboard() {
                 dutyRes,
                 actRes,
                 cliRes,
-                empRes,
-                attRes
+                empRes
             ] = await Promise.allSettled([
                 api.get("/dashboard/today-deployments"),
                 api.get("/dashboard/attendance-summary"),
@@ -111,7 +109,6 @@ export default function AgencyDashboard() {
                 api.get("/dashboard/recent-activity"),
                 hasPerm('view_clients') ? api.get("/clients") : Promise.resolve({ data: [] }),
                 hasPerm('view_employee') ? api.get("/employees") : Promise.resolve({ data: [] }),
-                api.get("/attendance?today=true"),
             ]);
 
             const todayDeploymentsData = deployRes.status === 'fulfilled' ? deployRes.value.data : { deployments: [], count: 0 }
@@ -127,7 +124,6 @@ export default function AgencyDashboard() {
             setRecentIncidents(incidentsData.incidents || [])
             setRecentActivity(recentActData.activities || [])
 
-            // Build guards on duty list from specialized endpoint data
             const onDuty = onDutyData.personnel?.map((p: any) => ({
                 name: p.name,
                 checkIn: p.checkIn,
@@ -155,21 +151,21 @@ export default function AgencyDashboard() {
         if (authUser) fetchData()
     }, [authUser])
 
-    if (loading) return <PageLoading message="Loading Dashboard..." />
+    if (loading) return <PageLoading message="Synchronizing Interface..." />
 
     const sevLabel = (s: number) => ["", "Low", "Medium", "High", "Critical"][s] || "Unknown"
 
     return (
-        <div className="space-y-10 pb-20">
+        <div className="space-y-8 pb-10">
             <PageHeader
                 title="Agency"
                 titleHighlight="Command"
-                subtitle={`Operational Control Center for ${authUser?.agencyName || agencySlug}. System online.`}
+                subtitle={`Operational Control Center for ${authUser?.agencyName || agencySlug}. Systems live.`}
                 action={
-                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
-                            Live Node
+                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full shadow-sm">
+                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+                            Real-time Tracking
                         </span>
                     </div>
                 }
@@ -177,77 +173,77 @@ export default function AgencyDashboard() {
 
             {/* ── Stat Cards ── */}
             <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-5">
-                <StatCard title="Active Deployments" value={stats.activeDeployments} icon={<Target />} color="teal" />
-                <StatCard title="Guards on Duty" value={stats.guardsOnDuty} icon={<ShieldCheck />} color="teal" />
-                <StatCard title="Open Incidents" value={stats.openIncidents} icon={<AlertTriangle />} color="rose" />
-                <StatCard title="Total Clients" value={stats.clients} icon={<Building2 />} color="teal" />
-                <StatCard title="Total Personnel" value={stats.employees} icon={<Users />} color="teal" />
+                <StatCard title="Active Missions" value={stats.activeDeployments} icon={<Target className="h-5 w-5" />} color="teal" />
+                <StatCard title="Guards on Duty" value={stats.guardsOnDuty} icon={<ShieldCheck className="h-5 w-5" />} color="teal" />
+                <StatCard title="Open Incidents" value={stats.openIncidents} icon={<AlertTriangle className="h-5 w-5" />} color="rose" />
+                <StatCard title="Total Clients" value={stats.clients} icon={<Building2 className="h-5 w-5" />} color="teal" />
+                <StatCard title="Total Personnel" value={stats.employees} icon={<Users className="h-5 w-5" />} color="teal" />
             </div>
 
             {/* ── Panel 1: Attendance Summary ── */}
-            <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
-                <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+            <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/10">
-                            <CheckCircle2 className="h-6 w-6 text-white" />
+                        <div className="h-10 w-10 bg-white shadow-sm rounded-xl flex items-center justify-center border border-slate-200">
+                            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                         </div>
-                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Attendance Summary</h3>
+                        <h3 className="text-[15px] font-bold text-slate-900 uppercase tracking-wider">Attendance Summary</h3>
                     </div>
                 </div>
                 <CardContent className="p-8">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-[30px]">
-                            <p className="text-4xl font-black text-emerald-400 italic">{stats.attendanceSummary.present}</p>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-2 font-sans">Present</p>
+                        <div className="text-center p-6 bg-slate-50/50 border border-slate-100 rounded-2xl">
+                            <p className="text-3xl font-bold text-emerald-600">{stats.attendanceSummary.present}</p>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">Present</p>
                         </div>
-                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-[30px]">
-                            <p className="text-4xl font-black text-amber-400 italic">{stats.attendanceSummary.late}</p>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-2 font-sans">Late</p>
+                        <div className="text-center p-6 bg-slate-50/50 border border-slate-100 rounded-2xl">
+                            <p className="text-3xl font-bold text-amber-600">{stats.attendanceSummary.late}</p>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">Late</p>
                         </div>
-                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-[30px]">
-                            <p className="text-4xl font-black text-rose-400 italic">{stats.attendanceSummary.absent}</p>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-2 font-sans">Absent</p>
+                        <div className="text-center p-6 bg-slate-50/50 border border-slate-100 rounded-2xl">
+                            <p className="text-3xl font-bold text-rose-600">{stats.attendanceSummary.absent}</p>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">Absent</p>
                         </div>
-                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-[30px]">
-                            <p className="text-4xl font-black text-white italic">{stats.attendanceSummary.total}</p>
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-2 font-sans">Total</p>
+                        <div className="text-center p-6 bg-slate-50/50 border border-slate-100 rounded-2xl">
+                            <p className="text-3xl font-bold text-slate-900">{stats.attendanceSummary.total}</p>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-2">Total</p>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* ── Panel 2: Today's Active Deployments ── */}
-                <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
-                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/10">
-                                <MapPin className="h-6 w-6 text-white" />
+                            <div className="h-10 w-10 bg-white shadow-sm rounded-xl flex items-center justify-center border border-slate-200">
+                                <MapPin className="h-5 w-5 text-blue-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Active Missions</h3>
+                            <h3 className="text-[15px] font-bold text-slate-900 uppercase tracking-wider">Active Missions</h3>
                         </div>
-                        <Badge className="bg-white/10 text-white border-white/10 font-black tracking-widest text-[10px]">{todayDeployments.length}</Badge>
+                        <Badge variant="outline" className="bg-white text-slate-600 border-slate-200 font-bold px-3 py-1">{todayDeployments.length}</Badge>
                     </div>
-                    <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
+                    <CardContent className="p-6 max-h-[450px] overflow-y-auto custom-scrollbar">
                         {todayDeployments.length === 0 ? (
                             <div className="text-center py-20 opacity-40">
-                                <CalendarDays className="h-16 w-16 text-white/20 mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest text-white/50">No Active Deployments</p>
+                                <CalendarDays className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Zero Active Deployments</p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="grid gap-4">
                                 {todayDeployments.map((dep: any) => (
-                                    <div key={dep.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl group">
-                                        <div className="h-12 w-12 bg-white/[0.05] rounded-2xl flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-white/20 transition-all">
-                                            <Building2 className="h-5 w-5 text-white" />
+                                    <div key={dep.id} className="flex items-center gap-4 p-4 bg-slate-50 hover:bg-slate-100/80 transition-colors border border-slate-100 rounded-xl group">
+                                        <div className="h-10 w-10 bg-white rounded-lg flex items-center justify-center shrink-0 border border-slate-200 shadow-sm">
+                                            <Building2 className="h-5 w-5 text-slate-400" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-black text-white text-base tracking-tight truncate uppercase italic">{dep.client?.name}</p>
-                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5 font-sans">
+                                            <p className="font-bold text-slate-900 text-[15px] truncate">{dep.client?.name}</p>
+                                            <p className="text-[11px] font-medium text-slate-500 mt-0.5 truncate uppercase tracking-tight">
                                                 {dep.shift?.name} • {dep.shift?.startTime} – {dep.shift?.endTime}
                                             </p>
                                         </div>
-                                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/20 uppercase text-[8px] font-black tracking-widest italic">{dep.status}</Badge>
+                                        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 uppercase text-[9px] font-bold px-2 py-0.5">{dep.status}</Badge>
                                     </div>
                                 ))}
                             </div>
@@ -256,38 +252,38 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 3: Guards on Duty ── */}
-                <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
-                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/10">
-                                <Shield className="h-6 w-6 text-white" />
+                            <div className="h-10 w-10 bg-white shadow-sm rounded-xl flex items-center justify-center border border-slate-200">
+                                <Shield className="h-5 w-5 text-indigo-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Personnel Tracking</h3>
+                            <h3 className="text-[15px] font-bold text-slate-900 uppercase tracking-wider">Live Personnel</h3>
                         </div>
-                        <Badge className="bg-white/10 text-white border-white/10 font-black tracking-widest text-[10px]">{guardsOnDutyList.length}</Badge>
+                        <Badge variant="outline" className="bg-white text-slate-600 border-slate-200 font-bold px-3 py-1">{guardsOnDutyList.length}</Badge>
                     </div>
-                    <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
+                    <CardContent className="p-6 max-h-[450px] overflow-y-auto custom-scrollbar">
                         {guardsOnDutyList.length === 0 ? (
                             <div className="text-center py-20 opacity-40">
-                                <Users className="h-16 w-16 text-white/20 mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest text-white/50">No Personnel Logged</p>
+                                <Users className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">No Personnel In Field</p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="grid gap-4">
                                 {guardsOnDutyList.map((g: any, i: number) => (
-                                    <div key={i} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl group">
-                                        <div className="h-12 w-12 bg-white/[0.05] rounded-2xl flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-white/20 transition-all font-black text-white italic">
+                                    <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 hover:bg-slate-100/80 transition-colors border border-slate-100 rounded-xl">
+                                        <div className="h-10 w-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center font-bold text-indigo-600 text-[13px] shadow-sm">
                                             {g.name?.charAt(0)}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-black text-white text-base tracking-tight truncate uppercase italic">{g.name}</p>
-                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5 font-sans">
-                                                {g.location || "Sector Alpha"} • <span className="text-emerald-400">IN: {new Date(g.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <p className="font-bold text-slate-900 text-[15px] truncate">{g.name}</p>
+                                            <p className="text-[11px] font-medium text-slate-500 mt-0.5 truncate uppercase tracking-tight">
+                                                {g.location || "On-Site"} • <span className="text-emerald-600 font-bold">IN: {new Date(g.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 border border-emerald-100 rounded-lg">
                                             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic">Live</span>
+                                            <span className="text-[9px] font-bold text-emerald-600 uppercase">Live</span>
                                         </div>
                                     </div>
                                 ))}
@@ -297,36 +293,36 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 4: Open Incidents ── */}
-                <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
-                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-rose-500/10 rounded-2xl flex items-center justify-center shrink-0 border border-rose-500/20">
-                                <AlertTriangle className="h-6 w-6 text-rose-500" />
+                            <div className="h-10 w-10 bg-white shadow-sm rounded-xl flex items-center justify-center border border-slate-200">
+                                <AlertTriangle className="h-5 w-5 text-rose-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Breach Reports</h3>
+                            <h3 className="text-[15px] font-bold text-slate-900 uppercase tracking-wider">Breach Reports</h3>
                         </div>
                     </div>
-                    <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
+                    <CardContent className="p-6 max-h-[450px] overflow-y-auto custom-scrollbar">
                         {recentIncidents.length === 0 ? (
                             <div className="text-center py-20 opacity-40">
-                                <ShieldCheck className="h-16 w-16 text-emerald-500/50 mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest text-white/50">Sector Secure – No Threats</p>
+                                <ShieldCheck className="h-12 w-12 text-emerald-500/40 mx-auto mb-3" />
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">All Sectors Secure</p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="grid gap-4">
                                 {recentIncidents.map((inc: any) => (
-                                    <div key={inc.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-rose-500/[0.02] transition-all group">
-                                        <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border", 
-                                            inc.severity >= 3 ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "bg-amber-500/20 border-amber-500/40 text-amber-500")}>
-                                            <AlertTriangle className="h-5 w-5" />
+                                    <div key={inc.id} className="flex items-center gap-4 p-4 bg-slate-50 hover:bg-slate-100/80 transition-colors border border-slate-100 rounded-xl">
+                                        <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center shrink-0 border shadow-sm", 
+                                            inc.severity >= 3 ? "bg-rose-50 border-rose-100 text-rose-600" : "bg-amber-50 border-amber-100 text-amber-600")}>
+                                            <AlertTriangle className="h-4 w-4" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-black text-white text-base tracking-tight truncate uppercase italic">{inc.title}</p>
-                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5 font-sans">
+                                            <p className="font-bold text-slate-900 text-[15px] truncate">{inc.title}</p>
+                                            <p className="text-[11px] font-medium text-slate-500 mt-0.5 truncate uppercase tracking-tight">
                                                 {inc.reporter?.fullName} • {sevLabel(inc.severity)}
                                             </p>
                                         </div>
-                                        <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/20 italic">{inc.status}</Badge>
+                                        <Badge variant="secondary" className="bg-slate-200/50 text-slate-600 border border-slate-200 text-[9px] uppercase font-bold">{inc.status}</Badge>
                                     </div>
                                 ))}
                             </div>
@@ -335,36 +331,36 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 5: Recent Activity Feed ── */}
-                <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
-                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/10">
-                                <Activity className="h-6 w-6 text-white" />
+                            <div className="h-10 w-10 bg-white shadow-sm rounded-xl flex items-center justify-center border border-slate-200">
+                                <Activity className="h-5 w-5 text-slate-600" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Activity Feed</h3>
+                            <h3 className="text-[15px] font-bold text-slate-900 uppercase tracking-wider">Mission Logs</h3>
                         </div>
                     </div>
-                    <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
+                    <CardContent className="p-6 max-h-[450px] overflow-y-auto custom-scrollbar">
                         {recentActivity.length === 0 ? (
                             <div className="text-center py-20 opacity-40">
-                                <Clock className="h-16 w-16 text-white/20 mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest text-white/50">No Recent Activity</p>
+                                <Clock className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">No Recent Logs</p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="grid gap-4">
                                 {recentActivity.map((log: any) => (
-                                    <div key={log.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl">
+                                    <div key={log.id} className="flex items-center gap-4 p-4 bg-slate-50 hover:bg-slate-100/80 transition-colors border border-slate-100 rounded-xl">
                                         <div className={cn(
-                                            "h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border",
-                                            log.severity === 'CRITICAL' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" : "bg-white/10 border-white/20 text-white"
+                                            "h-10 w-10 rounded-lg flex items-center justify-center shrink-0 border shadow-sm",
+                                            log.severity === 'CRITICAL' ? "bg-rose-50 border-rose-100 text-rose-600" : "bg-blue-50 border-blue-100 text-blue-600"
                                         )}>
-                                            <Activity className="h-5 w-5" />
+                                            <Activity className="h-4 w-4" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[11px] font-black text-white uppercase tracking-tight truncate italic">{log.action?.replace(/_/g, ' ')}</p>
-                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mt-1 opacity-80 font-sans">{log.user?.fullName || "SYSTEM"}</p>
+                                            <p className="text-[12px] font-bold text-slate-900 uppercase tracking-tight truncate">{log.action?.replace(/_/g, ' ')}</p>
+                                            <p className="text-[10px] font-medium text-slate-500 mt-1 uppercase tracking-wider">{log.user?.fullName || "SYSTEM CONTROL"}</p>
                                         </div>
-                                        <span className="text-[9px] font-black text-white/80 uppercase tracking-widest whitespace-nowrap shrink-0 ml-2">
+                                        <span className="text-[10px] font-bold text-slate-400 tabular-nums">
                                             {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
@@ -376,25 +372,25 @@ export default function AgencyDashboard() {
             </div>
 
             {/* Quick Nav Banner */}
-            <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl p-8">
-                <CardContent className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 p-0">
+            <Card className="rounded-3xl border border-slate-200 bg-slate-900 shadow-xl p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <ShieldCheck className="h-32 w-32 text-white" />
+                </div>
+                <CardContent className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 p-0 relative z-10">
                     <div>
-                        <div className="flex items-center gap-4 mb-3">
-                            <div className="h-14 w-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center">
-                                <ShieldCheck className="h-8 w-8 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Command Center</h3>
+                        <div className="flex items-center gap-4 mb-4">
+                            <h3 className="text-2xl font-bold text-white tracking-tight">Mission Control Center</h3>
                         </div>
-                        <p className="text-white/50 text-xs font-black uppercase tracking-widest max-w-xl leading-relaxed">
-                            Deploy personnel, report incidents, and manage daily operations from one unified tactical interface.
+                        <p className="text-slate-300 text-sm max-w-xl leading-relaxed font-medium">
+                            Manage your tactical personnel, monitor real-time deployments, and respond to breaches from a single unified operational dashboard.
                         </p>
                     </div>
                     <div className="flex items-center gap-4 flex-wrap">
-                        <Button className="bg-white text-black hover:bg-white/90 font-black uppercase tracking-widest italic rounded-2xl px-8 h-12 transition-all shadow-lg shadow-white/5" onClick={() => router.push(`/${agencySlug}/deployments`)}>
-                            Mission deploy
+                        <Button className="bg-white text-slate-900 hover:bg-slate-100 font-bold px-8 h-12 rounded-xl transition-all shadow-lg" onClick={() => router.push(`/${agencySlug}/deployments`)}>
+                            Deploy Personnel
                         </Button>
-                        <Button variant="outline" className="border-white/10 bg-white/5 text-white font-black uppercase tracking-widest italic rounded-2xl px-8 h-12 transition-all hover:bg-white/10" onClick={() => router.push(`/${agencySlug}/incidents`)}>
-                            Threat intel
+                        <Button variant="outline" className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 font-bold px-8 h-12 rounded-xl transition-all" onClick={() => router.push(`/${agencySlug}/incidents`)}>
+                            Review Intel
                         </Button>
                     </div>
                 </CardContent>
