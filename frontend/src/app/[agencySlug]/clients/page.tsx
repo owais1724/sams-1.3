@@ -62,11 +62,11 @@ export default function ClientsPage() {
                 }
             />
 
-            <ControlPanel count={clients.length} totalLabel="Active Clients" className="bg-white/5 border-white/10 px-4">
-                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find client..." className="bg-transparent border-none text-white placeholder:text-white/20" />
-                <Button variant="outline" className="h-14 px-6 rounded-2xl border-white/10 hover:bg-white/5 shadow-sm shrink-0 bg-white/5">
+            <ControlPanel count={clients.length} totalLabel="Active Clients">
+                <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find client..." className="bg-white border border-border text-slate-900 placeholder:text-slate-400" />
+                <Button variant="outline" className="shrink-0">
                     <Filter className="h-4 w-4 mr-2" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Filter</span>
+                    <span className="text-[14px] font-medium">Filter</span>
                 </Button>
             </ControlPanel>
 
@@ -91,29 +91,29 @@ export default function ClientsPage() {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.98 }}
                                 transition={{ duration: 0.2, delay: idx * 0.03 }}
-                                className="group hover:bg-white/[0.02] transition-colors border-b border-white/5"
+                                className="group transition-colors"
                             >
-                                <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
+                                <TableCell className="py-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center shadow-xl group-hover:scale-110 group-hover:border-[#D9A75B]/20 transition-all shrink-0">
-                                            <Building className="h-6 w-6 text-white/40 group-hover:text-[#D9A75B] transition-colors" />
+                                        <div className="h-12 w-12 rounded-xl bg-slate-50 border border-border flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                                            <Building className="h-6 w-6 text-slate-500 group-hover:text-primary transition-colors" />
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="font-black text-white text-lg tracking-tight group-hover:text-[#D9A75B] transition-colors truncate">{client.name}</div>
+                                            <div className="font-semibold text-slate-900 text-lg tracking-tight group-hover:text-primary transition-colors truncate">{client.name}</div>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Verified Client</span>
+                                                <span className="text-[12px] text-slate-500">Verified client</span>
                                             </div>
                                         </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="space-y-1">
-                                        <div className="flex items-center gap-2 text-white font-bold text-sm">
-                                            <Mail className="h-3.5 w-3.5 text-white/40" />
+                                        <div className="flex items-center gap-2 text-slate-700 font-medium text-sm">
+                                            <Mail className="h-3.5 w-3.5 text-slate-400" />
                                             {client.email || "N/A"}
                                         </div>
-                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-5">Primary Contact</p>
+                                        <p className="text-[12px] text-slate-500 pl-5">Primary contact</p>
                                     </div>
                                 </TableCell>
                                 <TableCell>

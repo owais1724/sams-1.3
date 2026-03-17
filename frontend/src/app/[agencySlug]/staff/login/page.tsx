@@ -106,32 +106,26 @@ export default function StaffLogin() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F766E] font-outfit p-4 relative overflow-hidden selection:bg-teal-500/30">
-            {/* Soft Organic Teal Shapes */}
-            <div className="absolute inset-0 z-0 overflow-hidden">
-                <div className="absolute top-[10%] left-[10%] w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] lg:w-[400px] lg:h-[400px] bg-white/5 blur-[100px] rounded-full" />
-                <div className="absolute bottom-[10%] right-[10%] w-[150px] h-[150px] sm:w-[250px] sm:h-[250px] lg:w-[300px] lg:h-[300px] bg-teal-400/10 blur-[80px] rounded-full" />
-            </div>
-
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0d9488] font-inter p-4 relative overflow-hidden selection:bg-white/20">
             <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6 }}
-                className="w-full max-w-[460px] z-10"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="w-full max-w-[520px]"
             >
-                {/* Logo Section */}
-                <div className="flex flex-col items-center mb-10">
-                    <div className="w-16 h-16 bg-white shadow-2xl rounded-2xl flex items-center justify-center mb-5 ring-4 ring-white/10">
-                        <Contact className="w-8 h-8 text-[#0F766E]" />
+                <div className="flex flex-col items-center mb-8 text-center">
+                    <div className="h-14 w-14 rounded-2xl bg-white/12 border border-white/25 flex items-center justify-center mb-4 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+                        <Contact className="h-7 w-7 text-white" />
                     </div>
-                    <h1 className="text-2xl font-black text-white tracking-[0.2em] uppercase">SAMS <span className="text-teal-300">STAFF</span></h1>
+                    <h1 className="text-[28px] font-bold text-white">SAMS Staff</h1>
+                    <p className="text-[14px] text-white/85 mt-1">Field portal • @{agencySlug}</p>
                 </div>
 
-                <Card className="border-none bg-white rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] overflow-hidden relative" suppressHydrationWarning>
-                    <CardContent className="p-10 md:p-14" suppressHydrationWarning>
-                        <div className="mb-10 text-center">
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Employee</h2>
-                            <p className="text-teal-600 font-bold text-[10px] mt-2 uppercase tracking-[0.3em] bg-teal-50 py-1 px-4 rounded-full inline-block italic">Unit: @{agencySlug}</p>
+                <Card className="overflow-hidden" suppressHydrationWarning>
+                    <CardContent className="p-6 sm:p-8" suppressHydrationWarning>
+                        <div className="mb-6 text-center">
+                            <h2 className="text-[20px] font-semibold text-slate-900">Staff Login</h2>
+                            <p className="text-[14px] text-slate-600 mt-1">Enter your credentials to continue.</p>
                         </div>
 
                         <Form {...form}>
@@ -141,19 +135,19 @@ export default function StaffLogin() {
                                     name="email"
                                     render={({ field }) => (
                                         <FormItem className="space-y-2">
-                                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Device ID / Email</FormLabel>
+                                            <FormLabel className="text-[12px] font-semibold text-slate-600 uppercase tracking-wider">Email</FormLabel>
                                             <FormControl>
                                                 <div className="relative group">
-                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
+                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
-                                                        placeholder="name@agency.com"
-                                                        className="pl-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold italic"
+                                                        placeholder="operator@agency.ops"
+                                                        className="pl-11 h-12 sm:h-14 bg-white border border-border text-slate-900 placeholder:text-slate-400 rounded-xl focus:border-primary/40 focus:ring-primary/20 transition-all font-medium"
                                                         {...field}
                                                     />
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-[10px] text-red-500 font-bold" />
+                                            <FormMessage className="text-[12px] text-rose-600 font-semibold" />
                                         </FormItem>
                                     )}
                                 />
@@ -162,21 +156,21 @@ export default function StaffLogin() {
                                     name="password"
                                     render={({ field }) => (
                                         <FormItem className="space-y-2">
-                                            <FormLabel className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Duty Key</FormLabel>
+                                            <FormLabel className="text-[12px] font-semibold text-slate-600 uppercase tracking-wider">Password</FormLabel>
                                             <FormControl>
                                                 <div className="relative group">
-                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
+                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
                                                         type={showPassword ? "text" : "password"}
                                                         placeholder="••••••••"
-                                                        className="pl-12 pr-12 h-14 bg-slate-50 border-transparent text-slate-900 placeholder:text-slate-300 rounded-2xl focus:bg-white focus:border-teal-100 transition-all font-semibold"
+                                                        className="pl-11 pr-11 h-12 sm:h-14 bg-white border border-border text-slate-900 placeholder:text-slate-400 rounded-xl focus:border-primary/40 focus:ring-primary/20 transition-all font-medium"
                                                         {...field}
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowPassword(!showPassword)}
-                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-teal-600 transition-colors"
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors"
                                                     >
                                                         {showPassword ? (
                                                             <EyeOff className="w-4 h-4" />
@@ -186,7 +180,7 @@ export default function StaffLogin() {
                                                     </button>
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-[10px] text-red-500 font-bold" />
+                                            <FormMessage className="text-[12px] text-rose-600 font-semibold" />
                                         </FormItem>
                                     )}
                                 />
@@ -194,19 +188,21 @@ export default function StaffLogin() {
                                 <Button
                                     suppressHydrationWarning
                                     type="submit"
-                                    className="w-full h-14 bg-[#14B8A6] hover:bg-[#0D9488] text-white font-black rounded-2xl shadow-xl shadow-teal-500/20 transition-all active:scale-[0.98] flex items-center justify-center space-x-2 text-sm mt-4 uppercase tracking-widest"
+                                    variant="primary"
+                                    size="cta"
+                                    className="w-full"
                                     disabled={loading}
                                 >
                                     {loading ? (
                                         <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            <span>Verifying...</span>
+                                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                            <span>Signing in...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Fingerprint className="w-4 h-4" />
-                                            <span>BEGIN DUTY</span>
-                                            <ChevronRight className="w-4 h-4 ml-1" />
+                                            <Fingerprint className="w-5 h-5 mr-3" />
+                                            <span>Sign in</span>
+                                            <ChevronRight className="w-4 h-4 ml-2" />
                                         </>
                                     )}
                                 </Button>
@@ -215,12 +211,7 @@ export default function StaffLogin() {
                     </CardContent>
                 </Card>
 
-                {/* Footer Section */}
-                <div className="mt-12 text-center">
-                    <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.4em]">
-                        Duty Node: {agencySlug} // SAMS_v3.0 SECURE
-                    </p>
-                </div>
+                <div className="mt-8 text-center text-[12px] text-white/75">Deployment portal • Node: {agencySlug}</div>
             </motion.div>
         </div>
     )

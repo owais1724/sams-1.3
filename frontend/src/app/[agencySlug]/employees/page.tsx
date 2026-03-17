@@ -142,27 +142,27 @@ export default function EmployeesPage() {
                 }
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-                <StatCard title="Total Employees" value={employees.length} icon={<Users className="text-[#D9A75B]" />} color="amber" className="bg-white/5 border-white/10" />
-                <StatCard title="Active Status" value={employees.filter((e: any) => e.status === 'ACTIVE').length} icon={<UserCheck className="text-emerald-400" />} color="emerald" className="bg-white/5 border-white/10" />
-                <StatCard title="Rank Designations" value={designations.length} icon={<Shield className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard title="Total Employees" value={employees.length} icon={<Users className="text-teal-700" />} color="teal" />
+                <StatCard title="Active Status" value={employees.filter((e: any) => e.status === 'ACTIVE').length} icon={<UserCheck className="text-green-700" />} color="emerald" />
+                <StatCard title="Designations" value={designations.length} icon={<Shield className="text-sky-700" />} color="blue" />
             </div>
 
             <Tabs defaultValue="staff" className="space-y-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
-                    <TabsList className="bg-white/5 p-2 rounded-3xl border border-white/10 w-fit backdrop-blur-xl">
-                        <TabsTrigger value="staff" className="rounded-2xl px-8 py-3 data-[state=active]:bg-[#D9A75B] data-[state=active]:text-black data-[state=active]:shadow-2xl font-black uppercase text-[10px] tracking-widest transition-all text-white/40">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <TabsList className="bg-white p-1.5 rounded-xl border border-border w-fit">
+                        <TabsTrigger value="staff" className="rounded-lg px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-medium text-[14px] text-slate-600">
                             <Users className="h-4 w-4 mr-2" />
                             Active Employees
                         </TabsTrigger>
-                        <TabsTrigger value="designations" className="rounded-2xl px-8 py-3 data-[state=active]:bg-[#D9A75B] data-[state=active]:text-black data-[state=active]:shadow-2xl font-black uppercase text-[10px] tracking-widest transition-all text-white/40">
+                        <TabsTrigger value="designations" className="rounded-lg px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-medium text-[14px] text-slate-600">
                             <Settings2 className="h-4 w-4 mr-2" />
                             Designations
                         </TabsTrigger>
                     </TabsList>
 
-                    <ControlPanel count={filteredEmployees.length} totalLabel="Registered Employees" className="mb-0 flex-1 md:max-w-xl bg-white/5 border-white/10">
-                        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search employee by name or ID..." className="bg-transparent border-none text-white placeholder:text-white/20" />
+                    <ControlPanel count={filteredEmployees.length} totalLabel="Registered Employees" className="mb-0 flex-1 md:max-w-xl">
+                        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search employee by name or ID..." className="bg-white border border-border text-slate-900 placeholder:text-slate-400" />
                     </ControlPanel>
                 </div>
 
@@ -184,42 +184,42 @@ export default function EmployeesPage() {
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.98 }}
                                         transition={{ duration: 0.2, delay: idx * 0.03 }}
-                                        className="group hover:bg-white/[0.02] transition-colors border-b border-white/5"
+                                        className="group transition-colors"
                                     >
-                                        <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
+                                        <TableCell className="py-4">
                                             <div className="flex items-center gap-4">
-                                                <Avatar className="h-12 w-12 rounded-2xl border-2 border-white/5 shadow-xl transition-all group-hover:scale-110 group-hover:border-[#D9A75B]/20 bg-black/40">
-                                                    <AvatarFallback className="bg-white/5 text-white/40 font-black uppercase">
+                                                <Avatar className="h-12 w-12 rounded-xl border border-border shadow-sm transition-all group-hover:scale-105 bg-white">
+                                                    <AvatarFallback className="bg-slate-100 text-slate-700 font-semibold uppercase">
                                                         {emp.fullName?.slice(0, 2)}
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div className="min-w-0">
-                                                    <div className="font-black text-white leading-tight group-hover:text-[#D9A75B] transition-colors truncate">{emp.fullName}</div>
-                                                    <div className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em] mt-1">{emp.employeeCode || `ID: ${emp.id.slice(-6).toUpperCase()}`}</div>
+                                                    <div className="font-semibold text-slate-900 leading-tight truncate">{emp.fullName}</div>
+                                                    <div className="text-[12px] text-slate-500 mt-1">{emp.employeeCode || `ID: ${emp.id.slice(-6).toUpperCase()}`}</div>
                                                 </div>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <div className="h-9 w-9 rounded-xl bg-[#D9A75B]/10 text-[#D9A75B] flex items-center justify-center border border-[#D9A75B]/20 shadow-lg">
+                                                <div className="h-9 w-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shadow-sm">
                                                     <ShieldCheck className="h-4.5 w-4.5" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-black text-white text-[13px] tracking-tight truncate uppercase">{emp.designation?.name || "UNRANKED"}</p>
-                                                    <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Designation</p>
+                                                    <p className="font-semibold text-slate-900 text-[14px] truncate">{emp.designation?.name || "Unranked"}</p>
+                                                    <p className="text-[12px] font-medium text-slate-500">Designation</p>
                                                 </div>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
-                                                <span className="font-black text-white text-sm italic">{emp.salaryCurrency} {emp.basicSalary?.toLocaleString()}</span>
-                                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Monthly Salary</span>
+                                                <span className="font-semibold text-slate-900 text-sm">{emp.salaryCurrency} {emp.basicSalary?.toLocaleString()}</span>
+                                                <span className="text-[12px] text-slate-500">Monthly salary</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <StatusBadge status={emp.status || "ACTIVE"} />
                                         </TableCell>
-                                        <TableCell className="text-right px-4 sm:px-8">
+                                        <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <RowViewButton onClick={() => setProfileDialog({ open: true, employee: emp })} />
                                                 <PermissionGuard permission="edit_project">

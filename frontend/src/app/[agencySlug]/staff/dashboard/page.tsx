@@ -139,46 +139,43 @@ export default function StaffDashboard() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-[#D9A75B]/10 text-[#D9A75B] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-[#D9A75B]/20">Station Command</div>
-            <Badge className="bg-[#D9A75B] text-black border-none text-[9px] font-black tracking-widest px-2 py-0.5 animate-pulse">TERMINAL LIVE</Badge>
+            <Badge variant="secondary">Staff portal</Badge>
+            <Badge className="bg-teal-50 text-[#0d9488] border border-teal-100">Online</Badge>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-none uppercase italic">
-            Mission <span className="text-[#D9A75B]">Control</span>
+          <h1 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none">
+            Staff Dashboard
           </h1>
-          <p className="text-white/40 font-bold text-sm mt-4 uppercase tracking-[0.2em] max-w-lg leading-relaxed">
-            Real-time interface for <span className="text-[#D9A75B] italic font-black">{userData?.agencyName || 'Institutional Matrix'}</span> operations.
+          <p className="text-slate-600 text-sm mt-3 max-w-lg leading-relaxed">
+            Real-time interface for <span className="text-slate-900 font-semibold">{userData?.agencyName || 'your agency'}</span>.
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-white/5 p-4 rounded-[32px] border border-white/10 shadow-2xl backdrop-blur-xl">
-          <Avatar className="h-14 w-14 rounded-2xl border-2 border-white/10 bg-black/40">
-            <AvatarFallback className="bg-gradient-to-tr from-[#D9A75B] to-[#FFB800] text-black font-black">{userData?.fullName?.charAt(0)}</AvatarFallback>
+        <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+          <Avatar className="h-12 w-12 rounded-xl border border-border bg-white">
+            <AvatarFallback className="bg-slate-100 text-slate-700 font-semibold">{userData?.fullName?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">OPERATOR IDENTITY</div>
-            <div className="text-lg font-black text-white leading-tight">{userData?.fullName}</div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#D9A75B]" />
-              <span className="text-[10px] font-bold text-[#D9A75B] uppercase tracking-[0.2em]">{userData?.role || 'Level 1 Personnel'}</span>
-            </div>
+            <div className="text-[12px] font-medium text-slate-500">Signed in as</div>
+            <div className="text-[14px] font-semibold text-slate-900 leading-tight">{userData?.fullName}</div>
+            <div className="text-[12px] text-slate-500 mt-0.5">{userData?.role || 'Staff'}</div>
           </div>
         </div>
       </div>
 
       <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4">
-        <StatCard title="Personnel Count" value={userStats.totalStaff} icon={<Users className="text-[#D9A75B]" />} color="amber" className="bg-white/5 border-white/10" />
-        <StatCard title="Active Duty" value={userStats.presentToday} icon={<Zap className="text-emerald-400" />} color="emerald" className="bg-white/5 border-white/10" />
-        <StatCard title="Project Matrix" value={userStats.activeProjects} icon={<Target className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
-        <StatCard title="Pending Status" value={userStats.onLeave} icon={<CalendarDays className="text-amber-400" />} color="amber" className="bg-white/5 border-white/10" />
+        <StatCard title="Personnel Count" value={userStats.totalStaff} icon={<Users className="text-teal-700" />} color="teal" />
+        <StatCard title="Present Today" value={userStats.presentToday} icon={<Zap className="text-green-700" />} color="emerald" />
+        <StatCard title="Active Projects" value={userStats.activeProjects} icon={<Target className="text-sky-700" />} color="blue" />
+        <StatCard title="On Leave" value={userStats.onLeave} icon={<CalendarDays className="text-orange-700" />} color="orange" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
         <div className="lg:col-span-2 space-y-10">
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-xl font-black text-white uppercase tracking-[0.1em] flex items-center gap-3 italic">
-                <Zap className="h-5 w-5 text-[#D9A75B]" />
-                Command Links
+              <h2 className="text-[20px] font-semibold text-slate-900 flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                Quick Links
               </h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -193,30 +190,30 @@ export default function StaffDashboard() {
                 <Button
                   key={link.label}
                   variant="outline"
-                  className="h-32 flex-col gap-3 rounded-[32px] border-white/10 bg-white/5 hover:border-[#D9A75B]/50 hover:bg-[#D9A75B]/10 hover:text-[#D9A75B] transition-all shadow-xl group relative overflow-hidden backdrop-blur-md text-white/70"
+                  className="h-28 flex-col gap-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-colors shadow-[0_1px_3px_rgba(0,0,0,0.1)] text-slate-700"
                   onClick={() => router.push(`/${agencySlug}${link.path}`)}
                 >
                   <link.icon className="h-7 w-7 transition-transform group-hover:scale-110 duration-500" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{link.label}</span>
+                  <span className="text-[14px] font-medium">{link.label}</span>
                   <ArrowRight className="h-3 w-3 absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                 </Button>
               ))}
             </div>
           </div>
 
-          <div className="bg-white/5 p-8 rounded-[40px] border border-white/10 relative overflow-hidden group backdrop-blur-3xl">
-            <div className="absolute top-0 right-0 p-5 sm:p-10 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity duration-700">
-              <ShieldCheck className="h-40 w-40 text-[#D9A75B]" />
+          <div className="bg-white p-6 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[20px] font-semibold text-slate-900">Permissions</h3>
+              <ShieldCheck className="h-5 w-5 text-primary" />
             </div>
-            <div className="relative z-10">
-              <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] mb-6 underline decoration-[#D9A75B]/30 decoration-2 underline-offset-8">Access Privileges</h3>
+            <div>
               <div className="flex flex-wrap gap-2">
                 {userPermissions.map(p => (
-                  <Badge key={p} className="bg-[#D9A75B]/10 text-[#D9A75B] border border-[#D9A75B]/20 shadow-lg px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest">
+                  <Badge key={p} variant="secondary">
                     {p.replaceAll('_', ' ')}
                   </Badge>
                 ))}
-                {userPermissions.length === 0 && <span className="text-xs font-medium text-white/30 italic uppercase tracking-widest">Unauthorized Terminal Access.</span>}
+                {userPermissions.length === 0 && <span className="text-sm text-slate-500">No permissions assigned.</span>}
               </div>
             </div>
           </div>
@@ -225,44 +222,44 @@ export default function StaffDashboard() {
         <div className="space-y-10">
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-xl font-black text-white uppercase tracking-[0.1em] italic">Telemetry</h2>
+              <h2 className="text-[20px] font-semibold text-slate-900">Recent activity</h2>
             </div>
             <div className="space-y-4">
               {recentActivities.map((activity: any, idx) => (
-                <div key={idx} className="bg-white/5 p-5 rounded-[28px] border border-white/10 shadow-xl hover:bg-white/10 transition-all flex items-center gap-4 group backdrop-blur-md">
-                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg", activity.color === 'emerald' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20")}>
+                <div key={idx} className="bg-white p-4 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)] flex items-center gap-4">
+                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border", activity.color === 'emerald' ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200")}>
                     <Activity className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-black text-white/80 leading-tight group-hover:text-[#D9A75B] transition-colors truncate uppercase tracking-wider">{activity.title}</p>
-                    <p className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] mt-1">{activity.time} — SECTOR 7</p>
+                    <p className="text-[14px] font-medium text-slate-900 leading-tight truncate">{activity.title}</p>
+                    <p className="text-[12px] text-slate-500 mt-1">{activity.time}</p>
                   </div>
                 </div>
               ))}
-              {recentActivities.length === 0 && <p className="text-center py-10 text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">No telemetry detected in current cycle.</p>}
+              {recentActivities.length === 0 && <p className="text-center py-10 text-sm text-slate-500">No recent activity.</p>}
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-xl font-black text-white uppercase tracking-[0.1em] italic">Node Directory</h2>
+              <h2 className="text-[20px] font-semibold text-slate-900">Team members</h2>
             </div>
             <div className="space-y-4">
               {topPerformers.map((performer: any, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/10 shadow-lg">
+                <div key={idx} className="flex items-center justify-between bg-white p-4 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 rounded-xl border border-white/10">
-                      <AvatarFallback className="bg-black/40 text-[#D9A75B] font-black text-xs">{performer.initials}</AvatarFallback>
+                    <Avatar className="h-10 w-10 rounded-xl border border-border">
+                      <AvatarFallback className="bg-slate-100 text-slate-700 font-semibold text-xs">{performer.initials}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="text-xs font-black text-white leading-tight uppercase tracking-wider">{performer.name}</div>
-                      <div className="text-[9px] font-bold text-white/30 uppercase tracking-[0.15em]">{performer.designation}</div>
+                      <div className="text-sm font-medium text-slate-900 leading-tight">{performer.name}</div>
+                      <div className="text-[12px] text-slate-500">{performer.designation}</div>
                     </div>
                   </div>
-                  <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                  <div className="h-2 w-2 rounded-full bg-green-500" />
                 </div>
               ))}
-              {topPerformers.length === 0 && <p className="text-center py-10 text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Sector manifest empty.</p>}
+              {topPerformers.length === 0 && <p className="text-center py-10 text-sm text-slate-500">No team members found.</p>}
             </div>
           </div>
         </div>

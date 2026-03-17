@@ -139,36 +139,36 @@ export default function AgencyDashboard() {
             </div>
 
             {/* ── Panel 1: Attendance Summary ── */}
-            <Card className="rounded-[40px] border-white/5 bg-black overflow-hidden shadow-3xl">
-                <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+            <Card className="overflow-hidden">
+                <div className="px-4 sm:px-6 py-5 border-b border-border flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
-                            <CheckCircle2 className="h-6 w-6 text-primary" />
+                        <div className="h-12 w-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 border border-teal-100">
+                            <CheckCircle2 className="h-6 w-6 text-teal-700" />
                         </div>
-                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Attendance Protocol Summary</h3>
+                        <h3 className="text-[20px] font-semibold text-slate-900">Attendance Summary</h3>
                     </div>
                 </div>
-                <CardContent className="p-4 sm:p-10">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-10">
-                        <div className="text-center p-8 bg-white/[0.02] border border-white/5 rounded-[32px] group hover:border-emerald-500/30 transition-all">
-                            <p className="text-5xl font-black text-emerald-500 italic tracking-tighter">{stats.attendanceSummary.present}</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mt-3">Verified Present</p>
+                <CardContent>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                        <div className="text-center p-4 sm:p-6 bg-slate-50 border border-border rounded-xl">
+                            <p className="text-3xl sm:text-4xl font-bold text-green-700">{stats.attendanceSummary.present}</p>
+                            <p className="text-[12px] font-medium text-slate-600 mt-2">Present</p>
                         </div>
-                        <div className="text-center p-8 bg-white/[0.02] border border-white/5 rounded-[32px] group hover:border-amber-500/30 transition-all">
-                            <p className="text-5xl font-black text-amber-500 italic tracking-tighter">{stats.attendanceSummary.late}</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mt-3">Late Arrival</p>
+                        <div className="text-center p-4 sm:p-6 bg-slate-50 border border-border rounded-xl">
+                            <p className="text-3xl sm:text-4xl font-bold text-orange-700">{stats.attendanceSummary.late}</p>
+                            <p className="text-[12px] font-medium text-slate-600 mt-2">Late</p>
                         </div>
-                        <div className="text-center p-8 bg-white/[0.02] border border-white/5 rounded-[32px] group hover:border-rose-500/30 transition-all">
-                            <p className="text-5xl font-black text-rose-500 italic tracking-tighter">{stats.attendanceSummary.absent}</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mt-3">Unaccounted</p>
+                        <div className="text-center p-4 sm:p-6 bg-slate-50 border border-border rounded-xl">
+                            <p className="text-3xl sm:text-4xl font-bold text-red-700">{stats.attendanceSummary.absent}</p>
+                            <p className="text-[12px] font-medium text-slate-600 mt-2">Absent</p>
                         </div>
-                        <div className="text-center p-8 bg-white/[0.02] border border-white/5 rounded-[32px] group hover:border-primary/30 transition-all">
-                            <p className="text-5xl font-black text-primary italic tracking-tighter">{stats.attendanceSummary.total}</p>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 mt-3">Total Complement</p>
+                        <div className="text-center p-4 sm:p-6 bg-slate-50 border border-border rounded-xl">
+                            <p className="text-3xl sm:text-4xl font-bold text-slate-900">{stats.attendanceSummary.total}</p>
+                            <p className="text-[12px] font-medium text-slate-600 mt-2">Total</p>
                         </div>
                     </div>
                     {stats.attendanceSummary.total > 0 && (
-                        <div className="mt-10 h-2 w-full bg-white/5 rounded-full overflow-hidden flex shadow-inner">
+                        <div className="mt-6 h-2 w-full bg-slate-200 rounded-full overflow-hidden flex">
                             <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.present / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1 }} className="bg-emerald-500 h-full" />
                             <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.late / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1, delay: 0.2 }} className="bg-amber-500 h-full" />
                             <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.absent / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1, delay: 0.4 }} className="bg-rose-500 h-full" />
@@ -179,15 +179,15 @@ export default function AgencyDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {/* ── Panel 2: Today's Active Deployments ── */}
-                <Card className="rounded-[40px] border-white/5 bg-black shadow-3xl">
-                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                <Card>
+                    <div className="px-4 sm:px-6 py-5 border-b border-border flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
-                                <MapPin className="h-6 w-6 text-primary" />
+                            <div className="h-12 w-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 border border-teal-100">
+                                <MapPin className="h-6 w-6 text-teal-700" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Mission Matrix</h3>
+                            <h3 className="text-[20px] font-semibold text-slate-900">Today’s Deployments</h3>
                         </div>
-                        <Badge className="bg-primary/10 text-primary border-primary/20 font-black text-[10px] uppercase">{todayDeployments.length}</Badge>
+                        <Badge variant="secondary">{todayDeployments.length}</Badge>
                     </div>
                     <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {todayDeployments.length === 0 ? (
@@ -198,19 +198,19 @@ export default function AgencyDashboard() {
                         ) : (
                             <div className="space-y-4">
                                 {todayDeployments.map((dep: any) => (
-                                    <div key={dep.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-white/[0.04] transition-all hover:border-primary/20 group">
-                                        <div className="h-12 w-12 bg-primary/5 rounded-2xl flex items-center justify-center shrink-0 border border-primary/10 transition-transform group-hover:scale-105">
+                                    <div key={dep.id} className="flex items-center gap-4 p-4 bg-slate-50 border border-border rounded-xl hover:bg-slate-100 transition-colors">
+                                        <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center shrink-0 border border-border">
                                             <Building2 className="h-5 w-5 text-primary" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-black text-foreground text-base tracking-tight truncate uppercase italic">{dep.client?.name}</p>
-                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5">
-                                                {dep.shift?.name} • <span className="text-primary/60">{dep.shift?.startTime} – {dep.shift?.endTime}</span> • {dep._count?.guards || 0} PERS
+                                            <p className="font-semibold text-slate-900 truncate">{dep.client?.name}</p>
+                                            <p className="text-[12px] text-slate-500 mt-1">
+                                                {dep.shift?.name} • {dep.shift?.startTime} – {dep.shift?.endTime} • {dep._count?.guards || 0} guards
                                             </p>
                                         </div>
                                         <Badge className={cn(
-                                            "rounded-lg font-black text-[8px] uppercase tracking-widest shrink-0 border",
-                                            dep.status === "active" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-primary/10 text-primary border-primary/20"
+                                            "shrink-0",
+                                            dep.status === "active" ? "bg-green-100 text-green-700 border border-green-200" : "bg-slate-100 text-slate-600 border border-slate-200"
                                         )}>{dep.status}</Badge>
                                     </div>
                                 ))}
@@ -220,15 +220,15 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 3: Guards on Duty ── */}
-                <Card className="rounded-[40px] border-white/5 bg-black shadow-3xl">
-                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
+                <Card>
+                    <div className="px-4 sm:px-6 py-5 border-b border-border flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
-                                <Shield className="h-6 w-6 text-primary" />
+                            <div className="h-12 w-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 border border-teal-100">
+                                <Shield className="h-6 w-6 text-teal-700" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Personnel On-Site</h3>
+                            <h3 className="text-[20px] font-semibold text-slate-900">Guards on Duty</h3>
                         </div>
-                        <Badge className="bg-primary/10 text-primary border-primary/20 font-black text-[10px] uppercase">{guardsOnDutyList.length}</Badge>
+                        <Badge variant="secondary">{guardsOnDutyList.length}</Badge>
                     </div>
                     <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {guardsOnDutyList.length === 0 ? (
@@ -353,32 +353,29 @@ export default function AgencyDashboard() {
             </div>
 
             {/* Quick Nav Banner */}
-            <div className="bg-black rounded-[50px] p-6 sm:p-14 relative overflow-hidden group border border-white/10 shadow-3xl">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] translate-x-1/2 -translate-y-1/2 group-hover:bg-primary/20 transition-all duration-1000" />
-                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#D9A75B]/5 rounded-full blur-[80px] -translate-x-1/3 translate-y-1/3" />
-                
-                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+            <Card>
+                <CardContent className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div>
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="h-14 w-14 bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(255,184,0,0.2)]">
-                                <ShieldCheck className="h-8 w-8 text-black" />
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="h-12 w-12 bg-teal-50 border border-teal-100 rounded-xl flex items-center justify-center">
+                                <ShieldCheck className="h-6 w-6 text-primary" />
                             </div>
-                            <h3 className="text-3xl font-black text-white uppercase tracking-tighter italic">Unified Command</h3>
+                            <h3 className="text-[20px] font-semibold text-slate-900">Quick actions</h3>
                         </div>
-                        <p className="text-muted-foreground font-medium max-w-xl leading-relaxed text-sm lg:text-base border-l-2 border-primary/20 pl-6">
-                            Execute protocols across the entire agency infrastructure. Deploy personnel, intercept threats, and monitor operational integrity from a single node.
+                        <p className="text-slate-600 text-sm max-w-xl leading-relaxed">
+                            Deploy personnel, report incidents, and manage daily operations from one place.
                         </p>
                     </div>
-                    <div className="flex items-center gap-4 flex-wrap">
-                        <Button variant="premium" size="cta" className="h-16 px-10 rounded-[20px]" onClick={() => router.push(`/${agencySlug}/deployments`)}>
-                            Mission Deploy
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <Button variant="primary" size="cta" className="w-full sm:w-auto" onClick={() => router.push(`/${agencySlug}/deployments`)}>
+                            Mission deploy
                         </Button>
-                        <Button variant="outline" className="h-16 px-10 rounded-[20px] bg-white/5 border-white/10 text-white hover:bg-white hover:text-black font-black uppercase tracking-widest transition-all" onClick={() => router.push(`/${agencySlug}/incidents`)}>
-                            Threat Intel
+                        <Button variant="secondary" size="cta" className="w-full sm:w-auto" onClick={() => router.push(`/${agencySlug}/incidents`)}>
+                            Threat intel
                         </Button>
                     </div>
-                </div>
-            </div>
+                </CardContent>
+            </Card>
         </div>
     )
 }

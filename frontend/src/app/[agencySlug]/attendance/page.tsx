@@ -170,18 +170,17 @@ export default function AttendancePage() {
 
             {/* Attendance Matrix Controls */}
             {canMark && (
-                <div className="bg-black rounded-[40px] p-5 sm:p-10 relative z-10 border border-white/5 shadow-2xl relative group overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 group-hover:bg-primary/20 transition-all duration-700" />
-                    <div className="relative z-10">
+                <div className="bg-white rounded-xl p-5 sm:p-6 relative z-10 border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+                    <div className="relative">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-10">
                             <div className="flex-1 space-y-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/20 backdrop-blur-md">
-                                        <Clock className="h-5 w-5 text-primary" />
+                                    <div className="h-10 w-10 bg-teal-50 rounded-xl flex items-center justify-center border border-teal-100">
+                                        <Clock className="h-5 w-5 text-teal-700" />
                                     </div>
-                                    <h2 className="text-2xl font-black text-white tracking-tight uppercase">Check-In / Out</h2>
+                                    <h2 className="text-[20px] font-semibold text-slate-900">Check-in / out</h2>
                                 </div>
-                                <p className="text-slate-400 text-sm font-bold pr-10 leading-relaxed italic opacity-80">
+                                <p className="text-slate-600 text-sm pr-10 leading-relaxed">
                                     {selectedSite && myStatus?.checkOut
                                         ? "Shift completed for this site. Select another site to mark attendance."
                                         : (selectedSite && myStatus && !myStatus.checkOut ? "Active shift in progress." : (hasDeployments ? "Select your deployment to check in." : "Select your project site to check in."))}
@@ -193,12 +192,12 @@ export default function AttendancePage() {
                                 <div className="w-full md:w-72">
                                     {hasDeployments ? (
                                         <Select value={selectedDeployment} onValueChange={setSelectedDeployment}>
-                                            <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:text-slate-900 font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
+                                            <SelectTrigger className="h-12 rounded-xl bg-white border border-border text-slate-900 focus:ring-primary/20">
                                                 <SelectValue placeholder="SELECT DEPLOYMENT" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-[28px] border-white/10 bg-black shadow-2xl p-2">
+                                            <SelectContent className="rounded-xl border-border bg-white shadow-lg p-2">
                                                 {activeDeployments.map(d => (
-                                                    <SelectItem key={d.id} value={d.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white/70 focus:bg-white/10 focus:text-white data-[state=checked]:text-white data-[state=checked]:bg-white/5 transition-all cursor-pointer">
+                                                    <SelectItem key={d.id} value={d.id} className="py-3 font-medium rounded-lg">
                                                         {d.client?.name || d.clientId} — {d.shift?.name || 'Shift'}
                                                     </SelectItem>
                                                 ))}
@@ -206,12 +205,12 @@ export default function AttendancePage() {
                                         </Select>
                                     ) : (
                                         <Select value={selectedProject} onValueChange={setSelectedProject}>
-                                            <SelectTrigger className="h-14 rounded-2xl bg-white/5 border-white/10 text-white focus:text-slate-900 font-black uppercase text-[11px] tracking-widest backdrop-blur-md focus:ring-primary/20">
+                                            <SelectTrigger className="h-12 rounded-xl bg-white border border-border text-slate-900 focus:ring-primary/20">
                                                 <SelectValue placeholder="SELECT YOUR SITE" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-[28px] border-white/10 bg-black shadow-2xl p-2">
+                                            <SelectContent className="rounded-xl border-border bg-white shadow-lg p-2">
                                                 {projects.map(p => (
-                                                    <SelectItem key={p.id} value={p.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl text-white/70 focus:bg-white/10 focus:text-white data-[state=checked]:text-white data-[state=checked]:bg-white/5 transition-all cursor-pointer">
+                                                    <SelectItem key={p.id} value={p.id} className="py-3 font-medium rounded-lg">
                                                         {p.name}
                                                     </SelectItem>
                                                 ))}
@@ -224,27 +223,28 @@ export default function AttendancePage() {
                                 {selectedSite && myStatus && !myStatus.checkOut ? (
                                     // Already checked in, show check out
                                     <div className="flex items-center gap-8">
-                                        <div className="text-right hidden md:block border-r border-white/10 pr-8">
+                                        <div className="text-right hidden md:block border-r border-border pr-8">
                                             <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 px-0.5">Checked In At</div>
-                                            <div className="text-xl font-black text-white italic">{new Date(myStatus.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                            <div className="text-xl font-bold text-slate-900">{new Date(myStatus.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                         </div>
                                         <Button
                                             onClick={handleCheckOut}
                                             disabled={isChecking}
-                                            className="h-14 rounded-2xl bg-white text-slate-900 hover:bg-rose-600 hover:text-white px-12 font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl transition-all w-full md:w-auto active:scale-95 border-none"
+                                            variant="destructive"
+                                            className="h-12 rounded-xl px-8 w-full md:w-auto"
                                         >
                                             {isChecking ? "LOADING..." : "CHECK OUT"}
                                         </Button>
                                     </div>
                                 ) : selectedSite && myStatus?.checkOut ? (
                                     // Completed shift
-                                    <div className="flex items-center gap-6 bg-white/5 border border-white/10 px-10 py-5 rounded-[32px] backdrop-blur-xl shadow-2xl">
-                                        <div className="h-12 w-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center">
-                                            <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                                    <div className="flex items-center gap-4 bg-green-50 border border-green-200 px-6 py-4 rounded-xl">
+                                        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center border border-green-200">
+                                            <CheckCircle2 className="h-5 w-5 text-green-700" />
                                         </div>
                                         <div className="text-left">
-                                            <div className="text-[11px] font-black text-emerald-500 uppercase tracking-[0.2em]">Shift Completed</div>
-                                            <div className="text-lg font-black text-white italic">{new Date(myStatus.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} Logged</div>
+                                            <div className="text-[12px] font-semibold text-green-700">Shift completed</div>
+                                            <div className="text-[14px] font-medium text-slate-700">{new Date(myStatus.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} logged</div>
                                         </div>
                                     </div>
                                 ) : selectedSite ? (
@@ -254,10 +254,11 @@ export default function AttendancePage() {
                                             setAttendanceCheckInOpen(true)
                                         }}
                                         disabled={isChecking}
-                                        className="h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-16 font-black uppercase text-sm tracking-[0.2em] shadow-2xl shadow-emerald-500/30 transition-all w-full md:w-auto active:scale-95 flex items-center gap-3"
+                                        variant="primary"
+                                        className="h-12 rounded-xl px-8 w-full md:w-auto flex items-center gap-2"
                                     >
-                                        <Camera className="h-6 w-6" />
-                                        MARK ATTENDANCE
+                                        <Camera className="h-5 w-5" />
+                                        Mark attendance
                                     </Button>
                                 ) : null}
                             </div>
@@ -267,11 +268,11 @@ export default function AttendancePage() {
             )}
 
             {/* Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 px-4">
-                <StatCard title="Present" value={stats.present} icon={<CheckCircle2 className="text-emerald-400" />} color="emerald" className="bg-white/5 border-white/10" />
-                <StatCard title="Late" value={stats.late} icon={<Clock className="text-amber-400" />} color="amber" className="bg-white/5 border-white/10" />
-                <StatCard title="Absent" value={stats.absent} icon={<XCircle className="text-rose-400" />} color="rose" className="bg-white/5 border-white/10" />
-                <StatCard title="Total Staff" value={stats.total} icon={<Users className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                <StatCard title="Present" value={stats.present} icon={<CheckCircle2 className="text-green-700" />} color="emerald" />
+                <StatCard title="Late" value={stats.late} icon={<Clock className="text-orange-700" />} color="orange" />
+                <StatCard title="Absent" value={stats.absent} icon={<XCircle className="text-red-700" />} color="rose" />
+                <StatCard title="Total Staff" value={stats.total} icon={<Users className="text-sky-700" />} color="blue" />
             </div>
 
             {/* List */}
@@ -291,42 +292,42 @@ export default function AttendancePage() {
                                     initial={{ opacity: 0, scale: 0.98 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ duration: 0.2, delay: idx * 0.02 }}
-                                    className="group hover:bg-white/[0.02] border-b border-white/5 transition-colors"
+                                    className="group"
                                 >
-                                    <TableCell className="px-4 sm:px-8 py-4 sm:py-6">
+                                    <TableCell className="py-4">
                                         <div className="flex items-center gap-4">
-                                            <Avatar className="h-12 w-12 rounded-2xl border-2 border-white/5 group-hover:border-[#D9A75B]/20 group-hover:scale-110 transition-all shadow-xl">
-                                                <AvatarFallback className="bg-black text-white/50 font-black text-xs uppercase">
+                                            <Avatar className="h-12 w-12 rounded-xl border border-border shadow-sm transition-transform group-hover:scale-105">
+                                                <AvatarFallback className="bg-slate-100 text-slate-700 font-semibold text-xs uppercase">
                                                     {record.employee?.fullName?.split(' ').map((n: string) => n[0]).join('') || '?'}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="min-w-0">
-                                                <div className="font-extrabold text-white group-hover:text-[#D9A75B] transition-colors truncate uppercase">{record.employee?.fullName}</div>
-                                                <div className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-1">DESIGNATION: {record.employee?.designation?.name || "EMPLOYEE"}</div>
+                                                <div className="font-semibold text-slate-900 truncate">{record.employee?.fullName}</div>
+                                                <div className="text-[12px] text-slate-500 mt-1">Designation: {record.employee?.designation?.name || "Employee"}</div>
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            <div className="h-8 w-8 rounded-lg bg-black border border-white/10 flex items-center justify-center group-hover:border-[#D9A75B]/20 transition-all">
-                                                <Building2 className="h-3.5 w-3.5 text-white/20 group-hover:text-[#D9A75B]" />
+                                            <div className="h-8 w-8 rounded-lg bg-slate-50 border border-border flex items-center justify-center">
+                                                <Building2 className="h-3.5 w-3.5 text-slate-500" />
                                             </div>
-                                            <span className="text-[13px] font-black text-white uppercase tracking-tight">{record.project?.name || record.deployment?.client?.name || "General"}</span>
+                                            <span className="text-[14px] font-medium text-slate-700">{record.project?.name || record.deployment?.client?.name || "General"}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center text-[13px] font-black text-white/80 italic">
-                                            <Clock className="h-3.5 w-3.5 mr-2.5 text-white/20" />
+                                        <div className="flex items-center text-[14px] font-medium text-slate-700">
+                                            <Clock className="h-3.5 w-3.5 mr-2.5 text-slate-400" />
                                             {record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "--:--"}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center text-[13px] font-black text-white/80 italic">
-                                            <Clock className="h-3.5 w-3.5 mr-2.5 text-white/20" />
+                                        <div className="flex items-center text-[14px] font-medium text-slate-700">
+                                            <Clock className="h-3.5 w-3.5 mr-2.5 text-slate-400" />
                                             {record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : "--:--"}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-right px-4 sm:px-8">
+                                    <TableCell className="text-right">
                                         <StatusBadge status={record.status} />
                                     </TableCell>
                                 </motion.tr>

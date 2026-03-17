@@ -20,6 +20,8 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
     Table,
     TableBody,
@@ -90,22 +92,9 @@ export function SubmitButton({
     className,
 }: SubmitButtonProps) {
     return (
-        <Button
-            type="submit"
-            disabled={disabled || loading}
-            className={cn(
-                "w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-black hover:bg-white hover:text-black border border-white/10 text-white font-black shadow-2xl transition-all active:scale-[0.98] uppercase tracking-[0.2em] mt-4 shrink-0 text-xs sm:text-sm italic",
-                className
-            )}
-        >
-            {loading ? (
-                <div className="flex items-center gap-3">
-                    <Loader2 className="h-4 w-4 animate-spin text-[#D9A75B]" />
-                    <span className="text-[#D9A75B]">SYNCHRONIZING...</span>
-                </div>
-            ) : (
-                label
-            )}
+        <Button type="submit" disabled={disabled || loading} variant="primary" size="cta" className={className}>
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? "Saving..." : label}
         </Button>
     )
 }
@@ -166,14 +155,14 @@ export function PageHeader({
     return (
         <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-8 sm:mb-12", className)}>
             <div className="flex-1 min-w-0">
-                <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-foreground tracking-tighter leading-none mb-4">
+                <h1 className="text-[28px] font-bold text-foreground leading-tight mb-2">
                     {title}{" "}
                     {titleHighlight && (
-                        <span className="text-primary italic">{titleHighlight}</span>
+                        <span className="text-primary">{titleHighlight}</span>
                     )}
                 </h1>
                 {subtitle && (
-                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground font-medium mt-1 leading-relaxed max-w-2xl border-l-2 border-primary/20 pl-4">
+                    <p className="text-[14px] text-muted-foreground mt-1 leading-relaxed max-w-2xl">
                         {subtitle}
                     </p>
                 )}
@@ -191,14 +180,14 @@ export function PageHeader({
 type StatCardColor = "teal" | "blue" | "emerald" | "amber" | "rose" | "slate" | "orange" | "violet"
 
 const statCardColorMap: Record<StatCardColor, { icon: string; value: string; badge: string }> = {
-    teal: { icon: "bg-[#D9A75B]/10 text-[#D9A75B]", value: "text-white", badge: "bg-[#D9A75B]/10 text-[#D9A75B] border-[#D9A75B]/20" },
-    blue: { icon: "bg-blue-500/10 text-blue-400", value: "text-white", badge: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-    emerald: { icon: "bg-emerald-500/10 text-emerald-400", value: "text-white", badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
-    amber: { icon: "bg-[#D9A75B]/10 text-[#D9A75B]", value: "text-white", badge: "bg-[#D9A75B]/10 text-[#D9A75B] border-[#D9A75B]/20" },
-    rose: { icon: "bg-rose-500/10 text-rose-400", value: "text-white", badge: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
-    slate: { icon: "bg-white/5 text-slate-400", value: "text-white", badge: "bg-white/5 text-slate-400 border-white/10" },
-    orange: { icon: "bg-orange-500/10 text-orange-400", value: "text-white", badge: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
-    violet: { icon: "bg-violet-500/10 text-violet-400", value: "text-white", badge: "bg-violet-500/10 text-violet-400 border-violet-500/20" },
+    teal: { icon: "bg-teal-50 text-teal-700 border-teal-100", value: "text-slate-900", badge: "bg-teal-50 text-teal-700 border-teal-100" },
+    blue: { icon: "bg-sky-50 text-sky-700 border-sky-100", value: "text-slate-900", badge: "bg-sky-50 text-sky-700 border-sky-100" },
+    emerald: { icon: "bg-emerald-50 text-emerald-700 border-emerald-100", value: "text-slate-900", badge: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+    amber: { icon: "bg-amber-50 text-amber-700 border-amber-100", value: "text-slate-900", badge: "bg-amber-50 text-amber-700 border-amber-100" },
+    rose: { icon: "bg-rose-50 text-rose-700 border-rose-100", value: "text-slate-900", badge: "bg-rose-50 text-rose-700 border-rose-100" },
+    slate: { icon: "bg-slate-50 text-slate-700 border-slate-100", value: "text-slate-900", badge: "bg-slate-50 text-slate-700 border-slate-100" },
+    orange: { icon: "bg-orange-50 text-orange-700 border-orange-100", value: "text-slate-900", badge: "bg-orange-50 text-orange-700 border-orange-100" },
+    violet: { icon: "bg-violet-50 text-violet-700 border-violet-100", value: "text-slate-900", badge: "bg-violet-50 text-violet-700 border-violet-100" },
 }
 
 interface StatCardProps {
@@ -213,14 +202,17 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, color = "teal", trend, className }: StatCardProps) {
     const colors = statCardColorMap[color]
     return (
-        <Card className={cn("rounded-[40px] border-white/5 bg-black p-8 flex items-center justify-between group hover:border-[#D9A75B]/40 transition-all duration-500 backdrop-blur-3xl overflow-hidden relative shadow-2xl", className)}>
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#D9A75B]/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <div className="relative z-10">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">{title}</p>
-                <h3 className="text-4xl font-black mt-1 tracking-tighter text-white italic">{value}</h3>
-                {trend && <p className="text-[10px] font-bold text-emerald-400 mt-3 bg-emerald-500/10 px-2 py-0.5 rounded w-fit uppercase tracking-widest">{trend}</p>}
+        <Card className={cn("p-6 flex items-center justify-between overflow-hidden relative border-l-4 border-l-[#0d9488]", className)}>
+            <div>
+                <p className="text-[14px] font-medium text-slate-500">{title}</p>
+                <h3 className={cn("text-[36px] font-bold leading-none mt-2", colors.value)}>{value}</h3>
+                {trend && (
+                    <p className="text-[12px] font-semibold text-slate-500 mt-2">
+                        {trend}
+                    </p>
+                )}
             </div>
-            <div className={cn("h-16 w-16 rounded-3xl flex items-center justify-center transition-all group-hover:scale-110 duration-500 border border-white/5 shadow-2xl relative z-10", colors.icon)}>
+            <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center border", colors.icon)}>
                 {icon}
             </div>
         </Card>
@@ -244,12 +236,12 @@ export function DataTable({ columns, children, className, minWidth = "720px" }: 
         <TableCardWrapper className={className} minWidth={minWidth}>
             <Table>
                 <TableHeader>
-                    <TableRow className="border-b border-white/5 hover:bg-transparent">
+                    <TableRow className="hover:bg-transparent">
                         {columns.map((col, i) => (
                             <TableColHead
                                 key={i}
                                 align={i === columns.length - 1 ? "right" : "left"}
-                                className={i === 0 ? "px-4 sm:px-8" : i === columns.length - 1 ? "px-4 sm:px-8" : ""}
+                                className={i === 0 ? "pl-4 sm:pl-6" : i === columns.length - 1 ? "pr-4 sm:pr-6" : ""}
                             >
                                 {col}
                             </TableColHead>
@@ -275,8 +267,8 @@ export function TableCardWrapper({
 }) {
     return (
         <div className={cn(
-            "bg-card rounded-[32px] md:rounded-[40px]",
-            "border border-white/5 shadow-2xl overflow-hidden",
+            "bg-white rounded-xl",
+            "border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)] overflow-hidden",
             className
         )}>
             <div className="overflow-x-auto">
@@ -301,7 +293,6 @@ interface TableColHeadProps {
 export function TableColHead({ children, align = "left", className }: TableColHeadProps) {
     return (
         <TableHead className={cn(
-            "text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap py-4",
             align === "right" && "text-right",
             align === "center" && "text-center",
             className
@@ -321,7 +312,7 @@ export function TableRowLoading({ colSpan, message = "Loading..." }: { colSpan: 
             <TableCell colSpan={colSpan} className="text-center py-16">
                 <div className="flex flex-col items-center gap-3">
                     <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">
+                    <p className="text-[12px] font-semibold text-slate-500 animate-pulse">
                         {message}
                     </p>
                 </div>
@@ -368,17 +359,17 @@ interface EmptyStateProps {
 export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
     return (
         <div className={cn(
-            "flex flex-col items-center justify-center py-24 px-6 text-center bg-card rounded-[40px] border border-white/5 shadow-2xl",
+            "flex flex-col items-center justify-center py-12 px-6 text-center bg-card rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]",
             className
         )}>
             {icon && (
-                <div className="h-24 w-24 bg-white/5 rounded-full flex items-center justify-center text-primary border border-white/10 shadow-xl mb-8 group-hover:scale-110 transition-transform shrink-0">
-                    <span className="scale-125">{icon}</span>
+                <div className="h-14 w-14 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-primary mb-4 shrink-0">
+                    <span className="scale-110">{icon}</span>
                 </div>
             )}
-            <h3 className="text-2xl font-black text-foreground tracking-tight mb-2 uppercase">{title}</h3>
+            <h3 className="text-[20px] font-semibold text-foreground mb-1">{title}</h3>
             {description && (
-                <p className="text-muted-foreground font-medium max-w-sm mx-auto mb-10 text-sm leading-relaxed">
+                <p className="text-[14px] text-muted-foreground max-w-sm mx-auto mb-6 leading-relaxed">
                     {description}
                 </p>
             )}
@@ -398,23 +389,30 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
     const statusLabel = status.toUpperCase()
-    const badgeStyles: Record<string, string> = {
-        ACTIVE: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-        INACTIVE: "bg-white/5 text-white/40 border-white/10",
-        PENDING: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-        APPROVED: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-        REJECTED: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-        LATE: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    const variantMap: Record<string, React.ComponentProps<typeof Badge>["variant"]> = {
+        ACTIVE: "success",
+        PRESENT: "success",
+        SUCCESS: "success",
+
+        CANCELLED: "destructive",
+        CANCELED: "destructive",
+        ABSENT: "destructive",
+        FAILED: "destructive",
+        REJECTED: "destructive",
+
+        PLANNED: "inactive",
+        CLOSED: "inactive",
+        INACTIVE: "inactive",
+
+        LATE: "warning",
+        PENDING: "warning",
+        WARNING: "warning",
     }
-    const style = badgeStyles[statusLabel] || badgeStyles.INACTIVE
+    const variant = variantMap[statusLabel] ?? "inactive"
     return (
-        <span className={cn(
-            "inline-flex items-center px-3 py-1 rounded-lg font-bold text-[10px] uppercase tracking-[0.1em] border backdrop-blur-sm",
-            style,
-            className
-        )}>
+        <Badge variant={variant} className={className}>
             {status.replace(/_/g, " ")}
-        </span>
+        </Badge>
     )
 }
 
@@ -442,18 +440,18 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
             onClick={onClick}
             title={collapsed ? name : undefined}
             className={cn(
-                "group flex items-center rounded-xl px-4 py-4 text-xs font-black transition-all duration-300 relative overflow-hidden uppercase tracking-[0.1em] italic select-none",
+                "group flex items-center rounded-lg px-4 py-3 text-[14px] font-medium transition-colors duration-200 relative select-none",
                 collapsed && "justify-center px-3",
                 isActive
-                    ? "bg-white text-black shadow-xl shadow-white/20"
-                    : "text-white/40 hover:text-white hover:bg-white/5",
+                    ? "bg-[rgba(13,148,136,0.14)] text-[#0d9488]"
+                    : "text-[var(--sidebar-foreground)] hover:text-white hover:bg-white/5",
                 className
             )}
         >
             <Icon className={cn(
-                "h-5 w-5 transition-transform duration-300 group-hover:scale-110 shrink-0",
+                "h-5 w-5 shrink-0",
                 !collapsed && "mr-3",
-                isActive ? "text-white" : "text-slate-400/40 group-hover:text-white"
+                isActive ? "text-[#0d9488]" : "text-[var(--sidebar-foreground)] group-hover:text-white"
             )} />
             <span className={cn(
                 "whitespace-nowrap transition-all duration-300",
@@ -462,7 +460,7 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
                 {name}
             </span>
             {isActive && (
-                <div className="absolute right-0 top-0 bottom-0 w-1 bg-white rounded-l-full shadow-white/50" />
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0d9488]" />
             )}
         </Link>
     )
@@ -492,7 +490,7 @@ export function SidebarLogout({ onClick, label = "Sign Out", className, collapse
 export function SidebarSectionLabel({ children, collapsed, className }: { children: React.ReactNode, collapsed?: boolean, className?: string }) {
     return (
         <p className={cn(
-            "px-4 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-3 transition-opacity duration-300",
+            "px-4 text-[12px] font-semibold text-[var(--sidebar-foreground)] uppercase tracking-wider mb-3 transition-opacity duration-300",
             collapsed ? "opacity-0 h-0" : "opacity-100",
             className
         )}>
@@ -524,7 +522,7 @@ export function RowEditButton({ onClick, disabled, label = "Edit", className }: 
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "h-10 px-5 rounded-xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all group/btn",
+                "h-10 px-4 rounded-lg font-medium text-[#0d9488] hover:bg-teal-50",
                 className
             )}
         >
@@ -542,7 +540,7 @@ export function RowDeleteButton({ onClick, disabled, label = "Delete", className
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "h-10 px-5 rounded-xl font-bold text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all group/btn",
+                "h-10 px-4 rounded-lg font-medium text-[#dc2626] hover:bg-red-50",
                 className
             )}
         >
@@ -560,7 +558,7 @@ export function RowViewButton({ onClick, disabled, label = "View", className }: 
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "h-10 px-5 rounded-xl font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition-all group/btn",
+                "h-10 px-4 rounded-lg font-medium text-slate-700 hover:bg-slate-100",
                 className
             )}
         >
@@ -626,7 +624,7 @@ export function FormCard({ children, className }: { children: React.ReactNode, c
 
 export function FormHeader({ title, color = "blue" }: { title: string, color?: "blue" | "emerald" | "amber" | "rose" }) {
     const dotColors = {
-        blue: "bg-[#D9A75B]",
+        blue: "bg-primary",
         emerald: "bg-emerald-500",
         amber: "bg-amber-500",
         rose: "bg-rose-500"
@@ -634,7 +632,7 @@ export function FormHeader({ title, color = "blue" }: { title: string, color?: "
     return (
         <div className="flex items-center gap-3 mb-2">
             <div className={cn("h-2 w-2 rounded-full animate-pulse", dotColors[color])} />
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{title}</h3>
+            <h3 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500">{title}</h3>
         </div>
     )
 }
@@ -645,14 +643,38 @@ export function FormHeader({ title, color = "blue" }: { title: string, color?: "
 
 export function PageLoading({ message = "Loading System Data..." }: { message?: string }) {
     return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
-            <div className="relative">
-                <div className="h-16 w-16 border-4 border-slate-100 rounded-full" />
-                <div className="h-16 w-16 border-4 border-primary border-t-transparent rounded-full animate-spin absolute top-0" />
+        <div className="min-h-[60vh] w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 font-inter">
+            <div className="space-y-8">
+                <div className="space-y-3">
+                    <Skeleton className="h-9 w-[260px] sm:w-[320px]" />
+                    <Skeleton className="h-5 w-[340px] sm:w-[460px]" />
+                </div>
+
+                <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <Skeleton className="h-[108px] rounded-xl" />
+                    <Skeleton className="h-[108px] rounded-xl" />
+                    <Skeleton className="h-[108px] rounded-xl" />
+                    <Skeleton className="h-[108px] rounded-xl" />
+                </div>
+
+                <div className="rounded-xl border border-border bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1)] overflow-hidden">
+                    <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between gap-4">
+                        <div className="space-y-2">
+                            <Skeleton className="h-6 w-48" />
+                            <Skeleton className="h-4 w-64" />
+                        </div>
+                        <Skeleton className="h-10 w-32 rounded-lg" />
+                    </div>
+                    <div className="p-4 sm:p-6 space-y-3">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </div>
+
+                <p className="text-center text-[12px] font-medium text-slate-500">{message}</p>
             </div>
-            <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px] animate-pulse">
-                {message}
-            </p>
         </div>
     )
 }
@@ -670,7 +692,7 @@ interface SectionHeadingProps {
 export function SectionHeading({ title, icon, action, className }: SectionHeadingProps) {
     return (
         <div className={cn("flex items-center justify-between mb-8 px-2", className)}>
-            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+            <h2 className="text-[20px] font-semibold text-slate-900 flex items-center gap-3">
                 {icon && <span className="text-primary">{icon}</span>}
                 {title}
             </h2>
@@ -693,14 +715,14 @@ interface ControlPanelProps {
 export function ControlPanel({ count, totalLabel, children, className }: ControlPanelProps) {
     return (
         <div className={cn(
-            "flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl sm:rounded-[32px] bg-card border border-white/5 shadow-2xl mb-6 sm:mb-8",
+            "flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-xl bg-white border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)] mb-6 sm:mb-8",
             className
         )}>
             <div className="flex items-center gap-3 sm:gap-4 px-1 sm:px-2">
                 <div className="h-9 w-9 sm:h-10 sm:w-10 bg-primary/20 text-primary rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm shadow-inner shadow-black/20">
                     {count}
                 </div>
-                <span className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">
+                <span className="text-[14px] font-medium text-slate-600">
                     {totalLabel}
                 </span>
             </div>
@@ -717,7 +739,7 @@ export function ControlPanel({ count, totalLabel, children, className }: Control
 // ─────────────────────────────────────────────────────────────────────────────
 export function FormLabelBase({ label, required, className }: { label: string, required?: boolean, className?: string }) {
     return (
-        <label className={cn("text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2 block", className)}>
+        <label className={cn("text-[12px] font-semibold text-slate-600 uppercase tracking-wider mb-2 block", className)}>
             {label} {required && <span className="text-rose-500 font-bold ml-0.5">*</span>}
         </label>
     )
@@ -726,6 +748,6 @@ export function FormLabelBase({ label, required, className }: { label: string, r
 // ─────────────────────────────────────────────────────────────────────────────
 // 18. PREMIUM INPUT CLASSES
 // ─────────────────────────────────────────────────────────────────────────────
-export const inputVariants = "h-12 sm:h-14 bg-white/5 border-white/5 text-white placeholder:text-white/20 rounded-xl sm:rounded-2xl focus:bg-white/10 focus:border-[#D9A75B]/20 transition-all font-semibold italic px-4 sm:px-6 text-sm sm:text-base selection:bg-[#D9A75B]/30"
+export const inputVariants = "h-12 sm:h-14 bg-white border border-border text-slate-900 placeholder:text-slate-400 rounded-xl focus:bg-white focus:border-primary/40 focus:ring-primary/20 transition-all font-medium px-4 sm:px-5 text-sm sm:text-base selection:bg-primary/20"
 
-export const selectVariants = "h-12 sm:h-14 bg-white/5 border-white/5 text-white rounded-xl sm:rounded-2xl focus:bg-white/10 focus:border-[#D9A75B]/20 transition-all font-semibold italic px-4 sm:px-6 w-full appearance-none text-sm sm:text-base selection:bg-[#D9A75B]/30"
+export const selectVariants = "h-12 sm:h-14 bg-white border border-border text-slate-900 rounded-xl focus:bg-white focus:border-primary/40 focus:ring-primary/20 transition-all font-medium px-4 sm:px-5 w-full appearance-none text-sm sm:text-base selection:bg-primary/20"

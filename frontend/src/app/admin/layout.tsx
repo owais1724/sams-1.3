@@ -99,10 +99,10 @@ export default function AdminLayout({
 
     if (verifying) {
         return (
-            <div className="h-screen w-screen flex items-center justify-center bg-black font-inter">
+            <div className="h-screen w-screen flex items-center justify-center bg-slate-100 font-inter">
                 <div className="flex flex-col items-center gap-6">
-                    <div className="h-16 w-16 border-t-2 border-r-2 border-primary rounded-full animate-spin shadow-[0_0_20px_rgba(255,184,0,0.2)]"></div>
-                    <p className="text-[10px] font-black text-primary/60 uppercase tracking-[0.5em] animate-pulse">Initializing Hypercore...</p>
+                    <div className="h-12 w-12 border-t-2 border-r-2 border-primary rounded-full animate-spin"></div>
+                    <p className="text-[12px] font-semibold text-slate-500 uppercase tracking-wider animate-pulse">Loading admin portal...</p>
                 </div>
             </div>
         )
@@ -113,33 +113,33 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="flex h-screen bg-black font-inter p-2 sm:p-4 overflow-hidden selection:bg-primary/30">
+        <div className="flex h-screen bg-slate-100 font-inter p-2 sm:p-4 overflow-hidden selection:bg-primary/30">
             {/* Unified Container — sidebar + content as one panel */}
-            <div className="flex flex-1 h-full rounded-[40px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5 bg-card/20 backdrop-blur-3xl">
+            <div className="flex flex-1 h-full rounded-2xl sm:rounded-[28px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-border bg-white">
                 {/* Desktop Sidebar */}
                 <div className={`hidden lg:flex shrink-0 z-20 transition-all duration-300 ${sidebarCollapsed ? 'w-24' : 'w-[22rem]'}`}>
                     <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
                 </div>
 
-                <div className="flex-1 flex flex-col h-full overflow-hidden bg-black/40">
+                <div className="flex-1 flex flex-col h-full overflow-hidden bg-slate-100">
                 {/* Mobile Header - Elevated */}
-                <header className="lg:hidden flex items-center justify-between px-6 h-20 bg-black text-white rounded-3xl mx-2 mt-2 mb-2 sm:mx-4 sm:mt-4 sm:mb-4 shrink-0 z-30 shadow-2xl border border-white/5">
+                <header className="lg:hidden flex items-center justify-between px-4 sm:px-6 h-16 sm:h-20 bg-white text-slate-900 border-b border-border shrink-0 z-30">
                     <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,184,0,0.3)]">
-                            <ShieldCheck className="h-5 w-5 text-black" />
+                        <div className="h-10 w-10 bg-teal-50 border border-teal-100 rounded-xl flex items-center justify-center">
+                            <ShieldCheck className="h-5 w-5 text-[#0d9488]" />
                         </div>
                         <div>
-                            <h1 className="text-sm font-black tracking-[0.2em] uppercase leading-none italic">SAMS <span className="text-primary not-italic">GLOBAL</span></h1>
-                            <span className="text-[9px] text-primary/60 font-black uppercase tracking-[0.3em] mt-1.5 block">Infrastructure Control</span>
+                            <h1 className="text-sm font-semibold leading-none">SAMS GLOBAL</h1>
+                            <span className="text-[12px] text-slate-500 mt-1 block">Strategic Administration</span>
                         </div>
                     </div>
                     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/5 rounded-2xl h-12 w-12 border border-white/10 bg-white/5 transition-all">
+                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-white hover:bg-slate-50 text-slate-700">
                                 <Menu className="h-6 w-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-black overflow-hidden rounded-r-[48px]">
+                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[var(--sidebar)] overflow-hidden">
                             <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
                             <AdminSidebar onItemClick={() => setSidebarOpen(false)} />
                         </SheetContent>
@@ -147,7 +147,7 @@ export default function AdminLayout({
                 </header>
 
                 <main className="flex-1 overflow-y-auto scrollbar-hide relative">
-                    <div className="p-6 sm:p-10 md:p-12 lg:p-14">
+                    <div className="p-4 sm:p-6 md:p-10 lg:p-12">
                         {children}
                     </div>
                 </main>

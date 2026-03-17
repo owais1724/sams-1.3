@@ -51,65 +51,48 @@
 
 :root {
   --radius: 0.75rem;
-  --background: oklch(0.98 0.01 80); /* Very light gold tint */
-  --foreground: oklch(0.15 0.02 80);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 80);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 80);
-  --primary: oklch(0.7 0.15 80); /* Gold */
-  --primary-foreground: oklch(0.15 0.02 80);
-  --secondary: oklch(0.92 0.02 80);
-  --secondary-foreground: oklch(0.2 0.02 80);
-  --muted: oklch(0.95 0.01 80);
-  --muted-foreground: oklch(0.5 0.02 80);
-  --accent: oklch(0.92 0.1 80 / 20%);
-  --accent-foreground: oklch(0.15 0.02 80);
-  --destructive: oklch(0.55 0.18 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0.02 80);
-  --input: oklch(0.9 0.02 80);
-  --ring: oklch(0.7 0.15 80);
-  
-  --sidebar: oklch(0.12 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.7 0.15 80);
-  --sidebar-primary-foreground: oklch(0.15 0 0);
-  --sidebar-accent: oklch(0.2 0 0);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.7 0.15 80);
+
+  /* Navy & Teal theme */
+  --background: #f1f5f9; /* slate-100 */
+  --foreground: #0f172a; /* slate-900 */
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  --primary: #0d9488; /* teal-600 */
+  --primary-foreground: #ffffff;
+
+  --secondary: #ffffff;
+  --secondary-foreground: #0d9488;
+
+  --muted: #f8fafc; /* slate-50 */
+  --muted-foreground: #64748b; /* slate-500 */
+
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+
+  --destructive: #dc2626; /* red-600 */
+  --destructive-foreground: #ffffff;
+
+  --border: #e2e8f0; /* slate-200 */
+  --input: #e2e8f0;
+  --ring: #0d9488;
+
+  --sidebar: #0f172a; /* slate-900 */
+  --sidebar-foreground: #94a3b8; /* slate-400 */
+  --sidebar-primary: #0d9488; /* teal-600 */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(13, 148, 136, 0.12);
+  --sidebar-accent-foreground: #0d9488;
+  --sidebar-border: rgba(148, 163, 184, 0.18);
+  --sidebar-ring: #0d9488;
 }
 
 .dark {
-  --background: oklch(0.12 0.01 250); /* Deep Navy/Black */
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.18 0.02 250);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.18 0.02 250);
-  --popover-foreground: oklch(0.98 0 0);
-  --primary: oklch(0.75 0.18 80); /* Vibrant Gold */
-  --primary-foreground: oklch(0.12 0.01 250);
-  --secondary: oklch(0.25 0.03 250);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.22 0.02 250);
-  --muted-foreground: oklch(0.65 0.02 250);
-  --accent: oklch(0.75 0.18 80 / 15%);
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.5 0.15 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.75 0.18 80);
-
-  --sidebar: oklch(0.08 0 0); /* Pure Black for sidebar */
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.75 0.18 80);
-  --sidebar-primary-foreground: oklch(0.12 0.01 250);
-  --sidebar-accent: oklch(0.75 0.18 80 / 10%);
-  --sidebar-accent-foreground: oklch(0.75 0.18 80);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.75 0.18 80);
+  /* Not used: app is forced to light theme in `layout.tsx` */
 }
 
 @layer base {
@@ -118,11 +101,13 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-inter), Inter, ui-sans-serif, system-ui;
+    font-size: 14px;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-outfit uppercase tracking-tight font-black;
+    font-family: var(--font-inter), Inter, ui-sans-serif, system-ui;
   }
 }
 
@@ -134,20 +119,11 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
 
-  .premium-blur {
-    @apply backdrop-blur-xl bg-white/[0.02] border border-white/10;
-  }
-
-  .gold-gradient {
-    @apply bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700];
-  }
-
-  .gold-glow {
-    @apply shadow-[0_0_20px_rgba(255,184,0,0.3)];
-  }
-
-  .glass-card {
-    @apply bg-white/[0.03] border border-white/10 backdrop-blur-md rounded-2xl;
-  }
+/* Ensure Next.js dev overlay portal stays anchored */
+nextjs-portal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
 }

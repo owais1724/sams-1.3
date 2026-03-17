@@ -93,36 +93,26 @@ export default function AgencyAdminLogin() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-black font-inter p-4 relative overflow-hidden selection:bg-primary/30">
-            {/* Premium Gold Glows */}
-            <div className="absolute inset-0 z-0 overflow-hidden">
-                <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-[#D9A75B]/5 blur-[100px] rounded-full" />
-            </div>
-
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0d9488] font-inter p-4 selection:bg-white/20">
             <motion.div
-                initial={{ opacity: 0, scale: 0.98, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="w-full max-w-[460px] z-10"
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="w-full max-w-[520px]"
             >
-                {/* Logo Section */}
-                <div className="flex flex-col items-center mb-10">
-                    <div className="w-20 h-20 bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] shadow-[0_0_40px_rgba(255,184,0,0.3)] rounded-[24px] flex items-center justify-center mb-6 transform rotate-3 hover:rotate-6 transition-transform">
-                        <Building2 className="w-10 h-10 text-black" />
+                <div className="flex flex-col items-center mb-8 text-center">
+                    <div className="h-14 w-14 rounded-2xl bg-white/12 border border-white/25 flex items-center justify-center mb-4 shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+                        <Building2 className="h-7 w-7 text-white" />
                     </div>
-                    <h1 className="text-3xl font-black text-white tracking-[0.25em] uppercase italic">SAMS <span className="text-primary not-italic">ENGINE</span></h1>
-                    <div className="h-1 w-12 bg-primary/40 rounded-full mt-3" />
+                    <h1 className="text-[28px] font-bold text-white">SAMS Agency</h1>
+                    <p className="text-[14px] text-white/85 mt-1">Admin portal • @{agencySlug}</p>
                 </div>
 
-                <Card className="border border-white/10 bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] shadow-[0_80px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden relative" suppressHydrationWarning>
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-                    <CardContent className="p-8 md:p-14" suppressHydrationWarning>
-                        <div className="mb-8 md:mb-12 text-center">
-                            <h2 className="text-2xl md:text-3xl font-black text-white tracking-widest uppercase italic">Authentication</h2>
-                            <p className="text-primary font-bold text-[10px] mt-3 uppercase tracking-[0.3em] bg-white/5 py-1.5 px-6 rounded-full inline-block border border-white/5">
-                                SECURE NODE: <span className="italic">@{agencySlug}</span>
-                            </p>
+                <Card className="overflow-hidden" suppressHydrationWarning>
+                    <CardContent className="p-6 sm:p-8" suppressHydrationWarning>
+                        <div className="mb-6 text-center">
+                            <h2 className="text-[20px] font-semibold text-slate-900">Agency Admin Login</h2>
+                            <p className="text-[14px] text-slate-600 mt-1">Enter your administrative credentials.</p>
                         </div>
 
                         <Form {...form}>
@@ -132,19 +122,19 @@ export default function AgencyAdminLogin() {
                                     name="email"
                                     render={({ field }) => (
                                         <FormItem className="space-y-2">
-                                            <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Command ID</FormLabel>
+                                            <FormLabel className="text-[12px] font-semibold text-slate-600 uppercase tracking-wider">Admin Email</FormLabel>
                                             <FormControl>
                                                 <div className="relative group">
-                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
                                                         placeholder="admin@sams.ops"
-                                                        className="pl-12 h-14 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:bg-white/[0.08] focus:border-primary/30 transition-all font-black uppercase tracking-wider text-xs italic"
+                                                        className="pl-11 h-12 sm:h-14 bg-white border border-border text-slate-900 placeholder:text-slate-400 rounded-xl focus:border-primary/40 focus:ring-primary/20 transition-all font-medium"
                                                         {...field}
                                                     />
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-[10px] text-rose-500 font-bold" />
+                                            <FormMessage className="text-[12px] text-rose-600 font-semibold" />
                                         </FormItem>
                                     )}
                                 />
@@ -153,21 +143,21 @@ export default function AgencyAdminLogin() {
                                     name="password"
                                     render={({ field }) => (
                                         <FormItem className="space-y-2">
-                                            <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Access Cipher</FormLabel>
+                                            <FormLabel className="text-[12px] font-semibold text-slate-600 uppercase tracking-wider">Password</FormLabel>
                                             <FormControl>
                                                 <div className="relative group">
-                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
                                                     <Input
                                                         suppressHydrationWarning
                                                         type={showPassword ? "text" : "password"}
                                                         placeholder="••••••••"
-                                                        className="pl-12 pr-12 h-14 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:bg-white/[0.08] focus:border-primary/30 transition-all font-semibold"
+                                                        className="pl-11 pr-11 h-12 sm:h-14 bg-white border border-border text-slate-900 placeholder:text-slate-400 rounded-xl focus:border-primary/40 focus:ring-primary/20 transition-all font-medium"
                                                         {...field}
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowPassword(!showPassword)}
-                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors"
                                                     >
                                                         {showPassword ? (
                                                             <EyeOff className="w-4 h-4" />
@@ -177,7 +167,7 @@ export default function AgencyAdminLogin() {
                                                     </button>
                                                 </div>
                                             </FormControl>
-                                            <FormMessage className="text-[10px] text-rose-500 font-bold" />
+                                            <FormMessage className="text-[12px] text-rose-600 font-semibold" />
                                         </FormItem>
                                     )}
                                 />
@@ -185,19 +175,19 @@ export default function AgencyAdminLogin() {
                                 <Button
                                     suppressHydrationWarning
                                     type="submit"
-                                    variant="premium"
+                                    variant="primary"
                                     size="cta"
-                                    className="w-full h-16 mt-6 uppercase tracking-[0.2em]"
+                                    className="w-full"
                                     disabled={loading}
                                 >
                                     {loading ? (
                                         <>
                                             <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                                            <span>Validating...</span>
+                                            <span>Signing in...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span>Initialize Login</span>
+                                            <span>Sign in</span>
                                             <ChevronRight className="w-4 h-4 ml-2" />
                                         </>
                                     )}
@@ -207,15 +197,8 @@ export default function AgencyAdminLogin() {
                     </CardContent>
                 </Card>
 
-                {/* Footer Section */}
-                <div className="mt-16 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.5em]">
-                            System Operative // Agency Node: {agencySlug}
-                        </p>
-                    </div>
-                    <p className="text-[9px] text-white/20 font-medium">© 2026 SAMS HYPERCORE. ALL RIGHTS RESERVED.</p>
+                <div className="mt-8 text-center text-[12px] text-white/75">
+                    Agency node: {agencySlug}
                 </div>
             </motion.div>
         </div>

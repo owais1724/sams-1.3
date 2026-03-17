@@ -308,31 +308,31 @@ export default function DeploymentsPage() {
                 ) : undefined}
             />
 
-            <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4 px-4">
-                <StatCard title="Total Deployments" value={stats.total} icon={<Shield className="text-[#D9A75B]" />} color="amber" className="bg-white/5 border-white/10" />
-                <StatCard title="Active" value={stats.active} icon={<MapPin className="text-emerald-400" />} color="emerald" className="bg-white/5 border-white/10" />
-                <StatCard title="Planned" value={stats.planned} icon={<Calendar className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
-                <StatCard title="Guards Deployed" value={stats.totalGuards} icon={<Users className="text-[#D9A75B]" />} color="amber" className="bg-white/5 border-white/10" />
+            <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4">
+                <StatCard title="Total Deployments" value={stats.total} icon={<Shield className="text-teal-700" />} color="teal" />
+                <StatCard title="Active" value={stats.active} icon={<MapPin className="text-emerald-700" />} color="emerald" />
+                <StatCard title="Planned" value={stats.planned} icon={<Calendar className="text-slate-700" />} color="slate" />
+                <StatCard title="Guards Deployed" value={stats.totalGuards} icon={<Users className="text-teal-700" />} color="teal" />
             </div>
 
-            <ControlPanel count={filtered.length} totalLabel="Deployments" className="bg-white/5 border-white/10 px-4">
+            <ControlPanel count={filtered.length} totalLabel="Deployments">
                 <div className="flex items-center gap-3 flex-1 flex-wrap">
                     <Input
                         placeholder="Search by site or shift..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="h-10 rounded-xl bg-transparent border-white/10 w-full sm:max-w-xs text-white placeholder:text-white/20"
+                        className="h-10 rounded-xl bg-white border border-border w-full sm:max-w-xs text-slate-900 placeholder:text-slate-400"
                     />
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
-                        className="h-10 rounded-xl bg-white/5 border border-white/10 px-3 text-sm text-white focus:ring-0"
+                        className="h-10 rounded-xl bg-white border border-border px-3 text-sm text-slate-900 focus:ring-0"
                     >
-                        <option value="" className="bg-black">All Status</option>
-                        <option value="planned" className="bg-black">Planned</option>
-                        <option value="active" className="bg-black">Active</option>
-                        <option value="completed" className="bg-black">Completed</option>
-                        <option value="cancelled" className="bg-black">Cancelled</option>
+                        <option value="">All Status</option>
+                        <option value="planned">Planned</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
             </ControlPanel>
@@ -347,14 +347,14 @@ export default function DeploymentsPage() {
                     />
                 ) : (
                     filtered.map(dep => (
-                        <TableRow key={dep.id} className="group hover:bg-white/[0.02] border-b border-white/5 transition-colors">
-                            <TableCell className="px-4 sm:px-8 py-5">
+                        <TableRow key={dep.id} className="group">
+                            <TableCell className="py-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 bg-black border border-white/10 rounded-xl flex items-center justify-center group-hover:border-[#D9A75B]/20 transition-all">
-                                        <MapPin className="h-4 w-4 text-white/40 group-hover:text-[#D9A75B]" />
+                                    <div className="h-10 w-10 bg-slate-50 border border-border rounded-xl flex items-center justify-center">
+                                        <MapPin className="h-4 w-4 text-slate-500" />
                                     </div>
                                     <div>
-                                        <p className="font-black text-white group-hover:text-[#D9A75B] transition-colors uppercase tracking-tight">{dep.client.name}</p>
+                                        <p className="font-semibold text-slate-900">{dep.client.name}</p>
                                         {dep._count?.incidents ? (
                                             <span className="text-[10px] text-orange-400 font-bold flex items-center gap-1">
                                                 <AlertTriangle className="h-3 w-3" /> {dep._count.incidents} incident{dep._count.incidents > 1 ? "s" : ""}
@@ -364,39 +364,39 @@ export default function DeploymentsPage() {
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <div className="uppercase">
-                                    <p className="font-black text-white/80">{dep.shift.name}</p>
-                                    <p className="text-[10px] text-white/30 font-bold">{dep.shift.startTime} – {dep.shift.endTime}</p>
+                                <div>
+                                    <p className="font-semibold text-slate-900">{dep.shift.name}</p>
+                                    <p className="text-[12px] text-slate-500">{dep.shift.startTime} – {dep.shift.endTime}</p>
                                 </div>
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-1">
-                                    <span className="font-black text-white">{dep.guards.length}</span>
+                                    <span className="font-semibold text-slate-900">{dep.guards.length}</span>
                                     {canManage && (
                                         <button
                                             onClick={() => setShowAssign(dep.id)}
-                                            className="ml-2 text-[10px] font-black text-[#D9A75B] uppercase tracking-wider hover:underline"
+                                            className="ml-2 text-[12px] font-semibold text-primary hover:underline"
                                         >
                                             Manage
                                         </button>
                                     )}
                                 </div>
                             </TableCell>
-                            <TableCell className="text-[13px] font-bold text-white/60">
+                            <TableCell className="text-slate-600">
                                 {new Date(dep.startDate).toLocaleDateString()}
                             </TableCell>
-                            <TableCell className="text-[13px] font-bold text-white/60">
+                            <TableCell className="text-slate-600">
                                 {new Date(dep.endDate).toLocaleDateString()}
                             </TableCell>
                             <TableCell>
                                 <span className={cn(
-                                    "inline-flex items-center px-3 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wide border",
+                                    "inline-flex items-center px-3 py-1 rounded-full font-semibold text-[12px] border",
                                     deploymentStatusColors[dep.status] || "bg-slate-100 text-slate-600"
                                 )}>
                                     {dep.status}
                                 </span>
                             </TableCell>
-                            <TableCell className="px-4 sm:px-8">
+                            <TableCell>
                                 {canManage && (
                                     <div className="flex items-center gap-1">
                                         {["planned", "active"].includes(dep.status) && (

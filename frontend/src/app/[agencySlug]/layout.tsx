@@ -116,8 +116,8 @@ export default function AgencyLayout({
 
     if (verifying) {
         return (
-            <div className="h-screen w-screen flex items-center justify-center bg-black">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D9A75B]"></div>
+            <div className="h-screen w-screen flex items-center justify-center bg-slate-100">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0d9488]"></div>
             </div>
         )
     }
@@ -127,44 +127,42 @@ export default function AgencyLayout({
     }
 
     return (
-        <div className="flex h-screen bg-black font-inter p-2 sm:p-4 overflow-hidden selection:bg-[#D9A75B]/30">
+        <div className="flex h-screen bg-slate-100 font-inter p-2 sm:p-4 overflow-hidden selection:bg-primary/30">
             {/* Unified Container — sidebar + content as one panel */}
-            <div className="flex flex-1 h-full rounded-2xl sm:rounded-[40px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5 bg-[#0A0A0A]">
+            <div className="flex flex-1 h-full rounded-2xl sm:rounded-[28px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-border bg-white">
                 {/* Desktop Sidebar */}
-                <div className={`hidden lg:flex shrink-0 z-20 transition-all duration-300 border-r border-white/5 ${sidebarCollapsed ? 'w-20' : 'w-76'}`}>
+                <div className={`hidden lg:flex shrink-0 z-20 transition-all duration-300 border-r border-white/10 ${sidebarCollapsed ? 'w-20' : 'w-76'}`}>
                     <AgencySidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
                 </div>
 
                 <div className="flex-1 flex flex-col h-full overflow-hidden">
                 {/* Mobile Header - Elevated */}
-                <header className="lg:hidden flex items-center justify-between px-4 sm:px-6 h-16 sm:h-20 bg-white/[0.02] text-white border-b border-white/5 shrink-0 z-30 backdrop-blur-3xl">
+                <header className="lg:hidden flex items-center justify-between px-4 sm:px-6 h-16 sm:h-20 bg-white text-slate-900 border-b border-border shrink-0 z-30">
                     <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="h-10 w-10 bg-gradient-to-tr from-[#D9A75B] to-[#FFB800] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(217,167,91,0.3)]">
-                            <ShieldCheck className="h-5 w-5 text-black" />
+                        <div className="h-10 w-10 bg-teal-50 border border-teal-100 rounded-xl flex items-center justify-center">
+                            <ShieldCheck className="h-5 w-5 text-[#0d9488]" />
                         </div>
                         <div className="min-w-0">
-                            <h1 className="text-sm font-black tracking-[0.2em] uppercase leading-none truncate max-w-[150px] italic">
+                            <h1 className="text-sm font-semibold leading-none truncate max-w-[180px]">
                                 {user?.agencyName || 'SAMS Ops'}
                             </h1>
-                            <span className="text-[9px] text-[#D9A75B]/60 font-black uppercase tracking-widest mt-1.5 block">
-                                Operations Node
-                            </span>
+                            <span className="text-[12px] text-slate-500 mt-1 block">Agency Portal</span>
                         </div>
                     </div>
                     <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-2xl h-12 w-12 border border-white/10 bg-white/5">
+                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-white hover:bg-slate-50 text-slate-700">
                                 <Menu className="h-5 w-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-black overflow-hidden ring-1 ring-white/10">
+                        <SheetContent side="left" className="p-0 border-none w-[85vw] max-w-xs bg-[var(--sidebar)] overflow-hidden">
                             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                             <AgencySidebar onItemClick={() => setSidebarOpen(false)} />
                         </SheetContent>
                     </Sheet>
                 </header>
 
-                <main className="flex-1 overflow-y-auto custom-scrollbar">
+                <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-100">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={pathname}

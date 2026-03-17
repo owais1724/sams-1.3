@@ -5,20 +5,20 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         // ── Shadcn base variants ──────────────────────────────────────────────
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-[#0b837a]",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-white hover:bg-[#b91c1c] focus-visible:ring-destructive/20",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "border border-border bg-white hover:bg-slate-50 text-slate-900",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-white text-[#0d9488] border border-[#0d9488] hover:bg-slate-50",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+          "hover:bg-slate-100 text-slate-700",
         link: "text-primary underline-offset-4 hover:underline",
 
         // ── App-specific semantic variants ────────────────────────────────────
@@ -32,40 +32,40 @@ const buttonVariants = cva(
          * primary — Gold brand CTA button
          */
         primary:
-          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/30 font-bold rounded-xl active:scale-[0.98] uppercase tracking-wider",
+          "bg-[#0d9488] text-white hover:bg-[#0b837a] shadow-sm font-semibold",
 
         /**
          * premium — Metallic gold variant with gradient and glow
          */
         premium:
-          "bg-gradient-to-tr from-[#D9A75B] via-[#FFB800] to-[#FFD700] text-black font-black rounded-xl shadow-[0_0_30px_rgba(255,184,0,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all uppercase tracking-[0.2em] italic",
+          "bg-[#0d9488] text-white hover:bg-[#0b837a] shadow-sm font-semibold",
 
         /**
          * admin — Deep primary variant
          */
         admin:
-          "bg-white text-black hover:bg-[#D9A75B] shadow-xl shadow-white/10 font-black rounded-2xl active:scale-[0.98] uppercase tracking-widest text-[11px]",
+          "bg-[#0d9488] text-white hover:bg-[#0b837a] shadow-sm font-semibold",
 
         /**
          * danger-solid — Red confirmation
          */
         "danger-solid":
-          "bg-rose-600 text-white hover:bg-rose-700 shadow-lg font-bold rounded-xl active:scale-[0.98]",
+          "bg-[#dc2626] text-white hover:bg-[#b91c1c] shadow-sm font-semibold",
 
         /**
          * success — Green check-in / approve action
          * Was: className="bg-emerald-600 hover:bg-emerald-700 text-white ..."
          */
         success:
-          "bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-100 font-bold rounded-2xl active:scale-[0.98]",
+          "bg-[#0d9488] text-white hover:bg-[#0b837a] shadow-sm font-semibold",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        default: "h-10 px-5 py-2 has-[>svg]:pl-4 has-[>svg]:pr-5",
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        sm: "h-9 gap-1.5 px-4 has-[>svg]:pl-3 has-[>svg]:pr-4",
+        lg: "h-11 px-6 has-[>svg]:pl-5 has-[>svg]:pr-6",
         /** cta — Tall page-level action button (matches the h-12 px-8 pattern) */
-        cta: "h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base w-full md:w-auto",
+        cta: "h-11 sm:h-12 px-5 sm:px-6 text-sm sm:text-base w-full md:w-auto",
         icon: "size-9",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",

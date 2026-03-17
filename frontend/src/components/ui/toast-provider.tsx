@@ -14,36 +14,36 @@ const variantStyles: Record<ToastVariant, {
     glow: string
 }> = {
     success: {
-        bg: "bg-black/95",
-        border: "border-[#D9A75B]/40",
+        bg: "bg-white",
+        border: "border-green-200",
         icon: CheckCircle2,
-        color: "text-[#D9A75B]",
-        progress: "bg-[#D9A75B]",
-        glow: "shadow-[#D9A75B]/20",
+        color: "text-green-700",
+        progress: "bg-green-500",
+        glow: "shadow-black/5",
     },
     error: {
-        bg: "bg-black/95",
-        border: "border-rose-500/40",
+        bg: "bg-white",
+        border: "border-red-200",
         icon: XCircle,
-        color: "text-rose-500",
-        progress: "bg-rose-500",
-        glow: "shadow-rose-500/20",
+        color: "text-red-700",
+        progress: "bg-red-500",
+        glow: "shadow-black/5",
     },
     info: {
-        bg: "bg-black/95",
-        border: "border-[#D9A75B]/40",
+        bg: "bg-white",
+        border: "border-teal-200",
         icon: Info,
-        color: "text-[#D9A75B]",
-        progress: "bg-[#D9A75B]",
-        glow: "shadow-[#D9A75B]/20",
+        color: "text-[#0d9488]",
+        progress: "bg-[#0d9488]",
+        glow: "shadow-black/5",
     },
     warning: {
-        bg: "bg-black/95",
-        border: "border-amber-500/40",
+        bg: "bg-white",
+        border: "border-orange-200",
         icon: AlertTriangle,
-        color: "text-amber-500",
-        progress: "bg-amber-500",
-        glow: "shadow-amber-500/20",
+        color: "text-orange-700",
+        progress: "bg-orange-500",
+        glow: "shadow-black/5",
     },
 }
 
@@ -66,36 +66,36 @@ export function ToastProvider() {
                             layout
                             className={cn(
                                 "pointer-events-auto relative group overflow-hidden",
-                                "backdrop-blur-xl rounded-[28px] border-2",
+                                "rounded-xl border",
                                 style.bg,
                                 style.border,
-                                "shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)]",
+                                "shadow-[0_1px_3px_rgba(0,0,0,0.1)]",
                                 style.glow
                             )}
                         >
                             <div className="p-5 flex items-start gap-4">
                                 <div className={cn(
-                                    "h-12 w-12 shrink-0 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110",
+                                    "h-11 w-11 shrink-0 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover:scale-105 border",
                                     style.color,
-                                    "bg-white/5 border border-white/10 shadow-inner"
+                                    "bg-slate-50 border-border"
                                 )}>
                                     <Icon className="h-6 w-6 stroke-[2.5]" />
                                 </div>
 
                                 <div className="flex-1 min-w-0 py-1">
                                     {t.title && (
-                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1 leading-none">
+                                        <div className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 mb-1 leading-none">
                                             {t.title}
                                         </div>
                                     )}
-                                    <p className="text-sm font-bold text-white leading-tight">
+                                    <p className="text-[14px] font-medium text-slate-900 leading-tight">
                                         {t.message}
                                     </p>
                                 </div>
 
                                 <button
                                     onClick={() => removeToast(t.id)}
-                                    className="shrink-0 h-8 w-8 rounded-xl flex items-center justify-center text-white/40 hover:bg-white/10 hover:text-white transition-all active:scale-90"
+                                    className="shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors active:scale-95"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>

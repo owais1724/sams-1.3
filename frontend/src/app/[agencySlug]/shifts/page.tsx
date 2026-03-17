@@ -127,7 +127,7 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
     if (result) onChange(result)
   }
 
-  const selectClass = "h-12 rounded-xl bg-white/5 border border-white/10 px-3 text-sm font-semibold appearance-none cursor-pointer focus:ring-2 focus:ring-[#D9A75B]/20 focus:border-[#D9A75B] transition-all text-white"
+  const selectClass = "h-12 rounded-xl bg-white border border-border px-3 text-sm font-medium appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all text-slate-900"
 
   return (
     <div className="flex items-center gap-2">
@@ -137,21 +137,21 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
         className={cn(selectClass, "flex-1")}
         required
       >
-        <option value="" disabled className="bg-black text-white">HH</option>
+        <option value="" disabled>HH</option>
         {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
-          <option key={h} value={h.toString()} className="bg-black text-white">{h}</option>
+          <option key={h} value={h.toString()}>{h}</option>
         ))}
       </select>
-      <span className="text-lg font-black text-white/20">:</span>
+      <span className="text-lg font-semibold text-slate-400">:</span>
       <select
         value={minute}
         onChange={(e) => update(hour || "12", e.target.value, period)}
         className={cn(selectClass, "flex-1")}
         required
       >
-        <option value="" disabled className="bg-black text-white">MM</option>
+        <option value="" disabled>MM</option>
         {["00", "15", "30", "45"].map((m) => (
-          <option key={m} value={m} className="bg-black text-white">{m}</option>
+          <option key={m} value={m}>{m}</option>
         ))}
       </select>
       <select
@@ -159,8 +159,8 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
         onChange={(e) => update(hour || "12", minute || "00", e.target.value)}
         className={cn(selectClass, "w-20")}
       >
-        <option value="AM" className="bg-black text-white">AM</option>
-        <option value="PM" className="bg-black text-white">PM</option>
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
       </select>
     </div>
   )
@@ -440,19 +440,19 @@ export default function ShiftsPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 px-4">
-        <StatCard title="Total Shifts" value={shifts.length} icon={<Shield className="text-[#D9A75B]" />} color="amber" className="bg-white/5 border-white/10" />
-        <StatCard title="Assignments Today" value={totalAssignments} icon={<Users className="text-blue-400" />} color="blue" className="bg-white/5 border-white/10" />
-        <StatCard title="Late Arrivals" value={lateCount} icon={<AlertTriangle className="text-amber-400" />} color="amber" className="bg-white/5 border-white/10" />
-        <StatCard title="Missed Shifts" value={missedCount} icon={<XCircle className="text-rose-400" />} color="rose" className="bg-white/5 border-white/10" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <StatCard title="Total Shifts" value={shifts.length} icon={<Shield className="text-primary" />} color="teal" />
+        <StatCard title="Assignments Today" value={totalAssignments} icon={<Users className="text-sky-700" />} color="blue" />
+        <StatCard title="Late Arrivals" value={lateCount} icon={<AlertTriangle className="text-orange-700" />} color="orange" />
+        <StatCard title="Missed Shifts" value={missedCount} icon={<XCircle className="text-red-700" />} color="rose" />
       </div>
 
       <Tabs defaultValue="assignments" className="space-y-8">
-        <TabsList className="bg-white/5 rounded-2xl p-1.5 h-auto border border-white/10 backdrop-blur-xl ml-4">
-          <TabsTrigger value="assignments" className="rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-[#D9A75B] data-[state=active]:text-black data-[state=active]:shadow-sm px-6 py-3 text-white/40">
+        <TabsList className="bg-white rounded-xl p-1.5 h-auto border border-border">
+          <TabsTrigger value="assignments" className="rounded-lg font-medium text-[14px] data-[state=active]:bg-primary data-[state=active]:text-white px-4 py-2 text-slate-600">
             Shift Assignments
           </TabsTrigger>
-          <TabsTrigger value="shifts" className="rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-[#D9A75B] data-[state=active]:text-black data-[state=active]:shadow-sm px-6 py-3 text-white/40">
+          <TabsTrigger value="shifts" className="rounded-lg font-medium text-[14px] data-[state=active]:bg-primary data-[state=active]:text-white px-4 py-2 text-slate-600">
             Shift Templates
           </TabsTrigger>
         </TabsList>
@@ -497,7 +497,7 @@ export default function ShiftsPage() {
                 </Button>
                 <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="h-11 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-white text-black hover:bg-[#D9A75B] transition-all px-6">
+                    <Button variant="primary" className="h-11 px-6">
                       <UserPlus className="h-3.5 w-3.5 mr-2" />
                       Assign Guard
                     </Button>
@@ -585,16 +585,16 @@ export default function ShiftsPage() {
                       initial={{ opacity: 0, scale: 0.98 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.2, delay: idx * 0.02 }}
-                      className="group hover:bg-white/[0.02] transition-colors border-b border-white/5"
+                      className="group transition-colors"
                     >
-                      <TableCell className="px-4 sm:px-8 py-5">
+                      <TableCell className="py-4">
                         <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center text-white/20 font-black group-hover:border-[#D9A75B]/20 group-hover:text-[#D9A75B] group-hover:scale-110 transition-all shadow-xl">
+                          <div className="h-12 w-12 rounded-xl bg-slate-50 border border-border flex items-center justify-center text-slate-600 font-semibold group-hover:text-primary group-hover:scale-105 transition-transform shadow-sm">
                             {a.employee?.fullName?.charAt(0) || "?"}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-extrabold text-white leading-tight group-hover:text-[#D9A75B] transition-colors truncate">{a.employee?.fullName}</div>
-                            <div className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-1">{a.employee?.employeeCode}</div>
+                            <div className="font-semibold text-slate-900 leading-tight truncate">{a.employee?.fullName}</div>
+                            <div className="text-[12px] text-slate-500 mt-1">{a.employee?.employeeCode}</div>
                           </div>
                         </div>
                       </TableCell>
