@@ -1,44 +1,79 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import api from "@/lib/api"
-import { motion } from "framer-motion"
-import {
-    Building2,
-    Users,
-    ShieldCheck,
-    ArrowRight,
-    Activity,
-    Target,
-    Zap,
-    Shield,
-    Clock,
-    AlertTriangle,
-    MapPin,
-    CheckCircle2,
-    XCircle,
-    LogIn,
-    CalendarDays,
-} from "lucide-react"
-import {
-    PageHeader,
-    StatCard,
-    PageLoading,
-} from "@/components/ui/design-system"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "@/components/ui/sonner"
+import { useRouter, useParams } from "next/navigation"
 import { useAuthStore } from "@/store/authStore"
-import { Card, CardContent } from "@/components/ui/card"
+import api from "@/lib/api"
+import { 
+    Users, 
+    Building2, 
+    ShieldCheck, 
+    AlertTriangle, 
+    Target,
+    Activity,
+    Clock,
+    ArrowRight,
+    MapPin,
+    CalendarDays,
+    Shield,
+    CheckCircle2,
+    LogIn
+} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PageHeader, PageLoading } from "@/components/ui/design-system"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { motion } from "framer-motion"
+import { cn } from "@/lib/utils"
+import Link from "next/link"
+
+interface DashboardStats {
+    clients: number
+    employees: number
+    activeDeployments: number
+    guardsOnDuty: number
+    openIncidents: number
+    totalGuards: number
+    attendanceSummary: {
+        present: number
+        late: number
+        absent: number
+        total: number
+    }
+}
+
+const StatCard = ({ title, value, icon, color }: { title: string; value: number | string; icon: React.ReactNode; color: 'teal' | 'rose' | 'amber' | 'blue' }) => {
+    const colorMap = {
+        teal: "from-teal-500/10 to-teal-500/5 text-teal-500 border-teal-500/20",
+        rose: "from-rose-500/10 to-rose-500/5 text-rose-500 border-rose-500/20",
+        amber: "from-amber-500/10 to-amber-500/5 text-amber-500 border-amber-500/20",
+        blue: "from-blue-500/10 to-blue-500/5 text-white border-white/10"
+    }
+
+    return (
+        <Card className={cn("overflow-hidden border border-white/5 bg-[#111111] shadow-2xl relative group")}>
+            <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50 transition-opacity group-hover:opacity-70", colorMap[color])} />
+            <CardContent className="p-6 relative">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">{title}</p>
+                        <h4 className="text-3xl font-black text-white tracking-tighter italic">{value}</h4>
+                    </div>
+                    <div className={cn("p-3 rounded-2xl border bg-black/50", colorMap[color])}>
+                        {icon}
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function AgencyDashboard() {
-    const { agencySlug } = useParams()
-    const router = useRouter()
     const { user: authUser } = useAuthStore()
-    const [stats, setStats] = useState({
+    const router = useRouter()
+    const { agencySlug } = useParams()
+    const [stats, setStats] = useState<DashboardStats>({
         clients: 0,
         employees: 0,
         activeDeployments: 0,
@@ -59,43 +94,55 @@ export default function AgencyDashboard() {
             const isAdmin = authUser?.role === 'Super Admin' || authUser?.role === 'Agency Admin'
             const hasPerm = (p: string) => isAdmin || authUser?.permissions?.includes(p)
 
-            const [dashRes, cliRes, empRes, attRes] = await Promise.allSettled([
-                api.get("/dashboard/agency"),
+            const [
+                deployRes,
+                attnSumRes,
+                incRes,
+                dutyRes,
+                actRes,
+                cliRes,
+                empRes,
+                attRes
+            ] = await Promise.allSettled([
+                api.get("/dashboard/today-deployments"),
+                api.get("/dashboard/attendance-summary"),
+                api.get("/dashboard/open-incidents"),
+                api.get("/dashboard/guards-on-duty"),
+                api.get("/dashboard/recent-activity"),
                 hasPerm('view_clients') ? api.get("/clients") : Promise.resolve({ data: [] }),
                 hasPerm('view_employee') ? api.get("/employees") : Promise.resolve({ data: [] }),
                 api.get("/attendance?today=true"),
-            ])
+            ]);
 
-            const dashboard = dashRes.status === 'fulfilled' ? dashRes.value.data : null
+            const todayDeploymentsData = deployRes.status === 'fulfilled' ? deployRes.value.data : { deployments: [], count: 0 }
+            const attendanceSummary = attnSumRes.status === 'fulfilled' ? attnSumRes.value.data : { present: 0, late: 0, absent: 0, total: 0 }
+            const incidentsData = incRes.status === 'fulfilled' ? incRes.value.data : { incidents: [], count: 0 }
+            const onDutyData = dutyRes.status === 'fulfilled' ? dutyRes.value.data : { personnel: [], count: 0 }
+            const recentActData = actRes.status === 'fulfilled' ? actRes.value.data : { activities: [] }
+            
             const clients = cliRes.status === 'fulfilled' ? cliRes.value.data : []
             const employees = empRes.status === 'fulfilled' ? empRes.value.data : []
-            const attendance = attRes.status === 'fulfilled' ? attRes.value.data : []
 
-            if (dashboard) {
-                setTodayDeployments(dashboard.todayDeploymentsList || [])
-                setRecentIncidents(dashboard.recentIncidents || [])
-                setRecentActivity(dashboard.recentActivity || [])
-            }
+            setTodayDeployments(todayDeploymentsData.deployments || [])
+            setRecentIncidents(incidentsData.incidents || [])
+            setRecentActivity(recentActData.activities || [])
 
-            // Build guards on duty list from today's attendance (checked in, not checked out)
-            const onDuty = attendance
-                .filter((a: any) => a.checkIn && !a.checkOut)
-                .map((a: any) => ({
-                    name: a.employee?.user?.fullName || a.employee?.fullName || 'Guard',
-                    checkIn: a.checkIn,
-                    project: a.project?.name,
-                    deployment: a.deployment?.client?.name,
-                }))
+            // Build guards on duty list from specialized endpoint data
+            const onDuty = onDutyData.personnel?.map((p: any) => ({
+                name: p.name,
+                checkIn: p.checkIn,
+                location: p.location,
+            })) || []
             setGuardsOnDutyList(onDuty)
 
             setStats({
                 clients: clients.length,
                 employees: employees.length,
-                activeDeployments: dashboard?.activeDeployments ?? 0,
-                guardsOnDuty: dashboard?.guardsOnDuty ?? onDuty.length,
-                openIncidents: dashboard?.openIncidents ?? 0,
-                totalGuards: dashboard?.totalGuards ?? employees.length,
-                attendanceSummary: dashboard?.attendanceSummary ?? { present: 0, late: 0, absent: 0, total: 0 },
+                activeDeployments: todayDeploymentsData.count || 0,
+                guardsOnDuty: onDutyData.count || 0,
+                openIncidents: incidentsData.count || 0,
+                totalGuards: employees.length,
+                attendanceSummary: attendanceSummary,
             })
         } catch {
             toast.error("Failed to load dashboard.")
@@ -111,7 +158,6 @@ export default function AgencyDashboard() {
     if (loading) return <PageLoading message="Loading Dashboard..." />
 
     const sevLabel = (s: number) => ["", "Low", "Medium", "High", "Critical"][s] || "Unknown"
-    const sevColor = (s: number) => ["", "text-blue-400 bg-blue-500/10 border border-blue-500/20", "text-amber-400 bg-amber-500/10 border border-amber-500/20", "text-orange-400 bg-orange-500/10 border border-orange-500/20", "text-rose-400 bg-rose-500/10 border border-rose-500/20"][s] || "text-white/40 bg-white/5 border border-white/10"
 
     return (
         <div className="space-y-10 pb-20">
@@ -139,79 +185,69 @@ export default function AgencyDashboard() {
             </div>
 
             {/* ── Panel 1: Attendance Summary ── */}
-            <Card className="overflow-hidden">
-                <div className="px-4 sm:px-6 py-5 border-b border-border flex items-center justify-between">
+            <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
+                <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 border border-teal-100">
-                            <CheckCircle2 className="h-6 w-6 text-teal-700" />
+                        <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/10">
+                            <CheckCircle2 className="h-6 w-6 text-white" />
                         </div>
-                        <h3 className="text-[20px] font-semibold text-slate-900">Attendance Summary</h3>
+                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Attendance Summary</h3>
                     </div>
                 </div>
-                <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-                        <div className="text-center p-4 sm:p-6 bg-slate-50 border border-border rounded-xl">
-                            <p className="text-3xl sm:text-4xl font-bold text-green-700">{stats.attendanceSummary.present}</p>
-                            <p className="text-[12px] font-medium text-slate-600 mt-2">Present</p>
+                <CardContent className="p-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-[30px]">
+                            <p className="text-4xl font-black text-emerald-400 italic">{stats.attendanceSummary.present}</p>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-2 font-sans">Present</p>
                         </div>
-                        <div className="text-center p-4 sm:p-6 bg-slate-50 border border-border rounded-xl">
-                            <p className="text-3xl sm:text-4xl font-bold text-orange-700">{stats.attendanceSummary.late}</p>
-                            <p className="text-[12px] font-medium text-slate-600 mt-2">Late</p>
+                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-[30px]">
+                            <p className="text-4xl font-black text-amber-400 italic">{stats.attendanceSummary.late}</p>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-2 font-sans">Late</p>
                         </div>
-                        <div className="text-center p-4 sm:p-6 bg-slate-50 border border-border rounded-xl">
-                            <p className="text-3xl sm:text-4xl font-bold text-red-700">{stats.attendanceSummary.absent}</p>
-                            <p className="text-[12px] font-medium text-slate-600 mt-2">Absent</p>
+                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-[30px]">
+                            <p className="text-4xl font-black text-rose-400 italic">{stats.attendanceSummary.absent}</p>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-2 font-sans">Absent</p>
                         </div>
-                        <div className="text-center p-4 sm:p-6 bg-slate-50 border border-border rounded-xl">
-                            <p className="text-3xl sm:text-4xl font-bold text-slate-900">{stats.attendanceSummary.total}</p>
-                            <p className="text-[12px] font-medium text-slate-600 mt-2">Total</p>
+                        <div className="text-center p-6 bg-white/[0.02] border border-white/5 rounded-[30px]">
+                            <p className="text-4xl font-black text-white italic">{stats.attendanceSummary.total}</p>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-2 font-sans">Total</p>
                         </div>
                     </div>
-                    {stats.attendanceSummary.total > 0 && (
-                        <div className="mt-6 h-2 w-full bg-slate-200 rounded-full overflow-hidden flex">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.present / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1 }} className="bg-emerald-500 h-full" />
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.late / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1, delay: 0.2 }} className="bg-amber-500 h-full" />
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${(stats.attendanceSummary.absent / stats.attendanceSummary.total) * 100}%` }} transition={{ duration: 1, delay: 0.4 }} className="bg-rose-500 h-full" />
-                        </div>
-                    )}
                 </CardContent>
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {/* ── Panel 2: Today's Active Deployments ── */}
-                <Card>
-                    <div className="px-4 sm:px-6 py-5 border-b border-border flex items-center justify-between">
+                <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
+                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 border border-teal-100">
-                                <MapPin className="h-6 w-6 text-teal-700" />
+                            <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/10">
+                                <MapPin className="h-6 w-6 text-white" />
                             </div>
-                            <h3 className="text-[20px] font-semibold text-slate-900">Today’s Deployments</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Active Missions</h3>
                         </div>
-                        <Badge variant="secondary">{todayDeployments.length}</Badge>
+                        <Badge className="bg-white/10 text-white border-white/10 font-black tracking-widest text-[10px]">{todayDeployments.length}</Badge>
                     </div>
                     <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {todayDeployments.length === 0 ? (
                             <div className="text-center py-20 opacity-40">
-                                <CalendarDays className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest">No Active Deployments</p>
+                                <CalendarDays className="h-16 w-16 text-white/20 mx-auto mb-4" />
+                                <p className="text-xs font-black uppercase tracking-widest text-white/50">No Active Deployments</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {todayDeployments.map((dep: any) => (
-                                    <div key={dep.id} className="flex items-center gap-4 p-4 bg-slate-50 border border-border rounded-xl hover:bg-slate-100 transition-colors">
-                                        <div className="h-12 w-12 bg-white rounded-xl flex items-center justify-center shrink-0 border border-border">
-                                            <Building2 className="h-5 w-5 text-primary" />
+                                    <div key={dep.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl group">
+                                        <div className="h-12 w-12 bg-white/[0.05] rounded-2xl flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-white/20 transition-all">
+                                            <Building2 className="h-5 w-5 text-white" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-semibold text-slate-900 truncate">{dep.client?.name}</p>
-                                            <p className="text-[12px] text-slate-500 mt-1">
-                                                {dep.shift?.name} • {dep.shift?.startTime} – {dep.shift?.endTime} • {dep._count?.guards || 0} guards
+                                            <p className="font-black text-white text-base tracking-tight truncate uppercase italic">{dep.client?.name}</p>
+                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5 font-sans">
+                                                {dep.shift?.name} • {dep.shift?.startTime} – {dep.shift?.endTime}
                                             </p>
                                         </div>
-                                        <Badge className={cn(
-                                            "shrink-0",
-                                            dep.status === "active" ? "bg-green-100 text-green-700 border border-green-200" : "bg-slate-100 text-slate-600 border border-slate-200"
-                                        )}>{dep.status}</Badge>
+                                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/20 uppercase text-[8px] font-black tracking-widest italic">{dep.status}</Badge>
                                     </div>
                                 ))}
                             </div>
@@ -220,38 +256,38 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 3: Guards on Duty ── */}
-                <Card>
-                    <div className="px-4 sm:px-6 py-5 border-b border-border flex items-center justify-between">
+                <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
+                    <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 border border-teal-100">
-                                <Shield className="h-6 w-6 text-teal-700" />
+                            <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/10">
+                                <Shield className="h-6 w-6 text-white" />
                             </div>
-                            <h3 className="text-[20px] font-semibold text-slate-900">Guards on Duty</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Personnel Tracking</h3>
                         </div>
-                        <Badge variant="secondary">{guardsOnDutyList.length}</Badge>
+                        <Badge className="bg-white/10 text-white border-white/10 font-black tracking-widest text-[10px]">{guardsOnDutyList.length}</Badge>
                     </div>
                     <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {guardsOnDutyList.length === 0 ? (
                             <div className="text-center py-20 opacity-40">
-                                <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest">No Personnel Logged</p>
+                                <Users className="h-16 w-16 text-white/20 mx-auto mb-4" />
+                                <p className="text-xs font-black uppercase tracking-widest text-white/50">No Personnel Logged</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {guardsOnDutyList.map((g: any, i: number) => (
                                     <div key={i} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl group">
-                                        <div className="h-12 w-12 bg-gradient-to-tr from-primary/20 to-primary/5 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20 transition-transform group-hover:scale-105">
-                                            <span className="text-lg font-black text-primary italic">{g.name?.charAt(0)?.toUpperCase()}</span>
+                                        <div className="h-12 w-12 bg-white/[0.05] rounded-2xl flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-white/20 transition-all font-black text-white italic">
+                                            {g.name?.charAt(0)}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-black text-foreground text-base tracking-tight truncate uppercase">{g.name}</p>
-                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5">
-                                                {g.deployment || g.project || "Sector Default"} • <span className="text-primary/60">IN: {new Date(g.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <p className="font-black text-white text-base tracking-tight truncate uppercase italic">{g.name}</p>
+                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5 font-sans">
+                                                {g.location || "Sector Alpha"} • <span className="text-emerald-400">IN: {new Date(g.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-2 shrink-0 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                                             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Active</span>
+                                            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic">Live</span>
                                         </div>
                                     </div>
                                 ))}
@@ -261,7 +297,7 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 4: Open Incidents ── */}
-                <Card className="rounded-[40px] border-white/5 bg-black shadow-3xl">
+                <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
                     <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="h-12 w-12 bg-rose-500/10 rounded-2xl flex items-center justify-center shrink-0 border border-rose-500/20">
@@ -269,34 +305,28 @@ export default function AgencyDashboard() {
                             </div>
                             <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Breach Reports</h3>
                         </div>
-                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-all" asChild>
-                            <Link href={`/${agencySlug}/incidents`}>Intercept All <ArrowRight className="h-3 w-3 ml-2" /></Link>
-                        </Button>
                     </div>
                     <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {recentIncidents.length === 0 ? (
                             <div className="text-center py-20 opacity-40">
                                 <ShieldCheck className="h-16 w-16 text-emerald-500/50 mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest">Sector Secure – No Threats</p>
+                                <p className="text-xs font-black uppercase tracking-widest text-white/50">Sector Secure – No Threats</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {recentIncidents.map((inc: any) => (
-                                    <div key={inc.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-rose-500/[0.02] transition-all hover:border-rose-500/20 group">
-                                        <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105", 
+                                    <div key={inc.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl hover:bg-rose-500/[0.02] transition-all group">
+                                        <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border", 
                                             inc.severity >= 3 ? "bg-rose-500/20 border-rose-500/40 text-rose-500" : "bg-amber-500/20 border-amber-500/40 text-amber-500")}>
                                             <AlertTriangle className="h-5 w-5" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-black text-foreground text-base tracking-tight truncate uppercase italic">{inc.title}</p>
-                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5 font-sans">
-                                                {inc.reporter?.fullName} • {inc.deployment?.client?.name || "General Sector"} • <span className="opacity-70 font-black tracking-widest">{sevLabel(inc.severity)}</span>
+                                            <p className="font-black text-white text-base tracking-tight truncate uppercase italic">{inc.title}</p>
+                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.15em] mt-1 border-t border-white/5 pt-1.5 font-sans">
+                                                {inc.reporter?.fullName} • {sevLabel(inc.severity)}
                                             </p>
                                         </div>
-                                        <Badge className={cn(
-                                            "rounded-lg font-black text-[8px] uppercase tracking-widest shrink-0 border",
-                                            inc.status === "open" ? "bg-rose-500/20 text-rose-400 border-rose-500/20 shadow-[0_0_10px_rgba(244,63,94,0.1)]" : "bg-amber-500/20 text-amber-400 border-amber-500/20"
-                                        )}>{inc.status?.replace("_", " ")}</Badge>
+                                        <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/20 italic">{inc.status}</Badge>
                                     </div>
                                 ))}
                             </div>
@@ -305,23 +335,20 @@ export default function AgencyDashboard() {
                 </Card>
 
                 {/* ── Panel 5: Recent Activity Feed ── */}
-                <Card className="rounded-[40px] border-white/5 bg-black shadow-3xl">
+                <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl">
                     <div className="px-4 sm:px-8 py-8 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center shrink-0 border border-primary/20">
-                                <Activity className="h-6 w-6 text-primary" />
+                            <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/10">
+                                <Activity className="h-6 w-6 text-white" />
                             </div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Operational Feed</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white">Activity Feed</h3>
                         </div>
-                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary transition-all" asChild>
-                            <Link href={`/${agencySlug}/audit-logs`}>Full Stream <ArrowRight className="h-3 w-3 ml-2" /></Link>
-                        </Button>
                     </div>
                     <CardContent className="p-4 sm:p-6 max-h-[450px] overflow-y-auto scrollbar-hide">
                         {recentActivity.length === 0 ? (
                             <div className="text-center py-20 opacity-40">
-                                <Clock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                                <p className="text-xs font-black uppercase tracking-widest">No Recent Activity</p>
+                                <Clock className="h-16 w-16 text-white/20 mx-auto mb-4" />
+                                <p className="text-xs font-black uppercase tracking-widest text-white/50">No Recent Activity</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -329,19 +356,15 @@ export default function AgencyDashboard() {
                                     <div key={log.id} className="flex items-center gap-5 p-5 bg-white/[0.02] border border-white/5 rounded-3xl">
                                         <div className={cn(
                                             "h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 border",
-                                            log.severity === 'CRITICAL' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" :
-                                            log.action?.includes('LOG') ? "bg-blue-500/10 border-blue-500/20 text-blue-500" :
-                                            "bg-primary/10 border-primary/20 text-primary"
+                                            log.severity === 'CRITICAL' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" : "bg-white/10 border-white/20 text-white"
                                         )}>
-                                            {log.action?.includes('CHECK') ? <LogIn className="h-5 w-5" /> :
-                                             log.action?.includes('INCIDENT') ? <AlertTriangle className="h-5 w-5" /> :
-                                             <Activity className="h-5 w-5" />}
+                                            <Activity className="h-5 w-5" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[11px] font-black text-foreground uppercase tracking-tight truncate italic">{log.action?.replace(/_/g, ' ')}</p>
-                                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1 opacity-60 font-sans">{log.user?.fullName || "SYSTEM ENGINE"}</p>
+                                            <p className="text-[11px] font-black text-white uppercase tracking-tight truncate italic">{log.action?.replace(/_/g, ' ')}</p>
+                                            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mt-1 opacity-80 font-sans">{log.user?.fullName || "SYSTEM"}</p>
                                         </div>
-                                        <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest whitespace-nowrap shrink-0 ml-2">
+                                        <span className="text-[9px] font-black text-white/80 uppercase tracking-widest whitespace-nowrap shrink-0 ml-2">
                                             {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </span>
                                     </div>
@@ -353,24 +376,24 @@ export default function AgencyDashboard() {
             </div>
 
             {/* Quick Nav Banner */}
-            <Card>
-                <CardContent className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <Card className="rounded-[40px] border-white/10 bg-[#111111] shadow-2xl p-8">
+                <CardContent className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 p-0">
                     <div>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="h-12 w-12 bg-teal-50 border border-teal-100 rounded-xl flex items-center justify-center">
-                                <ShieldCheck className="h-6 w-6 text-primary" />
+                        <div className="flex items-center gap-4 mb-3">
+                            <div className="h-14 w-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center">
+                                <ShieldCheck className="h-8 w-8 text-white" />
                             </div>
-                            <h3 className="text-[20px] font-semibold text-slate-900">Quick actions</h3>
+                            <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Command Center</h3>
                         </div>
-                        <p className="text-slate-600 text-sm max-w-xl leading-relaxed">
-                            Deploy personnel, report incidents, and manage daily operations from one place.
+                        <p className="text-white/50 text-xs font-black uppercase tracking-widest max-w-xl leading-relaxed">
+                            Deploy personnel, report incidents, and manage daily operations from one unified tactical interface.
                         </p>
                     </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <Button variant="primary" size="cta" className="w-full sm:w-auto" onClick={() => router.push(`/${agencySlug}/deployments`)}>
+                    <div className="flex items-center gap-4 flex-wrap">
+                        <Button className="bg-white text-black hover:bg-white/90 font-black uppercase tracking-widest italic rounded-2xl px-8 h-12 transition-all shadow-lg shadow-white/5" onClick={() => router.push(`/${agencySlug}/deployments`)}>
                             Mission deploy
                         </Button>
-                        <Button variant="secondary" size="cta" className="w-full sm:w-auto" onClick={() => router.push(`/${agencySlug}/incidents`)}>
+                        <Button variant="outline" className="border-white/10 bg-white/5 text-white font-black uppercase tracking-widest italic rounded-2xl px-8 h-12 transition-all hover:bg-white/10" onClick={() => router.push(`/${agencySlug}/incidents`)}>
                             Threat intel
                         </Button>
                     </div>

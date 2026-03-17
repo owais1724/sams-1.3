@@ -3,6 +3,8 @@ import {
   ConflictException,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -153,12 +155,14 @@ export class EmployeesService {
 
   async update(agencyId: string, id: string, data: UpdateEmployeeDto) {
     try {
+      const exists = await this.prisma.employee.findUnique({ where: { id } });
+      if (!exists) throw new NotFoundException('Employee not found');
+      if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
+
       const employee = await this.prisma.employee.findUnique({
-        where: { id, agencyId },
+        where: { id },
         include: { user: true },
       });
-
-      if (!employee) throw new ConflictException('Employee not found');
 
       return await this.prisma.$transaction(async (tx) => {
         // Prepare employee update data
@@ -253,11 +257,10 @@ export class EmployeesService {
   async remove(agencyId: string, id: string, userId?: string) {
     try {
       // Find employee first to get name for logs
-      const employee = await this.prisma.employee.findUnique({
-        where: { id, agencyId },
-      });
-
-      if (!employee) throw new ConflictException('Employee record not found.');
+      const exists = await this.prisma.employee.findUnique({ where: { id } });
+      if (!exists) throw new NotFoundException('Employee record not found.');
+      if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
+      const employee = exists;
 
       await this.prisma.employee.delete({
         where: { id, agencyId },

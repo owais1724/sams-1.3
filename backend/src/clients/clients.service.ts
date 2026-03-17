@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
@@ -42,9 +42,13 @@ export class ClientsService {
   }
 
   async update(id: string, agencyId: string, data: any) {
+    const exists = await this.prisma.client.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Client not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this client is forbidden');
+
     const { id: _id, agencyId: _a, ...cleanData } = data;
     const client = await this.prisma.client.update({
-      where: { id, agencyId },
+      where: { id },
       data: cleanData,
     });
 
@@ -60,12 +64,14 @@ export class ClientsService {
   }
 
   async remove(id: string, agencyId: string) {
-    const client = await this.prisma.client.findFirst({
-      where: { id, agencyId },
+    const exists = await this.prisma.client.findUnique({
+      where: { id },
       include: { _count: { select: { projects: true } } }
     });
 
-    if (!client) throw new ConflictException('Client not found');
+    if (!exists) throw new NotFoundException('Client not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this client is forbidden');
+    const client = exists;
     if (client._count.projects > 0) {
       throw new ConflictException('Cannot delete client with active projects. Please deactivate or move projects first.');
     }

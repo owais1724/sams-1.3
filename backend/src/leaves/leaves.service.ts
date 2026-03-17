@@ -18,14 +18,13 @@ export class LeavesService {
     userRole?: string,
     userId?: string,
   ): Promise<LeaveRequest> {
-    const employee = await this.prisma.employee.findUnique({
+    const exists = await this.prisma.employee.findUnique({
       where: { id: createLeaveDto.employeeId },
-      include: { designation: true },
     });
 
-    if (!employee || employee.agencyId !== agencyId) {
-      throw new NotFoundException('Employee not found in your agency context');
-    }
+    if (!exists) throw new NotFoundException('Employee record not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
+    const employee = exists;
 
     const isEmergency =
       createLeaveDto.leaveType?.toString().toUpperCase() === 'EMERGENCY';
@@ -257,8 +256,15 @@ export class LeavesService {
     userId: string,
     agencyId: string,
   ): Promise<LeaveRequest> {
-    const leaveRequest = await this.prisma.leave.findFirst({
-      where: { id: leaveId, agencyId },
+    const exists = await this.prisma.leave.findUnique({
+      where: { id: leaveId },
+    });
+
+    if (!exists) throw new NotFoundException('Leave request not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this leave request is forbidden');
+
+    const leaveRequest = await this.prisma.leave.findUnique({
+      where: { id: leaveId },
       include: {
         employee: {
           include: {
@@ -269,10 +275,6 @@ export class LeavesService {
         },
       },
     });
-
-    if (!leaveRequest) {
-      throw new NotFoundException('Leave request not found');
-    }
 
     const updateData: any = {};
 

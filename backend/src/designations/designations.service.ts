@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -39,12 +39,14 @@ export class DesignationsService {
   }
 
   async remove(agencyId: string, id: string) {
-    const designation = await this.prisma.designation.findFirst({
-      where: { id, agencyId },
+    const exists = await this.prisma.designation.findUnique({
+      where: { id },
       include: { _count: { select: { employees: true } } }
     });
 
-    if (!designation) throw new NotFoundException('Designation not found');
+    if (!exists) throw new NotFoundException('Designation not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this designation is forbidden');
+    const designation = exists;
 
     if (designation._count.employees > 0) {
       throw new ConflictException(`Cannot delete designation "${designation.name}" because it is currently assigned to ${designation._count.employees} employees.`);

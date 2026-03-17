@@ -86,9 +86,8 @@ export class RolesService {
     data: { name?: string; description?: string; permissionIds?: string[] },
   ) {
     const role = await this.prisma.role.findUnique({ where: { id: roleId } });
-    if (!role || role.agencyId !== agencyId) {
-      throw new NotFoundException('Role not found');
-    }
+    if (!role) throw new NotFoundException('Role not found');
+    if (role.agencyId !== agencyId) throw new ForbiddenException('Access to this role is forbidden');
 
     // Block ALL modifications to system roles
     if (role.isSystem) {
@@ -117,9 +116,8 @@ export class RolesService {
       include: { _count: { select: { users: true } } },
     });
 
-    if (!role || role.agencyId !== agencyId) {
-      throw new NotFoundException('Role not found');
-    }
+    if (!role) throw new NotFoundException('Role not found');
+    if (role.agencyId !== agencyId) throw new ForbiddenException('Access to this role is forbidden');
     if (role.isSystem) {
       throw new ForbiddenException('Cannot delete system roles');
     }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePayrollDto, UpdatePayrollDto, Payroll } from './payroll.entity';
 
@@ -12,12 +12,11 @@ export class PayrollService {
   ): Promise<Payroll> {
     // Validate employee belongs to this agency
     if (createPayrollDto.employeeId) {
-      const employee = await this.prisma.employee.findFirst({
-        where: { id: createPayrollDto.employeeId, agencyId },
+      const exists = await this.prisma.employee.findUnique({
+        where: { id: createPayrollDto.employeeId },
       });
-      if (!employee) {
-        throw new NotFoundException('Employee not found in this agency');
-      }
+      if (!exists) throw new NotFoundException('Employee not found');
+      if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
     }
 
     const payroll = await this.prisma.payroll.create({
@@ -58,18 +57,18 @@ export class PayrollService {
   }
 
   async getPayrollById(id: string, agencyId: string): Promise<Payroll> {
-    const payroll = await this.prisma.payroll.findFirst({
-      where: { id, agencyId },
+    const exists = await this.prisma.payroll.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Payroll not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this payroll record is forbidden');
+
+    const payroll = await this.prisma.payroll.findUnique({
+      where: { id },
       include: {
         employee: {
           include: { designation: true },
         },
       },
     });
-
-    if (!payroll) {
-      throw new NotFoundException('Payroll not found');
-    }
 
     return this.formatPayroll(payroll);
   }
@@ -79,13 +78,9 @@ export class PayrollService {
     updatePayrollDto: UpdatePayrollDto,
     agencyId: string,
   ): Promise<Payroll> {
-    const payroll = await this.prisma.payroll.findFirst({
-      where: { id, agencyId },
-    });
-
-    if (!payroll) {
-      throw new NotFoundException('Payroll not found');
-    }
+    const exists = await this.prisma.payroll.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Payroll not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this payroll record is forbidden');
 
     const updatedPayroll = await this.prisma.payroll.update({
       where: { id },
@@ -101,13 +96,9 @@ export class PayrollService {
   }
 
   async deletePayroll(id: string, agencyId: string): Promise<void> {
-    const payroll = await this.prisma.payroll.findFirst({
-      where: { id, agencyId },
-    });
-
-    if (!payroll) {
-      throw new NotFoundException('Payroll not found');
-    }
+    const exists = await this.prisma.payroll.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Payroll not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this payroll record is forbidden');
 
     await this.prisma.payroll.delete({
       where: { id },
@@ -163,13 +154,12 @@ export class PayrollService {
     agencyId: string,
   ): Promise<Payroll> {
     // 1. Validate employee exists within this agency
-    const employee = await this.prisma.employee.findFirst({
-      where: { id: data.employeeId, agencyId },
+    const exists = await this.prisma.employee.findUnique({
+      where: { id: data.employeeId },
     });
 
-    if (!employee) {
-      throw new NotFoundException('Employee not found in this agency context');
-    }
+    if (!exists) throw new NotFoundException('Employee not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
 
     // 2. Check if payroll already exists for this month and employee
     const existing = await this.prisma.payroll.findFirst({
@@ -208,13 +198,9 @@ export class PayrollService {
     status: string,
     agencyId: string,
   ): Promise<Payroll> {
-    const payroll = await this.prisma.payroll.findFirst({
-      where: { id, agencyId },
-    });
-
-    if (!payroll) {
-      throw new NotFoundException('Payroll not found');
-    }
+    const exists = await this.prisma.payroll.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Payroll not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this payroll record is forbidden');
 
     const updated = await this.prisma.payroll.update({
       where: { id },

@@ -15,6 +15,7 @@ import {
     ControlPanel,
     SectionHeading
 } from "@/components/ui/design-system"
+import { Badge } from "@/components/ui/badge"
 import { useAuthStore } from "@/store/authStore"
 import { usePermission } from "@/hooks/usePermission"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
@@ -41,7 +42,8 @@ import {
     Phone,
     Settings2,
     Search,
-    Building2
+    Building2,
+    Lock
 } from "lucide-react"
 import { toast } from "@/components/ui/sonner"
 import { EmployeeForm } from "@/components/agency/EmployeeForm"
@@ -312,6 +314,22 @@ export default function EmployeesPage() {
                                     <p className={cn("text-[13px] font-black text-slate-900 tracking-tight", item.truncate && "truncate")}>{item.value}</p>
                                 </div>
                             ))}
+                        </div>
+
+                        <div className="space-y-4">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <Lock className="h-3 w-3 text-primary" /> Active Permissions
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {profileDialog.employee?.user?.role?.permissions?.map((p: any) => (
+                                    <Badge key={p.id} variant="secondary" className="bg-slate-50 text-slate-600 border border-slate-100 font-bold text-[9px] uppercase px-3 py-1">
+                                        {p.permission?.name?.replaceAll('_', ' ')}
+                                    </Badge>
+                                ))}
+                                {(!profileDialog.employee?.user?.role?.permissions || profileDialog.employee.user.role.permissions.length === 0) && (
+                                    <p className="text-[11px] text-slate-400 italic font-medium">No external permissions granted to this node.</p>
+                                )}
+                            </div>
                         </div>
 
                         <div className="pt-10 border-t border-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

@@ -175,21 +175,10 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
 
 
         {
-
-
-
             name: "Dashboard",
-
-
-
             href: isStaff ? `/${agencySlug}/staff/dashboard` : `/${agencySlug}/dashboard`,
-
-
-
-            icon: BarChart3
-
-
-
+            icon: BarChart3,
+            permissions: ["view_dashboard"]
         },
 
 
@@ -387,21 +376,10 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
 
 
         {
-
-
-
             name: "My Schedule",
-
-
-
             href: `/${agencySlug}/my-schedule`,
-
-
-
             icon: Calendar,
-
-
-
+            permissions: ["view_attendance"]
         },
 
 
@@ -463,77 +441,122 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
 
 
     return (
+        <div className="flex h-full w-full flex-col bg-[var(--sidebar)] text-white relative z-20 font-inter">
+            {/* Logo Section */}
+            <div className={cn(
+                "flex h-24 items-center justify-between border-b border-white/10 gap-3 relative overflow-hidden group shrink-0 transition-all duration-300",
+                collapsed ? "px-3" : "px-8"
+            )}>
+                <div className={cn("flex items-center gap-4 relative z-10 w-full", collapsed && "justify-center")}>
+                    <div className="h-11 w-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shadow-sm shrink-0">
+                        <ShieldCheck className="h-6 w-6 text-[#0d9488]" />
+                    </div>
+                    <div className={cn(
+                        "flex-1 min-w-0 transition-all duration-300",
+                        collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+                    )}>
+                        <h1 className="text-lg font-bold text-white leading-tight truncate uppercase">
+                            {user?.agencyName || 'SAMS Ops'}
+                        </h1>
+                        <p className="text-[12px] text-[var(--sidebar-foreground)] truncate">Agency Portal</p>
+                    </div>
+                    {onItemClick && (
+                        <button
+                            onClick={onItemClick}
+                            className="lg:hidden relative z-20 flex items-center justify-center h-10 w-10 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-all shrink-0"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    )}
+                </div>
+            </div>
 
-
-
-        <aside
-
-
-
-            className={cn(
-
-
-
-                "flex flex-col h-full w-64 bg-gradient-to-b from-slate-900 to-slate-800 border-r border-slate-700 shadow-lg transition-all duration-300",
-
-
-
-                collapsed && "w-20 px-2"
-
-
-
+            {/* Collapse Toggle Button */}
+            {onToggleCollapse && (
+                <div className={cn("hidden lg:flex px-6 pt-4 transition-all duration-300", collapsed && "justify-center px-3")}>
+                    <button
+                        onClick={onToggleCollapse}
+                        className="flex items-center justify-center h-9 w-9 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-all group"
+                        title={collapsed ? "Expand Sidebar" : "Retract Sidebar"}
+                    >
+                        {collapsed ? <ChevronsRight className="h-5 w-5" /> : <ChevronsLeft className="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />}
+                    </button>
+                </div>
             )}
 
+            {/* Navigation */}
+            <div className={cn(
+                "flex-1 overflow-y-auto pt-6 space-y-1 scrollbar-hide transition-all duration-300",
+                collapsed ? "px-3" : "px-6"
+            )}>
+                {sidebarItems
+                    .filter(item => {
+                        // If no permissions required, show to everyone
+                        if (!item.permissions || item.permissions.length === 0) return true;
+                        
+                        // Agency Admin has all permissions automatically
+                        if (user?.role === 'Agency Admin') return true;
+                        
+                        // Check if user has ANY of the required permissions
+                        return item.permissions.some(p => user?.permissions?.includes(p));
+                    })
+                    .map(item => (
+                        <SidebarItem
+                            key={item.name}
+                            {...item}
+                            collapsed={collapsed}
+                            isActive={pathname === item.href}
+                            onClick={onItemClick}
+                        />
+                    ))}
+            </div>
 
+            {/* User Profile Section */}
+            <div className={cn(
+                "border border-white/10 bg-white/5 mb-6 rounded-xl shrink-0 overflow-hidden relative transition-colors mx-4",
+                collapsed ? "p-3 mx-2" : "p-6 mx-6"
+            )}>
+                <div className="relative z-10">
+                    <div className={cn(
+                        "mb-4 flex items-center gap-4 px-1 transition-all duration-300",
+                        collapsed && "justify-center px-0 mb-3"
+                    )}>
+                        <div className="relative group/avatar">
+                            <div className={cn(
+                                "rounded-xl bg-white/10 border border-white/10 flex items-center justify-center font-bold text-white shadow-sm uppercase",
+                                collapsed ? "h-11 w-11 text-sm" : "h-12 w-12 text-base"
+                            )}>
+                                {user?.fullName?.charAt(0) || "A"}
+                            </div>
+                        </div>
+                        <div className={cn(
+                            "flex-1 min-w-0 transition-all duration-500",
+                            collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+                        )}>
+                            <p className="text-sm font-semibold text-white truncate leading-none">{user?.fullName}</p>
+                            <p className="text-[12px] text-[var(--sidebar-foreground)] truncate mt-1">{user?.role}</p>
+                        </div>
+                    </div>
 
-        >
-
-
-
-            <div className="flex flex-col gap-2 mt-6">
-
-
-
-                {sidebarItems.map(item => (
-
-
-
-                    <SidebarItem
-
-
-
-                        key={item.name}
-
-
-
-                        {...item}
-
-
-
+                    <SidebarLogout
+                        onClick={async () => {
+                            if (onItemClick) onItemClick()
+                            try {
+                                await api.post("/auth/logout")
+                            } catch (e) { }
+                            logout()
+                            // Force redirect to login page based on origin portal
+                            if (typeof window !== 'undefined') {
+                                const isStaffRoute = pathname?.includes('/staff') || pathname?.includes('my-schedule')
+                                window.location.replace(`/${agencySlug}/${isStaffRoute ? 'staff-login' : 'login'}`)
+                            }
+                        }}
                         collapsed={collapsed}
-
-
-
-                        isActive={pathname === item.href}
-
-
-
+                        className="h-11 text-[14px] font-black uppercase tracking-widest italic bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5"
                     />
-
-
-
-                ))}
-
-
-
+                </div>
             </div>
-
-
-
-            <div className="mt-auto mb-6">
-                <SidebarLogout collapsed={collapsed} onClick={logout} />
-            </div>
-        </aside>
+        </div>
     )
 }
 

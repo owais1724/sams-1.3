@@ -108,6 +108,10 @@ export class ProjectsService {
   }
 
   async findOne(agencyId: string, id: string) {
+    const exists = await this.prisma.project.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Project not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this project is forbidden');
+
     const project = await this.prisma.project.findFirst({
       where: { id, agencyId },
       include: {
@@ -123,16 +127,14 @@ export class ProjectsService {
         checkpoints: true,
       },
     });
-    if (!project) throw new NotFoundException('Project not found');
     return project;
   }
 
   async update(agencyId: string, id: string, data: any) {
-    // Ensure project belongs to this agency
-    const project = await this.prisma.project.findFirst({
-      where: { id, agencyId },
-    });
-    if (!project) throw new NotFoundException('Project not found');
+    const projectExists = await this.prisma.project.findUnique({ where: { id } });
+    if (!projectExists) throw new NotFoundException('Project not found');
+    if (projectExists.agencyId !== agencyId) throw new ForbiddenException('Access to this project is forbidden');
+    const project = projectExists;
 
     // If clientId is being changed, validate new client belongs to same agency
     if (data.clientId && data.clientId !== project.clientId) {
@@ -187,8 +189,8 @@ export class ProjectsService {
   }
 
   async remove(agencyId: string, id: string) {
-    const project = await this.prisma.project.findFirst({
-      where: { id, agencyId },
+    const projectExists = await this.prisma.project.findUnique({
+      where: { id },
       include: {
         _count: {
           select: { attendances: true, assignedEmployees: true }
@@ -196,7 +198,9 @@ export class ProjectsService {
       }
     });
 
-    if (!project) throw new NotFoundException('Project not found');
+    if (!projectExists) throw new NotFoundException('Project not found');
+    if (projectExists.agencyId !== agencyId) throw new ForbiddenException('Access to this project is forbidden');
+    const project = projectExists;
 
     if (project._count.attendances > 0) {
       throw new ForbiddenException(`Cannot delete project "${project.name}" with existing attendance records. Consider deactivating it instead.`);

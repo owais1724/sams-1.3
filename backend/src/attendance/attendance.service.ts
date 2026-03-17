@@ -202,14 +202,14 @@ export class AttendanceService {
 
     // ── Deployment-based check-in ──
     if (data.deploymentId) {
-      const deployment = await this.prisma.deployment.findFirst({
-        where: { id: data.deploymentId, agencyId },
+      const deploymentExists = await this.prisma.deployment.findUnique({ where: { id: data.deploymentId } });
+      if (!deploymentExists) throw new NotFoundException('Deployment not found');
+      if (deploymentExists.agencyId !== agencyId) throw new ForbiddenException('Access to this deployment is forbidden');
+
+      const deployment = await this.prisma.deployment.findUnique({
+        where: { id: data.deploymentId },
         include: { guards: { where: { userId } } },
       });
-
-      if (!deployment) {
-        throw new ForbiddenException('Deployment not found');
-      }
       if (deployment.guards.length === 0) {
         throw new ForbiddenException('You are not assigned to this deployment');
       }
@@ -388,19 +388,18 @@ export class AttendanceService {
       }
     }
 
-    // Validate that the project belongs to this agency
-    const project = await this.prisma.project.findFirst({
-      where: { id: data.projectId, agencyId },
+    const projectExists = await this.prisma.project.findUnique({ where: { id: data.projectId } });
+    if (!projectExists) throw new NotFoundException('Project not found');
+    if (projectExists.agencyId !== agencyId) throw new ForbiddenException('Access to this project is forbidden');
+
+    const project = await this.prisma.project.findUnique({
+      where: { id: data.projectId },
       include: {
         assignedEmployees: {
           where: { id: user.employee.id },
         },
       },
     });
-    
-    if (!project) {
-      throw new ForbiddenException('Unauthorized project selection');
-    }
 
     // If checking in via QR, validate employee is assigned to this project
     if (data.method === 'QR' && project.assignedEmployees.length === 0) {

@@ -81,7 +81,13 @@ export default function StaffLogin() {
             login(user)
             sessionStorage.setItem('sams_portal_type', 'agency')
             toast.success("Ready for duty. Welcome back.")
-            router.push(`/${agencySlug}/staff/dashboard`)
+            
+            // If user is a guard/operator without dashboard permission, land on schedule
+            if (!user.permissions?.includes('view_dashboard')) {
+                router.push(`/${agencySlug}/my-schedule`)
+            } else {
+                router.push(`/${agencySlug}/staff/dashboard`)
+            }
         } catch (error: any) {
             console.error('[Staff Login Error]', error)
             toast.error("Invalid credentials")

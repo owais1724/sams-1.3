@@ -98,6 +98,7 @@ export class PermissionsSeedService implements OnModuleInit {
 
 
 
+
     };
 
 
@@ -158,7 +159,7 @@ export class PermissionsSeedService implements OnModuleInit {
 
 
 
-        'view_attendance', 'mark_attendance',
+        'view_attendance', 'record_attendance',
 
 
 

@@ -127,7 +127,7 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
                             window.location.replace('/admin/login')
                         }}
                         collapsed={collapsed}
-                        className="h-11 text-[14px] font-medium bg-white/5 border border-white/10 text-white/90 hover:bg-white/10"
+                        className="h-11 text-[14px] font-black uppercase tracking-widest italic bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5"
                     />
                 </div>
             </div>

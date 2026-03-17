@@ -9,12 +9,6 @@ import { DashboardService } from './dashboard.service';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Get('agency')
-  @Permissions('view_dashboard')
-  async getAgencyDashboard(@Request() req) {
-    return this.dashboardService.getAgencyDashboard(req.user.agencyId);
-  }
-
   @Get('today-deployments')
   @Permissions('view_dashboard')
   async getTodayDeployments(@Request() req) {

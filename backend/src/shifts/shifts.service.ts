@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -21,6 +22,10 @@ export class ShiftsService {
   }
 
   async findOne(agencyId: string, id: string) {
+    const exists = await this.prisma.shift.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Shift not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this shift is forbidden');
+
     const shift = await this.prisma.shift.findFirst({
       where: { id, agencyId },
       include: {
@@ -34,7 +39,6 @@ export class ShiftsService {
         },
       },
     });
-    if (!shift) throw new NotFoundException('Shift not found');
     return shift;
   }
 
@@ -62,10 +66,9 @@ export class ShiftsService {
     id: string,
     data: { name?: string; startTime?: string; endTime?: string; isActive?: boolean },
   ) {
-    const shift = await this.prisma.shift.findFirst({
-      where: { id, agencyId },
-    });
-    if (!shift) throw new NotFoundException('Shift not found');
+    const exists = await this.prisma.shift.findUnique({ where: { id } });
+    if (!exists) throw new NotFoundException('Shift not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this shift is forbidden');
 
     return this.prisma.shift.update({
       where: { id },
@@ -74,8 +77,8 @@ export class ShiftsService {
   }
 
   async remove(agencyId: string, id: string) {
-    const shift = await this.prisma.shift.findFirst({
-      where: { id, agencyId },
+    const exists = await this.prisma.shift.findUnique({
+      where: { id },
       include: {
         _count: {
           select: {
@@ -84,7 +87,9 @@ export class ShiftsService {
         },
       },
     });
-    if (!shift) throw new NotFoundException('Shift not found');
+    if (!exists) throw new NotFoundException('Shift not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this shift is forbidden');
+    const shift = exists;
 
     if (shift._count.deployments > 0) {
       throw new BadRequestException(

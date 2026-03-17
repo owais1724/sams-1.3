@@ -25,7 +25,7 @@ import {
   Target
 } from "lucide-react"
 import api from "@/lib/api"
-import { toast } from "@/components/ui/sonner"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -47,7 +47,7 @@ export default function StaffDashboard() {
   const [userPermissions, setUserPermissions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState<any>(null)
-  const { login } = useAuthStore()
+  const { login, logout } = useAuthStore()
 
   const fetchDashboardData = async () => {
     setLoading(true)
@@ -61,12 +61,24 @@ export default function StaffDashboard() {
       const perms = user.permissions || []
       setUserPermissions(perms)
 
-      // Permission check
-      const isAdmin = user?.role?.toLowerCase().includes('admin')
-      if (!isAdmin && !perms.includes('view_dashboard')) {
-        toast.error("Unauthorized Access: Terminal restricted.")
-        router.push(`/${agencySlug}/my-schedule`)
-        return
+      // Strict Dynamic Permission check
+      const isAdmin = user?.role === 'Agency Admin'
+      
+      if (!isAdmin) {
+        // If they have NO permissions at all, they shouldn't be here
+        if (perms.length === 0) {
+          toast.error("Account Pending Designation: No active permissions identified.")
+          logout()
+          router.push(`/${agencySlug}/staff-login`)
+          return
+        }
+
+        // If they don't have dashboard permission, redirect to their primary allowed area
+        if (!perms.includes('view_dashboard')) {
+          const fallbackPath = perms.includes('view_attendance') ? 'my-schedule' : 'attendance'
+          router.push(`/${agencySlug}/${fallbackPath}`)
+          return
+        }
       }
 
       const [empRes, attRes, projRes, leaveRes] = await Promise.allSettled([
@@ -190,7 +202,7 @@ export default function StaffDashboard() {
                 <Button
                   key={link.label}
                   variant="outline"
-                  className="h-28 flex-col gap-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-colors shadow-[0_1px_3px_rgba(0,0,0,0.1)] text-slate-700"
+                  className="h-28 flex-col gap-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.1)] text-slate-700"
                   onClick={() => router.push(`/${agencySlug}${link.path}`)}
                 >
                   <link.icon className="h-7 w-7 transition-transform group-hover:scale-110 duration-500" />

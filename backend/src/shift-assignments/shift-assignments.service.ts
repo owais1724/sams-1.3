@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -51,16 +52,14 @@ export class ShiftAssignmentsService {
     }
 
     // Verify shift belongs to agency
-    const shift = await this.prisma.shift.findFirst({
-      where: { id: data.shiftId, agencyId },
-    });
-    if (!shift) throw new NotFoundException('Shift not found');
+    const shiftExists = await this.prisma.shift.findUnique({ where: { id: data.shiftId } });
+    if (!shiftExists) throw new NotFoundException('Shift not found');
+    if (shiftExists.agencyId !== agencyId) throw new ForbiddenException('Access to this shift is forbidden');
 
     // Verify employee belongs to agency
-    const employee = await this.prisma.employee.findFirst({
-      where: { id: data.employeeId, agencyId },
-    });
-    if (!employee) throw new NotFoundException('Employee not found');
+    const employeeExists = await this.prisma.employee.findUnique({ where: { id: data.employeeId } });
+    if (!employeeExists) throw new NotFoundException('Employee not found');
+    if (employeeExists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
 
     // Check for duplicate assignment (same employee, same shift, same date)
     const assignDate = new Date(data.date);
@@ -126,11 +125,14 @@ export class ShiftAssignmentsService {
   }
 
   async checkIn(agencyId: string, assignmentId: string) {
-    const assignment = await this.prisma.shiftAssignment.findFirst({
-      where: { id: assignmentId, agencyId },
+    const exists = await this.prisma.shiftAssignment.findUnique({ where: { id: assignmentId } });
+    if (!exists) throw new NotFoundException('Shift assignment not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this assignment is forbidden');
+
+    const assignment = await this.prisma.shiftAssignment.findUnique({
+      where: { id: assignmentId },
       include: { shift: true },
     });
-    if (!assignment) throw new NotFoundException('Shift assignment not found');
 
     const now = new Date();
     const status = this.detectLateArrival(assignment.shift.startTime, now)
@@ -149,10 +151,13 @@ export class ShiftAssignmentsService {
   }
 
   async checkOut(agencyId: string, assignmentId: string) {
-    const assignment = await this.prisma.shiftAssignment.findFirst({
-      where: { id: assignmentId, agencyId },
+    const exists = await this.prisma.shiftAssignment.findUnique({ where: { id: assignmentId } });
+    if (!exists) throw new NotFoundException('Shift assignment not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this assignment is forbidden');
+
+    const assignment = await this.prisma.shiftAssignment.findUnique({
+      where: { id: assignmentId },
     });
-    if (!assignment) throw new NotFoundException('Shift assignment not found');
 
     return this.prisma.shiftAssignment.update({
       where: { id: assignmentId },
@@ -232,10 +237,11 @@ export class ShiftAssignmentsService {
   }
 
   async remove(agencyId: string, id: string) {
-    const assignment = await this.prisma.shiftAssignment.findFirst({
-      where: { id, agencyId },
+    const exists = await this.prisma.shiftAssignment.findUnique({
+      where: { id },
     });
-    if (!assignment) throw new NotFoundException('Shift assignment not found');
+    if (!exists) throw new NotFoundException('Shift assignment not found');
+    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this assignment is forbidden');
 
     return this.prisma.shiftAssignment.delete({ where: { id } });
   }
