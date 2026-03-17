@@ -531,22 +531,12 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
 
 
             <div className="mt-auto mb-6">
-
-
-
                 <SidebarLogout collapsed={collapsed} onClick={logout} />
-
-
-
             </div>
-
-
-
         </aside>
+    )
+}
 
-
-
-    }
 
 
 
