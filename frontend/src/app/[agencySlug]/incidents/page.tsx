@@ -163,13 +163,20 @@ export default function IncidentsPage() {
             toast.error("Title is required")
             return
         }
+        
+        // Auto-link deployment if guard has only one active deployment
+        let deploymentId = form.deploymentId
+        if (isGuard && activeDeployments.length === 1 && !deploymentId) {
+            deploymentId = activeDeployments[0].id
+        }
+        
         setSaving(true)
         try {
             await api.post("/incidents", {
                 title: form.title,
                 description: form.description,
                 type: form.type || undefined,
-                deploymentId: form.deploymentId || undefined,
+                deploymentId: deploymentId || undefined,
                 severity: form.severity,
             })
             toast.success("Incident reported successfully")
@@ -446,7 +453,7 @@ export default function IncidentsPage() {
                                         Deployment Site {isGuard && activeDeployments.length === 1 ? "(auto-linked)" : ""}
                                     </Label>
                                     {isGuard && activeDeployments.length === 1 ? (
-                                        // Guard with one active deployment — auto-select it
+                                        // Guard with one active deployment — auto-linked on submit
                                         <div className="h-10 rounded-xl bg-emerald-50 border border-emerald-200 px-3 flex items-center text-sm text-emerald-700 font-medium">
                                             {activeDeployments[0].client?.name} — {activeDeployments[0].shift?.name}
                                         </div>
