@@ -152,7 +152,7 @@ export default function StaffDashboard() {
         <div>
           <div className="flex items-center gap-3 mb-4">
             <Badge variant="secondary">Staff portal</Badge>
-            <Badge className="bg-teal-50 text-[#0d9488] border border-teal-100">Online</Badge>
+            <Badge className="bg-cyan-50 text-[#06b6d4] border border-cyan-100">Online</Badge>
           </div>
           <h1 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none">
             Staff Dashboard

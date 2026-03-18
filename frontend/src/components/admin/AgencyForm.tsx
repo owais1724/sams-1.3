@@ -130,20 +130,20 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 pb-12">
-                <FormCard className="bg-white/5 border-white/5 shadow-2xl rounded-[32px] p-8">
+                <FormCard className="bg-white border-border shadow-xl rounded-[32px] p-8">
                     <FormHeader title="Infrastructure Matrix" />
                     <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] pl-1">
-                                    Strategic Entity Name <span className="text-primary">*</span>
+                                <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
+                                    Strategic Entity Name <span className="text-[var(--primary)]">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <Input
                                         placeholder="Enter Agency Entity Name..."
-                                        className="h-14 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase tracking-widest italic"
+                                        className="h-14 bg-slate-50 border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-2xl focus:border-[var(--primary)]/20 focus:ring-[var(--primary)]/20 transition-all font-medium"
                                         {...field}
                                     />
                                 </FormControl>
@@ -156,15 +156,15 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="slug"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] pl-1">
-                                    Mission Endpoint <span className="text-primary">*</span>
+                                <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
+                                    Mission Endpoint <span className="text-[var(--primary)]">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <div className="relative group">
-                                        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-primary font-black text-lg group-focus-within:animate-pulse z-10">/</div>
+                                        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--primary)] font-semibold text-lg group-focus-within:animate-pulse z-10">/</div>
                                         <Input
                                             placeholder="endpoint-identifier"
-                                            className="h-14 pl-12 bg-white/5 border-white/10 text-primary placeholder:text-primary/20 rounded-2xl focus:border-primary/50 focus:ring-primary/20 transition-all font-mono font-black lowercase tracking-[0.1em]"
+                                            className="h-14 pl-12 bg-slate-50 border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-2xl focus:border-[var(--primary)]/20 focus:ring-[var(--primary)]/20 transition-all font-mono font-medium lowercase"
                                             {...field}
                                         />
                                     </div>
@@ -175,20 +175,20 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                     />
                 </FormCard>
 
-                <FormCard className="bg-white/5 border-white/5 shadow-2xl rounded-[32px] p-8">
+                <FormCard className="bg-white border-border shadow-xl rounded-[32px] p-8">
                     <FormHeader title="Administrator Credentials" />
                     <FormField
                         control={form.control}
                         name="adminName"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] pl-1">
-                                    Root Admin Name <span className="text-primary">*</span>
+                                <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
+                                    Root Admin Name <span className="text-[var(--primary)]">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <Input
                                         placeholder="Administrative Name"
-                                        className="h-14 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase tracking-widest"
+                                        className="h-14 bg-slate-50 border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-2xl focus:border-[var(--primary)]/20 focus:ring-[var(--primary)]/20 transition-all font-medium"
                                         {...field}
                                     />
                                 </FormControl>
@@ -201,14 +201,14 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="adminEmail"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] pl-1">
-                                    Secure Communication Email <span className="text-primary">*</span>
+                                <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
+                                    Secure Communication Email <span className="text-[var(--primary)]">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <Input
                                         type="email"
                                         placeholder="admin@hypercore.system"
-                                        className="h-14 bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-2xl focus:border-primary/50 focus:ring-primary/20 transition-all font-black"
+                                        className="h-14 bg-slate-50 border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-2xl focus:border-[var(--primary)]/20 focus:ring-[var(--primary)]/20 transition-all font-medium"
                                         {...field}
                                     />
                                 </FormControl>
@@ -222,19 +222,17 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormControl>
-                                    <div className="dark">
-                                        <PhoneInput
-                                            value={field.value || { countryCode: "+91", phoneNumber: "" }}
-                                            onChange={(value) => field.onChange(value)}
-                                            label="Authorized Contact Number"
-                                            placeholder="Enter phone number"
-                                            required={!initialData}
-                                        />
-                                    </div>
+                                    <PhoneInput
+                                        value={field.value || { countryCode: "+91", phoneNumber: "" }}
+                                        onChange={(value) => field.onChange(value)}
+                                        label="Authorized Contact Number"
+                                        placeholder="Enter phone number"
+                                        required={!initialData}
+                                    />
                                 </FormControl>
                                 {initialData?.users?.[0]?.phoneNumber && (
-                                    <p className="text-[9px] font-black text-white/30 pl-1 uppercase tracking-widest">
-                                        Existing: <span className="text-primary">{initialData.users[0].phoneNumber}</span>
+                                    <p className="text-[10px] font-medium text-[#64748b] pl-1 uppercase tracking-widest">
+                                        Existing: <span className="text-[var(--primary)]">{initialData.users[0].phoneNumber}</span>
                                     </p>
                                 )}
                                 <FormMessage className="text-rose-500 font-bold text-[10px] uppercase tracking-widest" />
@@ -246,21 +244,21 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         name="adminPassword"
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] pl-1">
-                                    Master Authentication Key {!initialData && <span className="text-primary">*</span>}
+                                <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
+                                    Master Authentication Key {!initialData && <span className="text-[var(--primary)]">*</span>}
                                 </FormLabel>
                                 <FormControl>
                                     <div className="relative group">
                                         <Input
                                             type={showPassword ? "text" : "password"}
                                             placeholder={initialData ? "// KEY ENCRYPTED" : "SET MASTER KEY"}
-                                            className="h-14 bg-white/5 border-white/10 text-primary placeholder:text-primary/20 rounded-2xl focus:border-primary/50 focus:ring-primary/20 transition-all font-black tracking-widest"
+                                            className="h-14 bg-slate-50 border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-2xl focus:border-[var(--primary)]/20 focus:ring-[var(--primary)]/20 transition-all font-medium"
                                             {...field}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20 hover:text-primary transition-colors"
+                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[var(--primary)] transition-colors"
                                         >
                                             {showPassword ? (
                                                 <EyeOff className="h-5 w-5" />

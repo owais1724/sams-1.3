@@ -175,7 +175,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
             const payload: any = {
                 ...apiValues,
                 phoneNumber: `${phone.countryCode}${phone.phoneNumber}`,
-                basicSalary: parseFloat(values.basicSalary || "0")
+                basicSalary: Number(values.basicSalary) || 0
             }
 
             if (initialData) {
@@ -263,7 +263,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                             type="button"
                                             onClick={handleQuickAddDesignation}
                                             disabled={designationLoading || !newDesignationName}
-                                            className="h-12 rounded-2xl bg-slate-900 text-white font-black text-xs px-6"
+                                            className="h-12 rounded-2xl bg-[var(--primary)] text-white font-semibold text-xs px-6"
                                         >
                                             {designationLoading ? "..." : "ADD"}
                                         </Button>
@@ -306,8 +306,9 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                     <FormLabelBase label="Monthly Salary" />
                                     <FormControl>
                                         <Input
-                                            type="number"
+                                            type="text"
                                             className={cn(inputVariants, "font-black italic")}
+                                            placeholder="Enter salary amount"
                                             {...field}
                                         />
                                     </FormControl>
@@ -349,7 +350,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-primary transition-colors"
+                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[var(--primary)] transition-colors"
                                         >
                                             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                         </button>

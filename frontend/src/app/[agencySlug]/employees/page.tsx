@@ -20,7 +20,7 @@ import { useAuthStore } from "@/store/authStore"
 import { usePermission } from "@/hooks/usePermission"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
 import { motion, AnimatePresence } from "framer-motion"
-import { FormSheet } from "@/components/common/FormSheet"
+import { FormModal } from "@/components/common/FormModal"
 import { TableCell } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -203,7 +203,7 @@ export default function EmployeesPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <div className="h-9 w-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shadow-sm">
+                                                <div className="h-9 w-9 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center border border-cyan-100 shadow-sm">
                                                     <ShieldCheck className="h-4.5 w-4.5" />
                                                 </div>
                                                 <div className="min-w-0">
@@ -255,7 +255,7 @@ export default function EmployeesPage() {
                 </TabsContent>
             </Tabs>
 
-            <FormSheet
+            <FormModal
                 open={openEnroll}
                 onOpenChange={(v) => { setOpenEnroll(v); if (!v) setEditingEmployee(null) }}
                 title={editingEmployee ? `Update Agent Identity` : "Enroll Personnel"}
@@ -273,7 +273,7 @@ export default function EmployeesPage() {
                         fetchData()
                     }}
                 />
-            </FormSheet>
+            </FormModal>
 
             {/* Employee Profile Dialog */}
             <Dialog open={profileDialog.open} onOpenChange={(v) => !v && setProfileDialog({ open: false, employee: null })}>

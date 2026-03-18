@@ -36,6 +36,7 @@ export class MigrationService {
 
       // Pre-fetch essential permissions (including full project permissions)
       const essentialActions = [
+        'view_attendance',
         'record_attendance',
         'apply_leave',
         'view_projects',

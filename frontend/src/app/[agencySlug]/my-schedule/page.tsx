@@ -1,353 +1,251 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import api from "@/lib/api"
-import {
-    Calendar,
-    Clock,
-    MapPin,
-    Shield,
-    Users,
-    LogIn,
-    LogOut,
-    CheckCircle2,
-    AlertTriangle,
-} from "lucide-react"
-import {
-    PageHeader,
-    PageLoading,
-    StatCard,
-} from "@/components/ui/design-system"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
-import { cn } from "@/lib/utils"
-
-interface ScheduleDeployment {
-    id: string
-    startDate: string
-    endDate: string
-    status: string
-    notes?: string
-    client: { id: string; name: string; address?: string }
-    shift: { id: string; name: string; startTime: string; endTime: string }
-    guards: { user: { id: string; fullName: string } }[]
-}
-
-interface AttendanceRecord {
-    id: string
-    deploymentId: string
-    checkIn: string | null
-    checkOut: string | null
-    status: string
-}
-
-const statusColors: Record<string, string> = {
-    planned: "bg-blue-50 text-blue-700 border-blue-100",
-    active: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    completed: "bg-slate-100 text-slate-600 border-slate-200",
-    cancelled: "bg-rose-50 text-rose-700 border-rose-100",
-}
+import api from "@/lib/api"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, Clock, MapPin, Shield, AlertCircle } from "lucide-react"
+import { toast } from "@/components/ui/sonner"
 
 export default function MySchedulePage() {
-    const { agencySlug } = useParams()
     const { user } = useAuthStore()
-    const [deployments, setDeployments] = useState<ScheduleDeployment[]>([])
-    const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceRecord>>({})
+    const [deployments, setDeployments] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
-    const [checkingIn, setCheckingIn] = useState<string | null>(null)
 
-    const fetchData = async () => {
+    useEffect(() => {
+        fetchMySchedule()
+    }, [])
+
+    const fetchMySchedule = async () => {
         try {
-            const [depRes, attRes] = await Promise.allSettled([
-                api.get("/deployments/my-schedule"),
-                api.get("/attendance?today=true"),
-            ])
-            if (depRes.status === "fulfilled") setDeployments(depRes.value.data)
-            if (attRes.status === "fulfilled") {
-                const records = attRes.value.data || []
-                const map: Record<string, AttendanceRecord> = {}
-                records.forEach((r: any) => {
-                    if (r.deploymentId) map[r.deploymentId] = r
-                })
-                setAttendanceMap(map)
-            }
-        } catch {
-            toast.error("Failed to load schedule")
+            setLoading(true)
+            const response = await api.get('/deployments/my-schedule')
+            setDeployments(response.data)
+        } catch (error: any) {
+            console.error('Failed to fetch schedule:', error)
+            toast.error('Failed to load your schedule')
         } finally {
             setLoading(false)
         }
     }
 
-    useEffect(() => {
-        fetchData()
-    }, [])
-
-    const handleCheckIn = async (deploymentId: string) => {
-        setCheckingIn(deploymentId)
-        try {
-            await api.post("/attendance/check-in", { deploymentId, method: "WEB" })
-            toast.success("Checked in successfully!")
-            fetchData()
-        } catch (err: any) {
-            const msg = err.response?.data?.message || err.message || "Check-in failed"
-            toast.error(msg)
-        } finally {
-            setCheckingIn(null)
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'active': return 'bg-green-500/10 text-green-600 border-green-500/20'
+            case 'planned': return 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+            case 'completed': return 'bg-gray-500/10 text-gray-600 border-gray-500/20'
+            case 'cancelled': return 'bg-red-500/10 text-red-600 border-red-500/20'
+            default: return 'bg-gray-500/10 text-gray-600 border-gray-500/20'
         }
     }
 
-    const handleCheckOut = async (deploymentId: string) => {
-        setCheckingIn(deploymentId)
-        try {
-            await api.post("/attendance/check-out", { deploymentId })
-            toast.success("Checked out successfully!")
-            fetchData()
-        } catch (err: any) {
-            const msg = err.response?.data?.message || err.message || "Check-out failed"
-            toast.error(msg)
-        } finally {
-            setCheckingIn(null)
-        }
+    const formatDate = (date: string) => {
+        return new Date(date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        })
     }
 
-    if (loading) return <PageLoading message="Loading Your Schedule..." />
+    const getTodayDeployments = () => {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return deployments.filter(d => {
+            const start = new Date(d.startDate)
+            const end = new Date(d.endDate)
+            start.setHours(0, 0, 0, 0)
+            end.setHours(23, 59, 59, 999)
+            return today >= start && today <= end && d.status === 'active'
+        })
+    }
 
-    const now = new Date()
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
-    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999)
+    const getUpcomingDeployments = () => {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return deployments.filter(d => {
+            const start = new Date(d.startDate)
+            start.setHours(0, 0, 0, 0)
+            return start > today && (d.status === 'planned' || d.status === 'active')
+        })
+    }
 
-    // Categorize deployments
-    const today: ScheduleDeployment[] = []
-    const upcoming: ScheduleDeployment[] = []
-    const past: ScheduleDeployment[] = []
+    const todayDeployments = getTodayDeployments()
+    const upcomingDeployments = getUpcomingDeployments()
 
-    deployments.forEach(d => {
-        const start = new Date(d.startDate)
-        const end = new Date(d.endDate)
-
-        if (d.status === "cancelled") {
-            past.push(d)
-        } else if (d.status === "completed" || end < todayStart) {
-            past.push(d)
-        } else if (start > todayEnd) {
-            upcoming.push(d)
-        } else {
-            // Deployment covers today (start <= today <= end)
-            today.push(d)
-        }
-    })
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                    <p className="text-sm text-muted-foreground">Loading your schedule...</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
-        <div className="space-y-10 pb-20">
-            <PageHeader
-                title="My"
-                titleHighlight="Schedule"
-                subtitle={`Deployment schedule for ${user?.fullName || "Guard"}.`}
-            />
-
-            <div className="grid gap-6 md:grid-cols-3">
-                <StatCard title="Today's Deployments" value={today.length} icon={<Shield />} color="emerald" />
-                <StatCard title="Upcoming" value={upcoming.length} icon={<Calendar />} color="blue" />
-                <StatCard title="Completed" value={past.length} icon={<Clock />} color="slate" />
+        <div className="space-y-8">
+            {/* Header */}
+            <div>
+                <h1 className="text-3xl font-bold text-foreground">My Schedule</h1>
+                <p className="text-muted-foreground mt-2">
+                    Deployment schedule for {user?.fullName}
+                </p>
             </div>
 
-            {/* Today's Deployments */}
-            {today.length > 0 && (
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="border-l-4 border-l-green-500">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Today's Deployments</p>
+                                <p className="text-3xl font-bold text-foreground mt-2">{todayDeployments.length}</p>
+                            </div>
+                            <Shield className="h-10 w-10 text-green-500 opacity-20" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-blue-500">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Upcoming</p>
+                                <p className="text-3xl font-bold text-foreground mt-2">{upcomingDeployments.length}</p>
+                            </div>
+                            <Calendar className="h-10 w-10 text-blue-500 opacity-20" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-l-4 border-l-purple-500">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Total Active</p>
+                                <p className="text-3xl font-bold text-foreground mt-2">
+                                    {deployments.filter(d => d.status === 'active').length}
+                                </p>
+                            </div>
+                            <MapPin className="h-10 w-10 text-purple-500 opacity-20" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Today's Assignments */}
+            {todayDeployments.length > 0 && (
                 <div>
-                    <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3 px-2">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        Today&apos;s Assignments
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                        Today's Assignments
                     </h2>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {today.map(dep => (
-                            <ScheduleCard
-                                key={dep.id}
-                                deployment={dep}
-                                attendance={attendanceMap[dep.id]}
-                                onCheckIn={handleCheckIn}
-                                onCheckOut={handleCheckOut}
-                                isLoading={checkingIn === dep.id}
-                                isToday
-                            />
+                    <div className="grid gap-4">
+                        {todayDeployments.map((deployment) => (
+                            <Card key={deployment.id} className="border-l-4 border-l-green-500 bg-green-500/5">
+                                <CardContent className="pt-6">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1 space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <MapPin className="h-5 w-5 text-green-600" />
+                                                <h3 className="text-lg font-bold text-foreground">{deployment.client.name}</h3>
+                                                <Badge className={getStatusColor(deployment.status)}>
+                                                    {deployment.status.toUpperCase()}
+                                                </Badge>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Clock className="h-4 w-4" />
+                                                <span className="font-semibold text-foreground">{deployment.shift.name}</span>
+                                                <span>•</span>
+                                                <span>{deployment.shift.startTime} - {deployment.shift.endTime}</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Calendar className="h-4 w-4" />
+                                                <span>{formatDate(deployment.startDate)} - {formatDate(deployment.endDate)}</span>
+                                            </div>
+
+                                            {deployment.client.address && (
+                                                <p className="text-sm text-muted-foreground">
+                                                    📍 {deployment.client.address}
+                                                </p>
+                                            )}
+
+                                            {deployment.notes && (
+                                                <p className="text-sm text-muted-foreground italic">
+                                                    Note: {deployment.notes}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         ))}
                     </div>
                 </div>
             )}
 
             {/* Upcoming Deployments */}
-            {upcoming.length > 0 && (
+            {upcomingDeployments.length > 0 && (
                 <div>
-                    <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3 px-2">
-                        <div className="h-2 w-2 rounded-full bg-blue-500" />
-                        Upcoming Assignments
-                    </h2>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {upcoming.map(dep => (
-                            <ScheduleCard key={dep.id} deployment={dep} />
+                    <h2 className="text-xl font-bold text-foreground mb-4">Upcoming Deployments</h2>
+                    <div className="grid gap-4">
+                        {upcomingDeployments.map((deployment) => (
+                            <Card key={deployment.id}>
+                                <CardContent className="pt-6">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="flex-1 space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <MapPin className="h-5 w-5 text-primary" />
+                                                <h3 className="text-lg font-bold text-foreground">{deployment.client.name}</h3>
+                                                <Badge className={getStatusColor(deployment.status)}>
+                                                    {deployment.status.toUpperCase()}
+                                                </Badge>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Clock className="h-4 w-4" />
+                                                <span className="font-semibold text-foreground">{deployment.shift.name}</span>
+                                                <span>•</span>
+                                                <span>{deployment.shift.startTime} - {deployment.shift.endTime}</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Calendar className="h-4 w-4" />
+                                                <span>{formatDate(deployment.startDate)} - {formatDate(deployment.endDate)}</span>
+                                            </div>
+
+                                            {deployment.client.address && (
+                                                <p className="text-sm text-muted-foreground">
+                                                    📍 {deployment.client.address}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* Past Deployments */}
-            {past.length > 0 && (
-                <div>
-                    <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-6 flex items-center gap-3 px-2">
-                        <div className="h-2 w-2 rounded-full bg-slate-400" />
-                        Past Assignments
-                    </h2>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {past.map(dep => (
-                            <ScheduleCard key={dep.id} deployment={dep} />
-                        ))}
-                    </div>
-                </div>
-            )}
-
+            {/* Empty State */}
             {deployments.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-24 text-center">
-                    <div className="h-24 w-24 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 mb-8">
-                        <Calendar className="h-10 w-10 text-slate-300" />
-                    </div>
-                    <h3 className="text-2xl font-black text-slate-900 mb-2">No Assignments</h3>
-                    <p className="text-slate-500 font-medium max-w-sm">
-                        You don&apos;t have any deployment assignments yet. Your supervisor will assign you to sites.
-                    </p>
-                </div>
+                <Card>
+                    <CardContent className="pt-12 pb-12">
+                        <div className="flex flex-col items-center justify-center text-center">
+                            <AlertCircle className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                            <h3 className="text-lg font-semibold text-foreground mb-2">No Deployments Scheduled</h3>
+                            <p className="text-sm text-muted-foreground max-w-md">
+                                You don't have any active or upcoming deployments at the moment. Check back later or contact your supervisor.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
             )}
         </div>
-    )
-}
-
-function ScheduleCard({
-    deployment,
-    attendance,
-    onCheckIn,
-    onCheckOut,
-    isLoading,
-    isToday,
-}: {
-    deployment: ScheduleDeployment
-    attendance?: AttendanceRecord
-    onCheckIn?: (id: string) => void
-    onCheckOut?: (id: string) => void
-    isLoading?: boolean
-    isToday?: boolean
-}) {
-    const checkedIn = !!attendance?.checkIn
-    const checkedOut = !!attendance?.checkOut
-    const canCheckIn = isToday && !checkedIn && deployment.status === "active"
-    const canCheckOut = isToday && checkedIn && !checkedOut
-
-    return (
-        <Card className="rounded-[28px] border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-1 transition-all overflow-hidden">
-            {/* Site header bar */}
-            <div className={cn(
-                "px-6 py-4 flex items-center justify-between",
-                isToday ? "bg-gradient-to-r from-teal-600 to-emerald-600" : "bg-gradient-to-r from-slate-600 to-slate-700"
-            )}>
-                <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-white/80" />
-                    <div>
-                        <h4 className="font-black text-white text-lg">{deployment.client.name}</h4>
-                        {deployment.client.address && (
-                            <p className="text-xs text-white/60">{deployment.client.address}</p>
-                        )}
-                    </div>
-                </div>
-                <span className={cn(
-                    "inline-flex items-center px-3 py-1 rounded-lg font-bold text-[10px] uppercase tracking-wide border",
-                    deployment.status === "active" ? "bg-white/20 text-white border-white/30" :
-                    deployment.status === "planned" ? "bg-blue-400/20 text-blue-100 border-blue-300/30" :
-                    "bg-white/10 text-white/70 border-white/20"
-                )}>
-                    {deployment.status}
-                </span>
-            </div>
-
-            <CardContent className="p-6 space-y-4">
-                {/* Shift info */}
-                <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl">
-                    <div className="h-10 w-10 bg-indigo-50 rounded-xl flex items-center justify-center">
-                        <Clock className="h-5 w-5 text-indigo-500" />
-                    </div>
-                    <div className="flex-1">
-                        <p className="font-black text-slate-900 text-sm uppercase tracking-wider">{deployment.shift.name} Shift</p>
-                        <p className="text-sm text-slate-500 font-medium">{deployment.shift.startTime} – {deployment.shift.endTime}</p>
-                    </div>
-                </div>
-
-                {/* Date range */}
-                <div className="flex items-center gap-3 text-sm px-1">
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    <span className="text-slate-600 font-medium">
-                        {new Date(deployment.startDate).toLocaleDateString()} – {new Date(deployment.endDate).toLocaleDateString()}
-                    </span>
-                </div>
-
-                {/* Guard count */}
-                <div className="flex items-center gap-3 text-sm px-1">
-                    <Users className="h-4 w-4 text-slate-400" />
-                    <span className="text-slate-600 font-medium">
-                        {deployment.guards.length} guard{deployment.guards.length !== 1 ? "s" : ""} on this deployment
-                    </span>
-                </div>
-
-                {/* Attendance status for today */}
-                {isToday && (
-                    <div className="pt-2 border-t border-slate-100 space-y-3">
-                        {/* Status indicator */}
-                        {attendance ? (
-                            <div className={cn(
-                                "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-bold",
-                                checkedOut ? "bg-slate-50 text-slate-600" :
-                                attendance.status === "LATE" ? "bg-amber-50 text-amber-700" :
-                                "bg-emerald-50 text-emerald-700"
-                            )}>
-                                {checkedOut ? (
-                                    <><CheckCircle2 className="h-4 w-4" /> Shift completed</>
-                                ) : attendance.status === "LATE" ? (
-                                    <><AlertTriangle className="h-4 w-4" /> Late arrival — checked in at {new Date(attendance.checkIn!).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</>
-                                ) : (
-                                    <><CheckCircle2 className="h-4 w-4" /> On duty — checked in at {new Date(attendance.checkIn!).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-orange-50 text-orange-600 text-sm font-bold">
-                                <AlertTriangle className="h-4 w-4" /> Not checked in yet
-                            </div>
-                        )}
-
-                        {/* Check-in / Check-out buttons */}
-                        <div className="flex gap-2">
-                            {canCheckIn && (
-                                <Button
-                                    onClick={() => onCheckIn?.(deployment.id)}
-                                    disabled={isLoading}
-                                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-11 font-bold"
-                                >
-                                    <LogIn className="h-4 w-4 mr-2" />
-                                    {isLoading ? "Checking In..." : "Check In"}
-                                </Button>
-                            )}
-                            {canCheckOut && (
-                                <Button
-                                    onClick={() => onCheckOut?.(deployment.id)}
-                                    disabled={isLoading}
-                                    variant="outline"
-                                    className="flex-1 border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl h-11 font-bold"
-                                >
-                                    <LogOut className="h-4 w-4 mr-2" />
-                                    {isLoading ? "Checking Out..." : "Check Out"}
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
     )
 }

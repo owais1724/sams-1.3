@@ -10,41 +10,35 @@ const buttonVariants = cva(
     variants: {
       variant: {
         // ── Shadcn base variants ──────────────────────────────────────────────
-        default: "bg-primary text-primary-foreground hover:bg-[#0b837a]",
+        default: "bg-[#06b6d4] text-white hover:bg-[#0891b2]",
         destructive:
-          "bg-destructive text-white hover:bg-[#b91c1c] focus-visible:ring-destructive/20",
+          "bg-[#dc2626] text-white hover:bg-[#b91c1c] focus-visible:ring-destructive/20",
         outline:
-          "border border-border bg-white hover:bg-slate-50 text-slate-900",
+          "border border-border bg-white hover:bg-slate-50 text-[#0f172a]",
         secondary:
-          "bg-white text-[#0d9488] border border-[#0d9488] hover:bg-slate-50",
+          "bg-white text-[#06b6d4] border border-[#06b6d4] hover:bg-slate-50",
         ghost:
-          "hover:bg-slate-100 text-slate-700",
-        link: "text-primary underline-offset-4 hover:underline",
+          "hover:bg-slate-100 text-[#374151]",
+        link: "text-[#06b6d4] underline-offset-4 hover:underline",
 
         // ── App-specific semantic variants ────────────────────────────────────
-        // Use these instead of writing className strings on every button.
-
         /**
-         * primary — Teal brand CTA button (Create Client, Create Employee, etc.)
-         * Was: className="h-12 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 ..."
-         */
-        /**
-         * primary — Gold brand CTA button
+         * primary — Cyan brand CTA button
          */
         primary:
-          "bg-[#0d9488] text-white hover:bg-[#0b837a] shadow-sm font-semibold",
+          "bg-[#06b6d4] text-white hover:bg-[#0891b2] shadow-sm font-semibold",
 
         /**
-         * premium — Metallic gold variant with gradient and glow
+         * premium — Cyan variant
          */
         premium:
-          "bg-[#0d9488] text-white hover:bg-[#0b837a] shadow-sm font-semibold",
+          "bg-[#06b6d4] text-white hover:bg-[#0891b2] shadow-sm font-semibold",
 
         /**
-         * admin — Deep primary variant
+         * admin — Cyan variant for admin
          */
         admin:
-          "bg-[#0d9488] text-white hover:bg-[#0b837a] shadow-sm font-semibold",
+          "bg-[#06b6d4] text-white hover:bg-[#0891b2] shadow-sm font-semibold",
 
         /**
          * danger-solid — Red confirmation
@@ -54,10 +48,9 @@ const buttonVariants = cva(
 
         /**
          * success — Green check-in / approve action
-         * Was: className="bg-emerald-600 hover:bg-emerald-700 text-white ..."
          */
         success:
-          "bg-[#0d9488] text-white hover:bg-[#0b837a] shadow-sm font-semibold",
+          "bg-[#06b6d4] text-white hover:bg-[#0891b2] shadow-sm font-semibold",
       },
       size: {
         default: "h-10 px-5 py-2 has-[>svg]:pl-4 has-[>svg]:pr-5",

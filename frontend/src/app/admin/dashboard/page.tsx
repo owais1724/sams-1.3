@@ -15,14 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Building2, Shield, Users, Edit3, Power, PowerOff } from "lucide-react"
 import { RowEditButton, RowDeleteButton, StatCard } from "@/components/ui/design-system"
 import { cn } from "@/lib/utils"
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
+import { FormModal } from "@/components/common/FormModal"
 import { AgencyForm } from "@/components/admin/AgencyForm"
 import { toast } from "@/components/ui/sonner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -113,11 +106,18 @@ export default function AdminDashboard() {
                     </p>
                 </div>
 
-                <Sheet open={open} onOpenChange={(val) => {
-                    setOpen(val)
-                    if (!val) setEditingAgency(null)
-                }}>
-                    <SheetTrigger asChild>
+                <FormModal
+                    open={open}
+                    onOpenChange={(val) => {
+                        setOpen(val)
+                        if (!val) setEditingAgency(null)
+                    }}
+                    title={editingAgency ? "Edit Agency" : "Create Agency"}
+                    description={editingAgency
+                        ? "Update agency details and access settings."
+                        : "Provision a new agency portal and operational node."}
+                    maxWidth={600}
+                    trigger={
                         <Button
                             variant="primary"
                             size="cta"
@@ -130,33 +130,17 @@ export default function AdminDashboard() {
                             <Plus className="h-4 w-4" />
                             New Agency
                         </Button>
-                    </SheetTrigger>
-                    <SheetContent className="sm:max-w-[640px] border-l border-border bg-white p-0">
-                        <div className="h-full flex flex-col relative overflow-hidden">
-                            <div className="p-10 md:p-16 overflow-y-auto h-full relative z-10 scrollbar-hide">
-                                <SheetHeader className="mb-12">
-                                    <div className="h-1 w-12 bg-primary mb-6" />
-                                    <SheetTitle className="text-[20px] font-semibold text-slate-900">
-                                        {editingAgency ? "Edit Agency" : "Create Agency"}
-                                    </SheetTitle>
-                                    <SheetDescription className="text-[14px] text-slate-500 leading-relaxed mt-2">
-                                        {editingAgency
-                                            ? "Update agency details and access settings."
-                                            : "Provision a new agency portal and operational node."}
-                                    </SheetDescription>
-                                </SheetHeader>
-                                <AgencyForm
-                                    initialData={editingAgency}
-                                    onSuccess={() => {
-                                        setOpen(false)
-                                        setEditingAgency(null)
-                                        fetchAgencies()
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </SheetContent>
-                </Sheet>
+                    }
+                >
+                    <AgencyForm
+                        initialData={editingAgency}
+                        onSuccess={() => {
+                            setOpen(false)
+                            setEditingAgency(null)
+                            fetchAgencies()
+                        }}
+                    />
+                </FormModal>
             </div>
 
             {/* Stat Matrix */}
@@ -201,7 +185,7 @@ export default function AdminDashboard() {
                                     colSpan={5}
                                     title="No agencies found"
                                     description="Create your first agency."
-                                    icon={<Building2 className="h-6 w-6 text-[#0d9488]" />}
+                                    icon={<Building2 className="h-6 w-6 text-[#06b6d4]" />}
                                 />
                             ) : (
                                 agencies.map((agency) => (
@@ -217,7 +201,7 @@ export default function AdminDashboard() {
                                         <TableCell>
                                             <div className="flex items-center gap-3">
                                                 <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                                                <code className="text-[12px] font-medium text-primary bg-teal-50 px-3 py-1 rounded-lg border border-teal-100">
+                                                <code className="text-[12px] font-medium text-[#06b6d4] bg-cyan-50 px-3 py-1 rounded-lg border border-cyan-100">
                                                     /{agency.slug}
                                                 </code>
                                             </div>

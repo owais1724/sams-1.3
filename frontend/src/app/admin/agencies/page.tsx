@@ -14,15 +14,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Shield, PowerOff, Power } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
 import { AgencyForm } from "@/components/admin/AgencyForm"
+import { FormModal } from "@/components/common/FormModal"
 import { toast } from "@/components/ui/sonner"
 import { AlertModal } from "@/components/ui/alert-modal"
 
@@ -93,34 +86,26 @@ export default function AgenciesPage() {
                     <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-2 truncate">Platform Agencies</h1>
                     <p className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-widest truncate">Global infrastructure command & control</p>
                 </div>
-                <Sheet open={open} onOpenChange={setOpen}>
-                    <SheetTrigger asChild>
+                <FormModal
+                    open={open}
+                    onOpenChange={setOpen}
+                    title="Entity Onboarding"
+                    description="Deploying new security infrastructure instance"
+                    maxWidth={540}
+                    trigger={
                         <Button className="h-12 md:h-14 w-full md:w-auto px-6 md:px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-200 transition-all active:scale-[0.98] text-xs md:text-base">
                             <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5 stroke-[3]" />
                             REGISTER NEW ENTITY
                         </Button>
-                    </SheetTrigger>
-                    <SheetContent className="sm:max-w-[540px] border-l-0 shadow-2xl p-0 rounded-l-[40px] overflow-hidden">
-                        <div className="h-full bg-slate-50/50 flex flex-col">
-                            <div className="p-8 pt-12">
-                                <SheetHeader className="space-y-1">
-                                    <SheetTitle className="text-3xl font-black tracking-tight text-slate-900">Entity Onboarding</SheetTitle>
-                                    <SheetDescription className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                                        Deploying new security infrastructure instance
-                                    </SheetDescription>
-                                </SheetHeader>
-                                <div className="mt-10">
-                                    <AgencyForm
-                                        onSuccess={() => {
-                                            setOpen(false)
-                                            fetchAgencies()
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </SheetContent>
-                </Sheet>
+                    }
+                >
+                    <AgencyForm
+                        onSuccess={() => {
+                            setOpen(false)
+                            fetchAgencies()
+                        }}
+                    />
+                </FormModal>
             </div>
 
             <div className="rounded-[32px] border border-slate-100 bg-white shadow-2xl shadow-slate-200/60 overflow-hidden">

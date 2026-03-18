@@ -164,6 +164,81 @@ export default function DeploymentsPage() {
             toast.error("Please fill all required fields")
             return
         }
+
+        // Validate guard shift assignments
+        if (form.guardIds.length > 0) {
+            try {
+                console.log("Validating deployment for guards:", form.guardIds)
+                console.log("Deployment shift ID:", form.shiftId)
+                console.log("Deployment period:", form.startDate, "to", form.endDate)
+                
+                for (const guardId of form.guardIds) {
+                    console.log("Checking guard:", guardId)
+                    // Get all assignments without date filter first
+                    const assignmentRes = await api.get(`/shift-assignments?employeeId=${guardId}`)
+                    const assignments = assignmentRes.data
+                    console.log("Guard assignments:", assignments)
+                    
+                    // Check if guard has any assignments at all
+                    if (assignments.length > 0) {
+                        console.log("Guard has existing assignments, checking for conflicts...")
+                        
+                        // Get the most recent assignment to determine guard's primary shift
+                        const sortedAssignments = assignments.sort((a: any, b: any) => 
+                            new Date(b.date).getTime() - new Date(a.date).getTime()
+                        )
+                        const mostRecentAssignment = sortedAssignments[0]
+                        console.log("Most recent assignment:", mostRecentAssignment)
+                        
+                        // If guard is assigned to a different shift, block deployment
+                        if (mostRecentAssignment.shiftId !== form.shiftId) {
+                            console.log("Guard assigned to different shift! Blocking deployment.")
+                            const guard = guards.find(g => g.id === guardId)
+                            toast.error(`${guard?.fullName || 'Guard'} is assigned to ${mostRecentAssignment.shift?.name || 'another shift'} and cannot be deployed to a different shift.`)
+                            return
+                        }
+                    } else {
+                        console.log("No assignments found for guard, allowing deployment to any shift.")
+                    }
+                    
+                    // Also check for date-specific conflicts if assignments exist
+                    for (const assignment of assignments) {
+                        console.log("Checking assignment:", assignment)
+                        if (assignment.status === 'SCHEDULED' || assignment.status === 'COMPLETED') {
+                            const assignmentDate = new Date(assignment.date)
+                            const deploymentStart = new Date(form.startDate)
+                            const deploymentEnd = new Date(form.endDate)
+                            
+                            console.log("Assignment date:", assignmentDate)
+                            console.log("Deployment period:", deploymentStart, "to", deploymentEnd)
+                            
+                            // Check if deployment period overlaps with assignment date
+                            if (assignmentDate >= deploymentStart && assignmentDate <= deploymentEnd) {
+                                console.log("Date overlap detected!")
+                                console.log("Assignment shift ID:", assignment.shiftId)
+                                console.log("Deployment shift ID:", form.shiftId)
+                                console.log("Assignment shift name:", assignment.shift?.name)
+                                // Check if it's a different shift
+                                if (assignment.shiftId !== form.shiftId) {
+                                    console.log("Shift mismatch! Blocking deployment.")
+                                    const guard = guards.find(g => g.id === guardId)
+                                    toast.error(`${guard?.fullName || 'Guard'} is already assigned to ${assignment.shift?.name || 'another shift'} on ${assignment.date.toLocaleDateString()}. Cannot deploy to different shift.`)
+                                    return
+                                } else {
+                                    console.log("Same shift, allowing deployment.")
+                                }
+                            }
+                        }
+                    }
+                }
+                console.log("Validation passed, allowing deployment.")
+            } catch (err: any) {
+                console.error("Validation error:", err)
+                toast.error("Failed to validate guard assignments")
+                return
+            }
+        }
+
         setSaving(true)
         try {
             await api.post("/deployments", {
@@ -516,7 +591,7 @@ export default function DeploymentsPage() {
                                                 type="checkbox"
                                                 checked={form.guardIds.includes(g.id)}
                                                 onChange={() => toggleGuard(g.id)}
-                                                className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                                className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
                                             />
                                             <div>
                                                 <p className="text-sm font-bold text-slate-700">{g.fullName}</p>
@@ -527,7 +602,7 @@ export default function DeploymentsPage() {
                                 )}
                             </div>
                             {form.guardIds.length > 0 && (
-                                <p className="text-xs font-bold text-teal-600 mt-2">{form.guardIds.length} guard(s) selected</p>
+                                <p className="text-xs font-bold text-cyan-600 mt-2">{form.guardIds.length} guard(s) selected</p>
                             )}
                         </FormCard>
 
@@ -713,7 +788,7 @@ function AssignGuardsDialog({
                                                 prev.includes(g.id) ? prev.filter(id => id !== g.id) : [...prev, g.id]
                                             )
                                         }}
-                                        className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                        className="h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
                                     />
                                     <div>
                                         <p className="text-sm font-bold text-slate-700">{g.fullName}</p>

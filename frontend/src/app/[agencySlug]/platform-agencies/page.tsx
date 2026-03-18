@@ -14,14 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Building2, Shield, Users, Edit3, Power, PowerOff } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
+import { FormModal } from "@/components/common/FormModal"
 import { AgencyForm } from "@/components/admin/AgencyForm"
 import { toast } from "@/components/ui/sonner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -110,11 +103,18 @@ export default function AdminDashboard() {
                 </div>
 
                 {canCreate && (
-                    <Sheet open={open} onOpenChange={(val) => {
-                        setOpen(val)
-                        if (!val) setEditingAgency(null)
-                    }}>
-                        <SheetTrigger asChild>
+                    <FormModal
+                        open={open}
+                        onOpenChange={(val) => {
+                            setOpen(val)
+                            if (!val) setEditingAgency(null)
+                        }}
+                        title={editingAgency ? "Modify Agency" : "Entity Onboarding"}
+                        description={editingAgency
+                            ? "Update agency infrastructure and operational status"
+                            : "Deploying new security infrastructure instance"}
+                        maxWidth={540}
+                        trigger={
                             <Button
                                 onClick={() => {
                                     setEditingAgency(null)
@@ -125,32 +125,17 @@ export default function AdminDashboard() {
                                 <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5 stroke-[3]" />
                                 INITIALIZE AGENCY
                             </Button>
-                        </SheetTrigger>
-                        <SheetContent className="sm:max-w-[540px] border-l-0 shadow-2xl p-0 rounded-l-[40px] overflow-hidden">
-                            <div className="h-full bg-slate-50/50 flex flex-col">
-                                <div className="p-8 pt-12 overflow-y-auto h-full">
-                                    <SheetHeader className="mb-10">
-                                        <SheetTitle className="text-3xl font-black tracking-tight text-slate-900">
-                                            {editingAgency ? "Modify Agency" : "Entity Onboarding"}
-                                        </SheetTitle>
-                                        <SheetDescription className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-loose">
-                                            {editingAgency
-                                                ? "Update agency infrastructure and operational status"
-                                                : "Deploying new security infrastructure instance"}
-                                        </SheetDescription>
-                                    </SheetHeader>
-                                    <AgencyForm
-                                        initialData={editingAgency}
-                                        onSuccess={() => {
-                                            setOpen(false)
-                                            setEditingAgency(null)
-                                            fetchAgencies()
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                        }
+                    >
+                        <AgencyForm
+                            initialData={editingAgency}
+                            onSuccess={() => {
+                                setOpen(false)
+                                setEditingAgency(null)
+                                fetchAgencies()
+                            }}
+                        />
+                    </FormModal>
                 )}
             </div>
 

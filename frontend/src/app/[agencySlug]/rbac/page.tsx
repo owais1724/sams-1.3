@@ -14,14 +14,7 @@ import {
     TableRowEmpty,
     SectionHeading
 } from "@/components/ui/design-system"
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
+import { FormModal } from "@/components/common/FormModal"
 import { RoleForm } from "@/components/agency/RoleForm"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/sonner"
@@ -100,38 +93,27 @@ export default function RBACPage() {
                 titleHighlight="Control"
                 subtitle="Manage user roles and permissions for your agency."
                 action={
-                    <Sheet open={open} onOpenChange={(val) => {
+                <FormModal
+                    open={open}
+                    onOpenChange={(val) => {
                         setOpen(val)
                         if (!val) setSelectedRole(null)
-                    }}>
-                        <SheetTrigger asChild>
-                            <CreateButton label="Add Role" icon={<Plus className="h-4 w-4" />} />
-                        </SheetTrigger>
-                        <SheetContent className="sm:max-w-[700px] border-none shadow-2xl p-0 overflow-hidden bg-white">
-                            <div className="p-10 md:p-14 overflow-y-auto h-full">
-                                <SheetHeader className="mb-12">
-                                    <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                                        <Lock className="h-7 w-7 text-primary" />
-                                    </div>
-                                    <SheetTitle className="text-3xl font-black tracking-tight leading-none text-slate-900 uppercase">
-                                        {selectedRole ? "Edit Role" : "Create New Role"}
-                                    </SheetTitle>
-                                    <SheetDescription className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[10px] pt-2">
-                                        Define permissions and access levels.
-                                    </SheetDescription>
-                                </SheetHeader>
-                                <RoleForm
-                                    permissions={permissions}
-                                    initialData={selectedRole}
-                                    onSuccess={() => {
-                                        setOpen(false)
-                                        setSelectedRole(null)
-                                        fetchData()
-                                    }}
-                                />
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                    }}
+                    title={selectedRole ? "Edit Role" : "Create New Role"}
+                    description="Define permissions and access levels."
+                    maxWidth={700}
+                    trigger={<CreateButton label="Add Role" icon={<Plus className="h-4 w-4" />} />}
+                >
+                    <RoleForm
+                        permissions={permissions}
+                        initialData={selectedRole}
+                        onSuccess={() => {
+                            setOpen(false)
+                            setSelectedRole(null)
+                            fetchData()
+                        }}
+                    />
+                </FormModal>
                 }
             />
 

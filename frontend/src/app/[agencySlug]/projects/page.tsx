@@ -18,7 +18,7 @@ import {
     RowDeleteButton,
     ControlPanel
 } from "@/components/ui/design-system"
-import { FormSheet } from "@/components/common/FormSheet"
+import { FormModal } from "@/components/common/FormModal"
 import { useAuthStore } from "@/store/authStore"
 import { toast } from "@/components/ui/sonner"
 import { motion, AnimatePresence } from "framer-motion"
@@ -197,7 +197,7 @@ export default function ProjectsPage() {
                 </AnimatePresence>
             </DataTable>
 
-            <FormSheet
+            <FormModal
                 open={open}
                 onOpenChange={(v) => { setOpen(v); if (!v) setEditingProject(null) }}
                 title={editingProject ? "Modify Project Parameters" : "Create New Project"}
@@ -212,7 +212,7 @@ export default function ProjectsPage() {
                     onSuccess={() => { setOpen(false); setEditingProject(null); fetchData() }}
                     onRefreshClients={fetchData}
                 />
-            </FormSheet>
+            </FormModal>
 
             <AlertModal
                 isOpen={deleteModal.open}

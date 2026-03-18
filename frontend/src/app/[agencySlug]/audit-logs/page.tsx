@@ -89,17 +89,17 @@ export default function AuditLogsPage() {
                     {selectedLog && (
                         <div className="relative">
                             <div className="bg-slate-950 p-5 sm:p-10 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
                                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full -ml-24 -mb-24" />
 
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-3 mb-4">
-                                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center border border-white/20 backdrop-blur-md", selectedLog.severity === 'CRITICAL' ? "bg-red-500/20 text-red-400" : "bg-teal-500/20 text-teal-400")}>
+                                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center border border-white/20 backdrop-blur-md", selectedLog.severity === 'CRITICAL' ? "bg-red-500/20 text-red-400" : "bg-cyan-500/20 text-cyan-400")}>
                                             <Shield className="h-5 w-5" />
                                         </div>
                                         <Badge variant="outline" className="text-white/40 border-white/10 font-bold tracking-widest text-[9px]">ENCRYPTED PROTOCOL</Badge>
                                     </div>
-                                    <h2 className="text-4xl font-black tracking-tighter mb-2 uppercase">Forensic <span className="text-teal-400">Dossier</span></h2>
+                                    <h2 className="text-4xl font-black tracking-tighter mb-2 uppercase">Forensic <span className="text-cyan-400">Dossier</span></h2>
                                     <p className="text-slate-400 font-medium text-sm">System integrity event verified and logged at secure node.</p>
                                 </div>
                             </div>
@@ -126,7 +126,7 @@ export default function AuditLogsPage() {
 
                                 <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 relative group overflow-hidden">
                                     <div className="relative z-10">
-                                        <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                                             <ClipboardCheck className="h-3.5 w-3.5" /> Intelligence Narrative
                                         </p>
                                         <p className="text-slate-700 font-medium leading-relaxed italic text-sm">

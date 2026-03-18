@@ -81,6 +81,7 @@ interface ShiftAssignment {
     designation?: { name: string }
   }
   project?: { id: string; name: string } | null
+  projectId?: string | null
 }
 
 const formatTime12 = (time24: string) => {
@@ -600,14 +601,16 @@ export default function ShiftsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-black text-white text-[13px] tracking-tight uppercase">{a.shift?.name}</span>
-                          <span className="text-[10px] text-white/30 font-bold mt-0.5">
+                          <span className="font-black text-black text-[13px] tracking-tight uppercase">{a.shift?.name}</span>
+                          <span className="text-[10px] text-black/60 font-bold mt-0.5">
                             {formatTime12(a.shift?.startTime)} – {formatTime12(a.shift?.endTime)}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-bold text-white/60 text-[13px]">{a.project?.name || "—"}</span>
+                        <span className="font-bold text-black text-[13px]">
+                          {a.project?.name || a.project?.id || a.projectId || "—"}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-0.5">
@@ -683,7 +686,7 @@ export default function ShiftsPage() {
                   >
                     <TableCell className="px-4 sm:px-8 py-5">
                       <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-teal-100">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-cyan-100">
                           {shift.name.toLowerCase().includes("night") ? (
                             <Moon className="h-5 w-5" />
                           ) : (

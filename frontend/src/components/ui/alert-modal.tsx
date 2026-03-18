@@ -86,10 +86,10 @@ export function AlertModal({
                     </div>
 
                     <DialogHeader className="w-full">
-                        <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight leading-tight mb-2">
+                        <DialogTitle className="text-2xl font-black text-[#0f172a] tracking-tight leading-tight mb-2">
                             {title}
                         </DialogTitle>
-                        <DialogDescription className="text-sm font-bold text-slate-400 leading-relaxed max-w-[300px] mx-auto">
+                        <DialogDescription className="text-sm font-bold text-[#64748b] leading-relaxed max-w-[300px] mx-auto">
                             {description}
                         </DialogDescription>
                     </DialogHeader>
@@ -99,7 +99,7 @@ export function AlertModal({
                             variant="outline"
                             onClick={onClose}
                             disabled={loading}
-                            className="flex-1 h-14 rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-sm transition-all"
+                            className="flex-1 h-14 rounded-2xl border-slate-200 hover:bg-slate-50 text-[#374151] font-bold text-sm transition-all"
                         >
                             {cancelText}
                         </Button>

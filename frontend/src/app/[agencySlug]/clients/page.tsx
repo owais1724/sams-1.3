@@ -20,7 +20,7 @@ import {
     StatusBadge
 } from "@/components/ui/design-system"
 import { SearchBar } from "@/components/common/SearchBar"
-import { FormSheet } from "@/components/common/FormSheet"
+import { FormModal } from "@/components/common/FormModal"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
 import { useApiData } from "@/hooks/useApiData"
 import { useDeleteConfirm } from "@/hooks/useDeleteConfirm"
@@ -138,7 +138,7 @@ export default function ClientsPage() {
             )
             }
 
-            <FormSheet
+            <FormModal
                 open={open}
                 onOpenChange={(v) => { setOpen(v); if (!v) setEditingClient(null) }}
                 title={editingClient ? "Modify Portfolio Content" : "Establish New Link"}
@@ -150,7 +150,7 @@ export default function ClientsPage() {
                     initialData={editingClient}
                     onSuccess={() => { setOpen(false); setEditingClient(null); refetch() }}
                 />
-            </FormSheet>
+            </FormModal>
 
             <AlertModal
                 isOpen={deleteModal.open}

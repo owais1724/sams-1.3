@@ -175,8 +175,8 @@ export default function AttendancePage() {
                         <div className="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-10">
                             <div className="flex-1 space-y-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 bg-teal-50 rounded-xl flex items-center justify-center border border-teal-100">
-                                        <Clock className="h-5 w-5 text-teal-700" />
+                                    <div className="h-10 w-10 bg-cyan-50 rounded-xl flex items-center justify-center border border-cyan-100">
+                                        <Clock className="h-5 w-5 text-cyan-700" />
                                     </div>
                                     <h2 className="text-[20px] font-semibold text-slate-900">Check-in / out</h2>
                                 </div>

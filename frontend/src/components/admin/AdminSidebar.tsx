@@ -32,14 +32,14 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
             )}>
                 <div className={cn("flex items-center gap-4 relative z-10 w-full", collapsed && "justify-center")}>
                     <div className="h-11 w-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shadow-sm shrink-0">
-                        <ShieldCheck className="h-6 w-6 text-[#0d9488]" />
+                        <ShieldCheck className="h-6 w-6 text-[#06b6d4]" />
                     </div>
                     <div className={cn(
                         "flex-1 min-w-0 transition-all duration-300",
                         collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                     )}>
                         <h1 className="text-lg font-bold text-white leading-tight truncate">SAMS GLOBAL</h1>
-                        <p className="text-[12px] text-[var(--sidebar-foreground)] truncate">Strategic Administration</p>
+                        <p className="text-[12px] text-[#94a3b8] truncate">Strategic Administration</p>
                     </div>
                     {onItemClick && (
                         <button
@@ -113,7 +113,7 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
                             collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                         )}>
                             <p className="text-sm font-semibold text-white truncate leading-none">Super Admin</p>
-                            <p className="text-[12px] text-[var(--sidebar-foreground)] truncate mt-1">Administrator</p>
+                            <p className="text-[12px] text-[#94a3b8] truncate mt-1">Administrator</p>
                         </div>
                     </div>
 

@@ -60,7 +60,7 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "bg-white data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-[0_0_100px_rgba(0,0,0,0.1)] transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+          "bg-[var(--popover)] data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-[0_0_100px_rgba(0,0,0,0.1)] transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "right" &&
           "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 sm:inset-y-4 sm:right-4 h-full sm:h-[calc(100%-2rem)] w-full sm:w-3/4 rounded-l-[28px] sm:rounded-[40px] border-none sm:max-w-2xl",
           side === "left" &&
@@ -75,8 +75,8 @@ function SheetContent({
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
-            <XIcon className="size-4" />
+          <SheetPrimitive.Close className="absolute right-4 top-4 z-[999] rounded-lg bg-gray-800 text-white border border-gray-700 hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 disabled:pointer-events-none p-2 shadow-lg">
+            <XIcon className="size-4 stroke-[3]" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}

@@ -26,9 +26,9 @@ const SelectTrigger = React.forwardRef<
       // Shape — matches Input and PhoneInput
       "rounded-2xl border border-transparent bg-slate-50 px-4",
       // Typography
-      "text-sm font-semibold text-slate-900 placeholder:text-slate-300",
+      "text-sm font-semibold text-[var(--popover-foreground)] placeholder:text-[var(--muted-foreground)]",
       // Focus — subtle white bg + primary border, no ugly ring box
-      "focus:outline-none focus:bg-white focus:border-primary/20",
+      "focus:outline-none focus:bg-[var(--background)] focus:border-[var(--primary)]/20",
       // Transitions & states
       "transition-all duration-150",
       "disabled:cursor-not-allowed disabled:opacity-50",
@@ -85,7 +85,7 @@ const SelectContent = React.forwardRef<
       className={cn(
         // Shape & shadow — premium card feel
         "relative z-50 min-w-[8rem] overflow-hidden",
-        "rounded-2xl border border-slate-100 bg-white shadow-2xl shadow-slate-200/60",
+        "rounded-2xl border border-border bg-[var(--popover)] shadow-2xl shadow-slate-200/60",
         // Animations
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -141,11 +141,11 @@ const SelectItem = React.forwardRef<
       // Shape & spacing
       "rounded-xl py-3 pl-10 pr-4",
       // Typography
-      "text-sm font-semibold text-slate-700",
+      "text-sm font-semibold text-[var(--popover-foreground)]",
       // States
       "outline-none transition-colors",
-      "focus:bg-primary/5 focus:text-primary",
-      "data-[state=checked]:text-primary data-[state=checked]:bg-primary/5",
+      "focus:bg-[var(--primary)]/5 focus:text-[var(--primary)]",
+      "data-[state=checked]:text-[var(--primary)] data-[state=checked]:bg-[var(--primary)]/5",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
       className
     )}
@@ -153,7 +153,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute left-3 flex h-4 w-4 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-3.5 w-3.5 text-primary" />
+        <Check className="h-3.5 w-3.5 text-[var(--primary)]" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

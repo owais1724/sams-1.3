@@ -155,14 +155,14 @@ export function PageHeader({
     return (
         <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-8 sm:mb-12", className)}>
             <div className="flex-1 min-w-0">
-                <h1 className="text-[28px] font-bold text-foreground leading-tight mb-2">
+                <h1 className="text-[28px] font-bold text-[var(--foreground)] leading-tight mb-2">
                     {title}{" "}
                     {titleHighlight && (
-                        <span className="text-primary">{titleHighlight}</span>
+                <span className="text-[var(--primary)]">{titleHighlight}</span>
                     )}
                 </h1>
                 {subtitle && (
-                    <p className="text-[14px] text-muted-foreground mt-1 leading-relaxed max-w-2xl">
+                    <p className="text-[14px] text-[var(--muted-foreground)] mt-1 leading-relaxed max-w-2xl">
                         {subtitle}
                     </p>
                 )}
@@ -177,7 +177,7 @@ export function PageHeader({
 //    KPI cards shown on dashboards and list pages.
 // ─────────────────────────────────────────────────────────────────────────────
 
-type StatCardColor = "teal" | "blue" | "emerald" | "amber" | "rose" | "slate" | "orange" | "violet"
+type StatCardColor = "teal" | "blue" | "emerald" | "amber" | "rose" | "slate" | "orange" | "violet" | "cyan"
 
 const statCardColorMap: Record<StatCardColor, { icon: string; value: string; badge: string }> = {
     teal: { icon: "bg-teal-50 text-teal-700 border-teal-100", value: "text-slate-900", badge: "bg-teal-50 text-teal-700 border-teal-100" },
@@ -188,6 +188,7 @@ const statCardColorMap: Record<StatCardColor, { icon: string; value: string; bad
     slate: { icon: "bg-slate-50 text-slate-700 border-slate-100", value: "text-slate-900", badge: "bg-slate-50 text-slate-700 border-slate-100" },
     orange: { icon: "bg-orange-50 text-orange-700 border-orange-100", value: "text-slate-900", badge: "bg-orange-50 text-orange-700 border-orange-100" },
     violet: { icon: "bg-violet-50 text-violet-700 border-violet-100", value: "text-slate-900", badge: "bg-violet-50 text-violet-700 border-violet-100" },
+    cyan: { icon: "bg-cyan-50 text-cyan-700 border-cyan-100", value: "text-[#111827]", badge: "bg-cyan-50 text-cyan-700 border-cyan-100" },
 }
 
 interface StatCardProps {
@@ -199,15 +200,15 @@ interface StatCardProps {
     className?: string
 }
 
-export function StatCard({ title, value, icon, color = "teal", trend, className }: StatCardProps) {
+export function StatCard({ title, value, icon, color = "cyan", trend, className }: StatCardProps) {
     const colors = statCardColorMap[color]
     return (
-        <Card className={cn("p-6 flex items-center justify-between overflow-hidden relative border-l-4 border-l-[#0d9488]", className)}>
+        <Card className={cn("p-6 flex items-center justify-between overflow-hidden relative border-l-4 border-l-[#06b6d4]", className)}>
             <div>
-                <p className="text-[14px] font-medium text-slate-500">{title}</p>
-                <h3 className={cn("text-[36px] font-bold leading-none mt-2", colors.value)}>{value}</h3>
+                <p className="text-[14px] font-medium text-[var(--muted-foreground)]">{title}</p>
+                <h3 className={cn("text-[36px] font-bold leading-none mt-2 text-[var(--card-foreground)]", colors.value)}>{value}</h3>
                 {trend && (
-                    <p className="text-[12px] font-semibold text-slate-500 mt-2">
+                    <p className="text-[12px] font-semibold text-[var(--muted-foreground)] mt-2">
                         {trend}
                     </p>
                 )}
@@ -311,8 +312,8 @@ export function TableRowLoading({ colSpan, message = "Loading..." }: { colSpan: 
         <TableRow>
             <TableCell colSpan={colSpan} className="text-center py-16">
                 <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                    <p className="text-[12px] font-semibold text-slate-500 animate-pulse">
+                    <Loader2 className="h-8 w-8 text-[var(--primary)] animate-spin" />
+                    <p className="text-[12px] font-semibold text-[var(--muted-foreground)] animate-pulse">
                         {message}
                     </p>
                 </div>
@@ -363,13 +364,13 @@ export function EmptyState({ title, description, icon, action, className }: Empt
             className
         )}>
             {icon && (
-                <div className="h-14 w-14 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-primary mb-4 shrink-0">
+                <div className="h-14 w-14 rounded-2xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-[var(--primary)] mb-4 shrink-0">
                     <span className="scale-110">{icon}</span>
                 </div>
             )}
-            <h3 className="text-[20px] font-semibold text-foreground mb-1">{title}</h3>
+            <h3 className="text-[20px] font-semibold text-[var(--foreground)] mb-1">{title}</h3>
             {description && (
-                <p className="text-[14px] text-muted-foreground max-w-sm mx-auto mb-6 leading-relaxed">
+                <p className="text-[14px] text-[var(--muted-foreground)] max-w-sm mx-auto mb-6 leading-relaxed">
                     {description}
                 </p>
             )}
@@ -443,7 +444,7 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
                 "group flex items-center rounded-lg px-4 py-3 text-[14px] font-medium transition-colors duration-200 relative select-none",
                 collapsed && "justify-center px-3",
                 isActive
-                    ? "bg-[rgba(13,148,136,0.14)] text-[#0d9488]"
+                    ? "bg-[rgba(6,182,212,0.14)] text-[var(--primary)]"
                     : "text-[var(--sidebar-foreground)] hover:text-white hover:bg-white/5",
                 className
             )}
@@ -451,7 +452,7 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
             <Icon className={cn(
                 "h-5 w-5 shrink-0",
                 !collapsed && "mr-3",
-                isActive ? "text-[#0d9488]" : "text-[var(--sidebar-foreground)] group-hover:text-white"
+                isActive ? "text-[var(--primary)]" : "text-[var(--sidebar-foreground)] group-hover:text-white"
             )} />
             <span className={cn(
                 "whitespace-nowrap transition-all duration-300",
@@ -460,7 +461,7 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
                 {name}
             </span>
             {isActive && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0d9488]" />
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--primary)]" />
             )}
         </Link>
     )
@@ -522,7 +523,7 @@ export function RowEditButton({ onClick, disabled, label = "Edit", className }: 
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "h-10 px-4 rounded-lg font-medium text-[#0d9488] hover:bg-teal-50",
+                "h-10 px-4 rounded-lg font-medium text-[var(--primary)] hover:bg-cyan-50",
                 className
             )}
         >
@@ -558,7 +559,7 @@ export function RowViewButton({ onClick, disabled, label = "View", className }: 
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "h-10 px-4 rounded-lg font-medium text-slate-700 hover:bg-slate-100",
+                "h-10 px-4 rounded-lg font-medium text-[#374151] hover:bg-slate-100",
                 className
             )}
         >
@@ -596,7 +597,7 @@ export function GhostAction({ onClick, children, className, size = "md" }: Ghost
             type="button"
             onClick={onClick}
             className={cn(
-                "font-black text-primary uppercase tracking-widest hover:bg-primary/5 rounded-lg transition-all active:scale-[0.98]",
+                "font-black text-[var(--primary)] uppercase tracking-widest hover:bg-cyan-50 rounded-lg transition-all active:scale-[0.98]",
                 size === "sm" ? "px-2 py-1 text-[9px]" : "px-3 py-2 text-[10px]",
                 className
             )}
@@ -624,7 +625,7 @@ export function FormCard({ children, className }: { children: React.ReactNode, c
 
 export function FormHeader({ title, color = "blue" }: { title: string, color?: "blue" | "emerald" | "amber" | "rose" }) {
     const dotColors = {
-        blue: "bg-primary",
+        blue: "bg-[#06b6d4]",
         emerald: "bg-emerald-500",
         amber: "bg-amber-500",
         rose: "bg-rose-500"
@@ -632,7 +633,7 @@ export function FormHeader({ title, color = "blue" }: { title: string, color?: "
     return (
         <div className="flex items-center gap-3 mb-2">
             <div className={cn("h-2 w-2 rounded-full animate-pulse", dotColors[color])} />
-            <h3 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500">{title}</h3>
+            <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[#64748b]">{title}</h3>
         </div>
     )
 }
@@ -673,7 +674,7 @@ export function PageLoading({ message = "Loading System Data..." }: { message?: 
                     </div>
                 </div>
 
-                <p className="text-center text-[12px] font-medium text-slate-500">{message}</p>
+                <p className="text-center text-[12px] font-medium text-[#64748b]">{message}</p>
             </div>
         </div>
     )
@@ -692,8 +693,8 @@ interface SectionHeadingProps {
 export function SectionHeading({ title, icon, action, className }: SectionHeadingProps) {
     return (
         <div className={cn("flex items-center justify-between mb-8 px-2", className)}>
-            <h2 className="text-[20px] font-semibold text-slate-900 flex items-center gap-3">
-                {icon && <span className="text-primary">{icon}</span>}
+            <h2 className="text-[20px] font-semibold text-[var(--foreground)] flex items-center gap-3">
+                {icon && <span className="text-[var(--primary)]">{icon}</span>}
                 {title}
             </h2>
             {action && action}
@@ -719,10 +720,10 @@ export function ControlPanel({ count, totalLabel, children, className }: Control
             className
         )}>
             <div className="flex items-center gap-3 sm:gap-4 px-1 sm:px-2">
-                <div className="h-9 w-9 sm:h-10 sm:w-10 bg-primary/20 text-primary rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm shadow-inner shadow-black/20">
+                <div className="h-9 w-9 sm:h-10 sm:w-10 bg-[var(--primary)]/20 text-[var(--primary)] rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-xs sm:text-sm shadow-inner shadow-black/20">
                     {count}
                 </div>
-                <span className="text-[14px] font-medium text-slate-600">
+                <span className="text-[14px] font-medium text-[#374151]">
                     {totalLabel}
                 </span>
             </div>
@@ -739,7 +740,7 @@ export function ControlPanel({ count, totalLabel, children, className }: Control
 // ─────────────────────────────────────────────────────────────────────────────
 export function FormLabelBase({ label, required, className }: { label: string, required?: boolean, className?: string }) {
     return (
-        <label className={cn("text-[12px] font-semibold text-slate-600 uppercase tracking-wider mb-2 block", className)}>
+        <label className={cn("text-[12px] font-semibold text-[#374151] uppercase tracking-wider mb-2 block", className)}>
             {label} {required && <span className="text-rose-500 font-bold ml-0.5">*</span>}
         </label>
     )
@@ -748,6 +749,6 @@ export function FormLabelBase({ label, required, className }: { label: string, r
 // ─────────────────────────────────────────────────────────────────────────────
 // 18. PREMIUM INPUT CLASSES
 // ─────────────────────────────────────────────────────────────────────────────
-export const inputVariants = "h-12 sm:h-14 bg-white border border-border text-slate-900 placeholder:text-slate-400 rounded-xl focus:bg-white focus:border-primary/40 focus:ring-primary/20 transition-all font-medium px-4 sm:px-5 text-sm sm:text-base selection:bg-primary/20"
+export const inputVariants = "h-12 sm:h-14 bg-white border border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-xl focus:bg-white focus:border-[#06b6d4]/40 focus:ring-[#06b6d4]/20 transition-all font-medium px-4 sm:px-5 text-sm sm:text-base selection:bg-[#06b6d4]/20"
 
-export const selectVariants = "h-12 sm:h-14 bg-white border border-border text-slate-900 rounded-xl focus:bg-white focus:border-primary/40 focus:ring-primary/20 transition-all font-medium px-4 sm:px-5 w-full appearance-none text-sm sm:text-base selection:bg-primary/20"
+export const selectVariants = "h-12 sm:h-14 bg-white border border-border text-[#0f172a] rounded-xl focus:bg-white focus:border-[#06b6d4]/40 focus:ring-[#06b6d4]/20 transition-all font-medium px-4 sm:px-5 w-full appearance-none text-sm sm:text-base selection:bg-[#06b6d4]/20"

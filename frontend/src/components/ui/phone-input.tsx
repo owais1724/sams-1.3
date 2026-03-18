@@ -53,7 +53,7 @@ export function PhoneInput({
   value,
   onChange,
   label = "Phone Number",
-  placeholder = "Enter phone number",
+  placeholder = "Mobile number",
   error,
   disabled = false,
   required = false,
@@ -92,8 +92,8 @@ export function PhoneInput({
 
   return (
     <div className="space-y-2">
-      <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">
-        {label} {required && <span className="text-red-500">*</span>}
+      <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
+        {label} {required && <span className="text-[var(--primary)]">*</span>}
       </FormLabel>
       <div className="flex gap-2">
         <Select
@@ -109,7 +109,7 @@ export function PhoneInput({
               <SelectItem key={country.code} value={country.code}>
                 <div className="flex items-center gap-2">
                   <span>{country.code}</span>
-                  <span className="text-sm text-slate-500">{country.dialCode}</span>
+                  <span className="text-sm text-[#64748b]">{country.dialCode}</span>
                 </div>
               </SelectItem>
             ))}
@@ -124,15 +124,15 @@ export function PhoneInput({
             onBlur={handleBlur}
             placeholder={placeholder}
             disabled={disabled}
-            className={cn("px-4", error && "border-red-500")}
+            className={cn("px-4 pr-12", error && "border-red-500")}
           />
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[#64748b]">
             {value.phoneNumber.length}/{selectedCountry.maxLength}
           </div>
         </div>
       </div>
       {error && (
-        <p className="text-sm text-red-500">{error}</p>
+        <p className="text-sm text-[#dc2626]">{error}</p>
       )}
     </div>
   )

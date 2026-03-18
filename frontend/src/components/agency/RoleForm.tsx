@@ -35,6 +35,10 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
 }) {
     const [loading, setLoading] = useState(false)
 
+    // Filter out permissions that are granted by default to all staff
+    const defaultStaffPermissions = ['view_shifts', 'view_attendance', 'record_attendance']
+    const editablePermissions = permissions.filter(p => !defaultStaffPermissions.includes(p.action))
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -76,7 +80,7 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
         return "Other"
     }
 
-    const groupedPermissions = permissions.reduce((acc: any, p: any) => {
+    const groupedPermissions = editablePermissions.reduce((acc: any, p: any) => {
         const cat = getCategory(p.action)
         if (!acc[cat]) acc[cat] = []
         acc[cat].push(p)
@@ -174,7 +178,7 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
                                         className="w-full flex items-center justify-between p-5 bg-slate-50/50 hover:bg-slate-50 transition-colors"
                                     >
                                         <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-primary shadow-sm">
+                                            <div className="h-10 w-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[var(--primary)] shadow-sm">
                                                 <Icon className="h-5 w-5" />
                                             </div>
                                             <div className="text-left">

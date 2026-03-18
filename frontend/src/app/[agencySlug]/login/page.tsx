@@ -93,7 +93,7 @@ export default function AgencyAdminLogin() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0d9488] font-inter p-4 selection:bg-white/20">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 selection:bg-white/20">
             <motion.div
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}

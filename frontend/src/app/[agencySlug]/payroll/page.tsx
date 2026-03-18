@@ -26,14 +26,7 @@ import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
 import { TableCell, TableRow } from "@/components/ui/table"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger
-} from "@/components/ui/sheet"
+import { FormModal } from "@/components/common/FormModal"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface Payroll {
@@ -152,71 +145,59 @@ export default function PayrollPage() {
         titleHighlight="Payroll"
         subtitle="Manage and authorize salary payments for employees."
         action={
-          <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <SheetTrigger asChild>
-              <CreateButton label="Generate Payroll" icon={<Calculator className="h-4 w-4" />} />
-            </SheetTrigger>
-            <SheetContent className="sm:max-w-[700px] border-none shadow-2xl p-0 overflow-hidden bg-white">
-              <div className="p-10 md:p-14 overflow-y-auto h-full">
-                <SheetHeader className="mb-12">
-                  <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
-                    <Receipt className="h-7 w-7 text-primary" />
-                  </div>
-                  <SheetTitle className="text-3xl font-black tracking-tight leading-none text-slate-900 uppercase">
-                    Create Payroll
-                  </SheetTitle>
-                  <SheetDescription className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[10px] pt-3">
-                    Calculate and process salary payments for the agency.
-                  </SheetDescription>
-                </SheetHeader>
+        <FormModal
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          title="Create Payroll"
+          description="Calculate and process salary payments for the agency."
+          maxWidth={700}
+          trigger={<CreateButton label="Generate Payroll" icon={<Calculator className="h-4 w-4" />} />}
+        >
+          <div className="space-y-10">
+            <div className="space-y-0">
+              <FormLabelBase label="Payroll Month" required />
+              <Input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className={inputVariants}
+              />
+            </div>
 
-                <div className="space-y-10">
-                  <div className="space-y-0">
-                    <FormLabelBase label="Payroll Month" required />
-                    <Input
-                      type="month"
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(e.target.value)}
-                      className={inputVariants}
-                    />
-                  </div>
+            <div className="space-y-0">
+              <FormLabelBase label="Employee Scope" required />
+              <Select value={generateDesignationId} onValueChange={setGenerateDesignationId}>
+                <SelectTrigger className={selectVariants}>
+                  <SelectValue placeholder="Select designation scope" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2 font-black uppercase text-[10px] tracking-widest">
+                  <SelectItem value="all" className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">ALL EMPLOYEES</SelectItem>
+                  {designations.map(d => (
+                    <SelectItem key={d.id} value={d.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                  <div className="space-y-0">
-                    <FormLabelBase label="Employee Scope" required />
-                    <Select value={generateDesignationId} onValueChange={setGenerateDesignationId}>
-                      <SelectTrigger className={selectVariants}>
-                        <SelectValue placeholder="Select designation scope" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-slate-100 shadow-2xl p-2">
-                        <SelectItem value="all" className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">ALL EMPLOYEES</SelectItem>
-                        {designations.map(d => (
-                          <SelectItem key={d.id} value={d.id} className="py-4 font-black uppercase text-[10px] tracking-widest rounded-xl">{d.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="bg-amber-50 rounded-[32px] p-8 border border-amber-100/50 flex gap-5">
-                    <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                      <AlertCircle className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <p className="text-[13px] font-bold text-amber-900 leading-relaxed italic">
-                      Generating payroll will calculate salary for the selected employees based on their attendance and contracts.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-14 pb-10">
-                  <SubmitButton
-                    onClick={handleGeneratePayroll}
-                    loading={generating}
-                    label="Generate Payroll"
-                    icon={<CheckCircle2 className="h-4 w-4" />}
-                  />
-                </div>
+            <div className="bg-amber-50 rounded-[32px] p-8 border border-amber-100/50 flex gap-5">
+              <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                <AlertCircle className="h-5 w-5 text-amber-600" />
               </div>
-            </SheetContent>
-          </Sheet>
+              <p className="text-[13px] font-bold text-amber-900 leading-relaxed italic">
+                Generating payroll will calculate salary for the selected employees based on their attendance and contracts.
+              </p>
+            </div>
+
+            <div className="pt-4 pb-10">
+              <SubmitButton
+                onClick={handleGeneratePayroll}
+                loading={generating}
+                label="Generate Payroll"
+                icon={<CheckCircle2 className="h-4 w-4" />}
+              />
+            </div>
+          </div>
+        </FormModal>
         }
       />
 

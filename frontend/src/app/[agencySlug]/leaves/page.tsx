@@ -225,8 +225,8 @@ export default function LeavesPage() {
               <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
                 <DialogHeader className="p-10 bg-slate-900 text-white relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                  <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase">New Leave Request</DialogTitle>
-                  <DialogDescription className="text-slate-400 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Submit your leave request details</DialogDescription>
+                  <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase text-white">New Leave Request</DialogTitle>
+                  <DialogDescription className="text-slate-300 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Submit your leave request details</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="p-10 space-y-8">
                   <div className="space-y-0">

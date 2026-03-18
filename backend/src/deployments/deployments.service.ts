@@ -97,40 +97,161 @@ export class DeploymentsService {
       throw new BadRequestException('End date must be after start date');
     }
 
-    const deployment = await this.prisma.deployment.create({
-      data: {
+    // Use transaction to ensure deployment is only created if guard assignment succeeds
+    return await this.prisma.$transaction(async (tx) => {
+      const deployment = await tx.deployment.create({
+        data: {
+          agencyId,
+          clientId: dto.clientId,
+          shiftId: dto.shiftId,
+          startDate,
+          endDate,
+          notes: dto.notes,
+          status: 'planned',
+        },
+        include: {
+          client: { select: { name: true } },
+          shift: { select: { name: true } },
+        },
+      });
+
+      // Assign guards if provided - if this fails, deployment creation will be rolled back
+      if (dto.guardIds?.length) {
+        await this.assignGuardsInTransaction(tx, agencyId, deployment.id, dto.guardIds, deployment);
+      }
+
+      await this.auditLogsService.create(
         agencyId,
-        clientId: dto.clientId,
-        shiftId: dto.shiftId,
-        startDate,
-        endDate,
-        notes: dto.notes,
-        status: 'planned',
-      },
+        {
+          action: 'CREATE_DEPLOYMENT',
+          entity: 'Deployment',
+          entityId: deployment.id,
+          details: `Deployment created for ${client.name} with ${shift.name} shift`,
+          severity: 'INFO',
+        },
+        userId,
+      );
+
+      return deployment;
+    });
+  }
+
+  // Helper method for guard assignment within a transaction
+  private async assignGuardsInTransaction(
+    tx: any,
+    agencyId: string,
+    deploymentId: string,
+    guardIds: string[],
+    deployment: any,
+  ) {
+    // Validate all guards belong to this agency
+    const users = await tx.user.findMany({
+      where: { id: { in: guardIds }, agencyId, isActive: true },
       include: {
-        client: { select: { name: true } },
-        shift: { select: { name: true } },
+        employee: {
+          include: {
+            assignedProjects: {
+              where: { clientId: deployment.clientId },
+              select: { id: true, name: true },
+            },
+          },
+        },
       },
     });
-
-    // Assign guards if provided
-    if (dto.guardIds?.length) {
-      await this.assignGuards(agencyId, deployment.id, dto.guardIds);
+    if (users.length !== guardIds.length) {
+      throw new BadRequestException('Some guards were not found or are inactive');
     }
 
-    await this.auditLogsService.create(
-      agencyId,
-      {
-        action: 'CREATE_DEPLOYMENT',
-        entity: 'Deployment',
-        entityId: deployment.id,
-        details: `Deployment created for ${client.name} with ${shift.name} shift`,
-        severity: 'INFO',
-      },
-      userId,
-    );
+    // Validate each guard is assigned to a project at this deployment's client site
+    for (const user of users) {
+      if (!user.employee) {
+        throw new BadRequestException(
+          `"${user.fullName}" does not have an employee record`,
+        );
+      }
+      if (user.employee.assignedProjects.length === 0) {
+        const client = await tx.client.findUnique({
+          where: { id: deployment.clientId },
+          select: { name: true },
+        });
+        throw new BadRequestException(
+          `"${user.fullName}" is not assigned to any project at "${client?.name}". Assign them to a project at this client site first.`,
+        );
+      }
+    }
 
-    return deployment;
+    // Check for conflicts
+    for (const guardId of guardIds) {
+      const user = users.find(u => u.id === guardId);
+      
+      // Check if guard has shift assignments for a different shift during this deployment period
+      if (user?.employee) {
+        const conflictingShiftAssignment = await tx.shiftAssignment.findFirst({
+          where: {
+            employeeId: user.employee.id,
+            agencyId,
+            shiftId: { not: deployment.shiftId },
+            date: {
+              gte: deployment.startDate,
+              lte: deployment.endDate,
+            },
+          },
+          include: {
+            shift: { select: { name: true } },
+          },
+        });
+
+        if (conflictingShiftAssignment) {
+          throw new ConflictException(
+            `Guard "${user.fullName}" is already assigned to "${conflictingShiftAssignment.shift.name}" shift on ${new Date(conflictingShiftAssignment.date).toLocaleDateString()}. Cannot assign to "${deployment.shift.name}" shift for the same period.`,
+          );
+        }
+      }
+
+      const overlap = await tx.deploymentGuard.findFirst({
+        where: {
+          userId: guardId,
+          agencyId,
+          deployment: {
+            id: { not: deploymentId },
+            status: { in: ['planned', 'active'] },
+            shiftId: deployment.shiftId,
+            OR: [
+              {
+                startDate: { lte: deployment.endDate },
+                endDate: { gte: deployment.startDate },
+              },
+            ],
+          },
+        },
+        include: {
+          deployment: { include: { client: { select: { name: true } } } },
+          user: { select: { fullName: true } },
+        },
+      });
+
+      if (overlap) {
+        throw new ConflictException(
+          `Guard "${overlap.user.fullName}" has an overlapping deployment at "${overlap.deployment.client.name}" during the same shift and date range`,
+        );
+      }
+    }
+
+    // Create guard assignments
+    const results = [];
+    for (const guardId of guardIds) {
+      try {
+        const guard = await tx.deploymentGuard.create({
+          data: { deploymentId, userId: guardId, agencyId },
+        });
+        results.push(guard);
+      } catch (e: any) {
+        if (e.code === 'P2002') continue;
+        throw e;
+      }
+    }
+
+    return results;
   }
 
   async update(agencyId: string, id: string, dto: UpdateDeploymentDto, userId?: string) {
@@ -250,6 +371,32 @@ export class DeploymentsService {
 
     // Check for overlapping deployments for each guard
     for (const guardId of guardIds) {
+      const user = users.find(u => u.id === guardId);
+      
+      // Check if guard has shift assignments for a different shift during this deployment period
+      if (user?.employee) {
+        const conflictingShiftAssignment = await this.prisma.shiftAssignment.findFirst({
+          where: {
+            employeeId: user.employee.id,
+            agencyId,
+            shiftId: { not: deployment.shiftId }, // Different shift
+            date: {
+              gte: deployment.startDate,
+              lte: deployment.endDate,
+            },
+          },
+          include: {
+            shift: { select: { name: true } },
+          },
+        });
+
+        if (conflictingShiftAssignment) {
+          throw new ConflictException(
+            `Guard "${user.fullName}" is already assigned to "${conflictingShiftAssignment.shift.name}" shift on ${new Date(conflictingShiftAssignment.date).toLocaleDateString()}. Cannot assign to "${deployment.shift.name}" shift for the same period.`,
+          );
+        }
+      }
+
       const overlap = await this.prisma.deploymentGuard.findFirst({
         where: {
           userId: guardId,
