@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
+import { Pagination } from "@/components/ui/Pagination"
 import { cn } from "@/lib/utils"
 
 interface Incident {
@@ -104,6 +105,11 @@ export default function IncidentsPage() {
     const [statusFilter, setStatusFilter] = useState("")
     const [severityFilter, setSeverityFilter] = useState("")
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [totalRecords, setTotalRecords] = useState(0)
+
     // Detail / review dialogs
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null)
     const [showDetail, setShowDetail] = useState(false)
@@ -130,10 +136,19 @@ export default function IncidentsPage() {
         setLoading(true)
         try {
             const [incRes, depRes] = await Promise.allSettled([
-                canManage ? api.get("/incidents") : api.get("/incidents/my-incidents"),
+                canManage ? api.get(`/incidents?page=${currentPage}&limit=${pageSize}`) : api.get("/incidents/my-incidents"),
                 isAdmin ? api.get("/deployments") : api.get("/deployments/my-schedule"),
             ])
-            if (incRes.status === "fulfilled") setIncidents(incRes.value.data)
+            if (incRes.status === "fulfilled") {
+                const incidentsResponse = incRes.value.data
+                if (incidentsResponse.data && Array.isArray(incidentsResponse.data)) {
+                    setIncidents(incidentsResponse.data)
+                    setTotalRecords(incidentsResponse.pagination?.total || 0)
+                } else {
+                    setIncidents(Array.isArray(incidentsResponse) ? incidentsResponse : [])
+                    setTotalRecords(Array.isArray(incidentsResponse) ? incidentsResponse.length : 0)
+                }
+            }
             if (depRes.status === "fulfilled") {
                 const data = depRes.value.data
                 if (Array.isArray(data)) {
@@ -152,7 +167,7 @@ export default function IncidentsPage() {
 
     useEffect(() => {
         fetchData()
-    }, [])
+    }, [currentPage, pageSize])
 
     // For guards, auto-select active deployment
     const activeDeployments = deployments.filter(d => d.status === "active")
@@ -389,6 +404,20 @@ export default function IncidentsPage() {
                     ))
                 )}
             </DataTable>
+
+            {totalRecords > 0 && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={Math.ceil(totalRecords / pageSize)}
+                    pageSize={pageSize}
+                    totalRecords={totalRecords}
+                    onPageChange={(page) => setCurrentPage(page)}
+                    onPageSizeChange={(size) => {
+                        setPageSize(size)
+                        setCurrentPage(1)
+                    }}
+                />
+            )}
 
             {/* ─── Report Incident Dialog ─── */}
             <Dialog open={showCreate} onOpenChange={setShowCreate}>

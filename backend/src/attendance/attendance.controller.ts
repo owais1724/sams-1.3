@@ -6,11 +6,16 @@ import {
   Query,
   UseGuards,
   Request,
+  BadRequestException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { AuthGuard } from '@nestjs/passport';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
+import { CheckInDto } from './dto/check-in.dto';
+import { CheckOutDto } from './dto/check-out.dto';
 
 @Controller('attendance')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -52,7 +57,13 @@ export class AttendanceController {
 
   @Post('check-in')
   @Permissions('record_attendance')
-  async checkIn(@Request() req, @Body() data: any) {
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+  async checkIn(@Request() req, @Body() data: CheckInDto) {
+    // Additional validation: at least one of projectId or deploymentId must be provided
+    if (!data.projectId && !data.deploymentId) {
+      throw new BadRequestException('Either projectId or deploymentId is required for check-in');
+    }
+
     return this.attendanceService.checkIn(
       req.user.agencyId,
       req.user.userId,
@@ -62,7 +73,13 @@ export class AttendanceController {
 
   @Post('check-out')
   @Permissions('record_attendance')
-  async checkOut(@Request() req, @Body() data: any) {
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+  async checkOut(@Request() req, @Body() data: CheckOutDto) {
+    // Additional validation: at least one of projectId or deploymentId must be provided
+    if (!data.projectId && !data.deploymentId) {
+      throw new BadRequestException('Either projectId or deploymentId is required for check-out');
+    }
+
     return this.attendanceService.checkOut(
       req.user.agencyId,
       req.user.userId,

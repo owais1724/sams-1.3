@@ -86,9 +86,9 @@ export default function AgencyDashboard() {
     const [recentIncidents, setRecentIncidents] = useState<any[]>([])
     const [recentActivity, setRecentActivity] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
     const fetchData = async () => {
-        setLoading(true)
         try {
             const isAdmin = authUser?.role === 'Agency Admin' || authUser?.role === 'Super Admin'
             const hasPerm = (p: string) => isAdmin || authUser?.permissions?.includes(p)
@@ -140,6 +140,8 @@ export default function AgencyDashboard() {
                 totalGuards: employees.length,
                 attendanceSummary: attendanceSummary,
             })
+
+            setLastUpdated(new Date())
         } catch {
             toast.error("Failed to load dashboard.")
         } finally {
@@ -148,7 +150,21 @@ export default function AgencyDashboard() {
     }
 
     useEffect(() => {
-        if (authUser) fetchData()
+        if (authUser) {
+            setLoading(true)
+            fetchData()
+        }
+    }, [authUser])
+
+    // Auto-refresh every 30 seconds
+    useEffect(() => {
+        if (!authUser) return
+
+        const interval = setInterval(() => {
+            fetchData()
+        }, 30000) // 30 seconds
+
+        return () => clearInterval(interval)
     }, [authUser])
 
     if (loading) return <PageLoading message="Synchronizing Interface..." />
@@ -162,11 +178,21 @@ export default function AgencyDashboard() {
                 titleHighlight="Command"
                 subtitle={`Operational Control Center for ${authUser?.agencyName || agencySlug}. Systems live.`}
                 action={
-                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full shadow-sm">
-                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
-                            Real-time Tracking
-                        </span>
+                    <div className="flex items-center gap-3">
+                        {lastUpdated && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg">
+                                <Clock className="h-3.5 w-3.5 text-slate-500" />
+                                <span className="text-[10px] font-medium text-slate-600 uppercase tracking-wider">
+                                    {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-full shadow-sm">
+                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+                                Live
+                            </span>
+                        </div>
                     </div>
                 }
             />

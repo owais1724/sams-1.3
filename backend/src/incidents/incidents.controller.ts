@@ -8,6 +8,8 @@ import {
   Query,
   Request,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PermissionsGuard } from '../auth/permissions.guard';
@@ -15,6 +17,7 @@ import { Permissions } from '../auth/permissions.decorator';
 import { IncidentsService } from './incidents.service';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { UpdateIncidentStatusDto } from './dto/update-incident-status.dto';
+import { UpdateIncidentDto } from './dto/update-incident.dto';
 
 @Controller('incidents')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -50,6 +53,18 @@ export class IncidentsController {
   @Permissions('view_incidents')
   async findOne(@Param('id') id: string, @Request() req) {
     return this.incidentsService.findOne(req.user.agencyId, id);
+  }
+
+  @Patch(':id')
+  @Permissions('manage_incidents')
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async update(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() dto: UpdateIncidentDto,
+  ) {
+    // Always use agencyId from session, ignore any agencyId in request body
+    return this.incidentsService.update(req.user.agencyId, id, dto, req.user.userId);
   }
 
   @Post()

@@ -36,7 +36,7 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
     const [loading, setLoading] = useState(false)
 
     // Filter out permissions that are granted by default to all staff
-    const defaultStaffPermissions = ['view_shifts', 'view_attendance', 'record_attendance']
+    const defaultStaffPermissions = ['view_attendance', 'record_attendance']
     const editablePermissions = permissions.filter(p => !defaultStaffPermissions.includes(p.action))
 
     const form = useForm<z.infer<typeof formSchema>>({

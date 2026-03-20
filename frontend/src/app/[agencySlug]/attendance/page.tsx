@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/design-system"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AttendanceCheckIn } from "@/components/common/AttendanceCheckIn"
+import { Pagination } from "@/components/ui/Pagination"
 import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
@@ -43,6 +44,11 @@ export default function AttendancePage() {
     const [selectedDeployment, setSelectedDeployment] = useState<string>("")
     const [isChecking, setIsChecking] = useState(false)
     const [attendanceCheckInOpen, setAttendanceCheckInOpen] = useState(false)
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [totalRecords, setTotalRecords] = useState(0)
 
     // Does this user have active deployments today?
     const hasDeployments = activeDeployments.length > 0
@@ -56,13 +62,21 @@ export default function AttendancePage() {
         setLoading(true)
         try {
             const [attendanceRes, projectsRes, deploymentsRes] = await Promise.all([
-                api.get(`/attendance?today=true`),
+                api.get(`/attendance?today=true&page=${currentPage}&limit=${pageSize}`),
                 canMark ? api.get('/projects') : Promise.resolve({ data: [] }),
                 canMark ? api.get('/deployments/my-schedule').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
             ])
 
-            const data = attendanceRes.data || []
-            setAttendanceData(data)
+            const attendanceResponse = attendanceRes.data || []
+            // Check if response is paginated
+            if (attendanceResponse.data && Array.isArray(attendanceResponse.data)) {
+                setAttendanceData(attendanceResponse.data)
+                setTotalRecords(attendanceResponse.pagination?.total || 0)
+            } else {
+                // Fallback for non-paginated response
+                setAttendanceData(Array.isArray(attendanceResponse) ? attendanceResponse : [])
+                setTotalRecords(Array.isArray(attendanceResponse) ? attendanceResponse.length : 0)
+            }
 
             // Check for active deployments today
             const today = new Date()
@@ -115,7 +129,7 @@ export default function AttendancePage() {
 
     useEffect(() => {
         if (user) fetchData()
-    }, [user])
+    }, [user, currentPage, pageSize])
 
     const handleCheckOut = async () => {
         if (!selectedSite) {
@@ -335,6 +349,20 @@ export default function AttendancePage() {
                         )}
                     </AnimatePresence>
                 </DataTable>
+
+                {totalRecords > 0 && (
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={Math.ceil(totalRecords / pageSize)}
+                        pageSize={pageSize}
+                        totalRecords={totalRecords}
+                        onPageChange={(page) => setCurrentPage(page)}
+                        onPageSizeChange={(size) => {
+                            setPageSize(size)
+                            setCurrentPage(1)
+                        }}
+                    />
+                )}
             </div>
 
             {/* Attendance Check-In Flow (Photo → QR → GPS) - For all roles */}

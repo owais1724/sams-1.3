@@ -231,6 +231,56 @@ export class IncidentsService {
     return updated;
   }
 
+  async update(agencyId: string, id: string, updateData: any, userId?: string) {
+    // First check if incident exists
+    const incidentExists = await this.prisma.incident.findUnique({ where: { id } });
+    if (!incidentExists) throw new NotFoundException('Incident not found');
+    
+    // Then check if it belongs to the requesting agency
+    if (incidentExists.agencyId !== agencyId) {
+      throw new ForbiddenException('Access to this incident is forbidden');
+    }
+
+    // Validate deploymentId if provided
+    if (updateData.deploymentId) {
+      const deploymentExists = await this.prisma.deployment.findUnique({ 
+        where: { id: updateData.deploymentId } 
+      });
+      if (!deploymentExists) throw new NotFoundException('Deployment not found');
+      if (deploymentExists.agencyId !== agencyId) {
+        throw new ForbiddenException('Access to this deployment is forbidden');
+      }
+    }
+
+    const updated = await this.prisma.incident.update({
+      where: { id },
+      data: updateData,
+      include: {
+        reporter: { select: { fullName: true } },
+        deployment: {
+          select: {
+            client: { select: { name: true } },
+            shift: { select: { name: true } },
+          },
+        },
+      },
+    });
+
+    await this.auditLogsService.create(
+      agencyId,
+      {
+        action: 'UPDATE_INCIDENT',
+        entity: 'Incident',
+        entityId: id,
+        details: `Incident updated: "${updated.title}"`,
+        severity: 'INFO',
+      },
+      userId,
+    );
+
+    return updated;
+  }
+
   async findByReporter(agencyId: string, userId: string) {
     return this.prisma.incident.findMany({
       where: { agencyId, reportedBy: userId },

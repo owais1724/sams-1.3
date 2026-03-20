@@ -71,9 +71,13 @@ export class PermissionsGuard implements CanActivate {
       const freshUser = await this.usersService.findById(user.userId);
       if (freshUser && (freshUser as any).role?.permissions) {
         userPermissions = (freshUser as any).role.permissions.map((p: any) => p.action);
+      } else {
+        // User exists but has no role or no permissions - fallback to JWT
+        userPermissions = user.permissions || [];
       }
-    } catch {
+    } catch (error) {
       // Fallback to JWT permissions if DB query fails
+      this.logger.warn(`[RBAC] Failed to fetch live permissions for user ${user.userId}: ${error.message}`);
       userPermissions = user.permissions || [];
     }
 
