@@ -65,7 +65,7 @@ export function Pagination({
                     <select
                         value={pageSize}
                         onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                        className="h-9 rounded-lg bg-white border border-slate-200 px-2 text-sm text-slate-900 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500"
+                        className="h-9 rounded-lg bg-white border border-slate-200 px-2 text-sm text-slate-900 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 cursor-pointer"
                     >
                         <option value={10}>10</option>
                         <option value={25}>25</option>

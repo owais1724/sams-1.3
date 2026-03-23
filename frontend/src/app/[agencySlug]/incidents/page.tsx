@@ -37,6 +37,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { Pagination } from "@/components/ui/Pagination"
@@ -126,6 +127,11 @@ export default function IncidentsPage() {
         severity: 1,
     })
 
+    const [formErrors, setFormErrors] = useState({
+        title: "",
+        deploymentId: "",
+    })
+
     const isAdmin = user?.role?.toLowerCase().includes('admin')
     const isSupervisor = user?.role?.toLowerCase().includes('supervisor')
     const isGuard = user?.role?.toLowerCase().includes('guard') || user?.role?.toLowerCase().includes('staff')
@@ -174,10 +180,13 @@ export default function IncidentsPage() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!form.title) {
-            toast.error("Title is required")
-            return
-        }
+        
+        // Reset errors
+        setFormErrors({ title: "", deploymentId: "" })
+        
+        // Validate required fields
+        const errors: any = {}
+        if (!form.title.trim()) errors.title = "This field is required"
         
         // Auto-link deployment if guard has only one active deployment
         let deploymentId = form.deploymentId
@@ -185,18 +194,30 @@ export default function IncidentsPage() {
             deploymentId = activeDeployments[0].id
         }
         
+        // Validate deployment site is selected (not auto-linked for guards with single deployment)
+        if (!deploymentId) {
+            errors.deploymentId = "This field is required"
+        }
+        
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors)
+            toast.error("Please fill all required fields")
+            return
+        }
+        
         setSaving(true)
         try {
             await api.post("/incidents", {
                 title: form.title,
-                description: form.description,
+                description: form.description || undefined,
                 type: form.type || undefined,
-                deploymentId: deploymentId || undefined,
-                severity: form.severity,
+                deploymentId: deploymentId,
+                severity: form.severity || 1,
             })
             toast.success("Incident reported successfully")
             setShowCreate(false)
             setForm({ title: "", description: "", type: "", deploymentId: "", severity: 1 })
+            setFormErrors({ title: "", deploymentId: "" })
             fetchData()
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Failed to report incident")
@@ -294,28 +315,50 @@ export default function IncidentsPage() {
                         onChange={e => setSearch(e.target.value)}
                         className="h-10 rounded-xl bg-white border border-border w-full sm:max-w-xs text-slate-900 placeholder:text-slate-400"
                     />
-                    <select
-                        value={statusFilter}
-                        onChange={e => setStatusFilter(e.target.value)}
-                        className="h-10 rounded-xl bg-white border border-border px-3 text-sm text-slate-900 focus:ring-0"
-                    >
-                        <option value="">All Status</option>
-                        <option value="open">Open</option>
-                        <option value="under_review">Under Review</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="closed">Closed</option>
-                    </select>
-                    <select
-                        value={severityFilter}
-                        onChange={e => setSeverityFilter(e.target.value)}
-                        className="h-10 rounded-xl bg-white border border-border px-3 text-sm text-slate-900 focus:ring-0"
-                    >
-                        <option value="">All Severity</option>
-                        <option value="1">Low</option>
-                        <option value="2">Medium</option>
-                        <option value="3">High</option>
-                        <option value="4">Critical</option>
-                    </select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="h-10 rounded-xl bg-white border-border w-[160px]">
+                            <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                            <SelectItem value="ALL" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                All Status
+                            </SelectItem>
+                            <SelectItem value="open" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                Open
+                            </SelectItem>
+                            <SelectItem value="under_review" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                Under Review
+                            </SelectItem>
+                            <SelectItem value="resolved" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                Resolved
+                            </SelectItem>
+                            <SelectItem value="closed" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                Closed
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={severityFilter} onValueChange={setSeverityFilter}>
+                        <SelectTrigger className="h-10 rounded-xl bg-white border-border w-[160px]">
+                            <SelectValue placeholder="All Severity" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                            <SelectItem value="ALL" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                All Severity
+                            </SelectItem>
+                            <SelectItem value="1" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                Low
+                            </SelectItem>
+                            <SelectItem value="2" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                Medium
+                            </SelectItem>
+                            <SelectItem value="3" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                High
+                            </SelectItem>
+                            <SelectItem value="4" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                Critical
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </ControlPanel>
 
@@ -430,14 +473,18 @@ export default function IncidentsPage() {
                             <FormHeader title="Incident Details" color="rose" />
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Title *</Label>
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Title <span className="text-red-500">*</span></Label>
                                     <Input
                                         value={form.title}
-                                        onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+                                        onChange={e => {
+                                            setForm(p => ({ ...p, title: e.target.value }))
+                                            if (formErrors.title) setFormErrors(p => ({ ...p, title: "" }))
+                                        }}
                                         placeholder="Brief incident title..."
-                                        className="h-10 rounded-xl bg-slate-50"
+                                        className={cn("h-10 rounded-xl bg-slate-50", formErrors.title && "border-red-500 border-2")}
                                         required
                                     />
+                                    {formErrors.title && <p className="text-xs text-red-500 font-semibold">{formErrors.title}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Description</Label>
@@ -452,34 +499,51 @@ export default function IncidentsPage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Type</Label>
-                                        <select
-                                            value={form.type}
-                                            onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-                                            className="w-full h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
+                                        <Select 
+                                            value={form.type} 
+                                            onValueChange={(v) => setForm(p => ({ ...p, type: v }))}
                                         >
-                                            <option value="">Select type...</option>
-                                            {INCIDENT_TYPES.map(t => (
-                                                <option key={t.value} value={t.value}>{t.label}</option>
-                                            ))}
-                                        </select>
+                                            <SelectTrigger className="h-10 rounded-xl bg-slate-50 border-slate-200">
+                                                <SelectValue placeholder="Select type..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                                                {INCIDENT_TYPES.map(t => (
+                                                    <SelectItem key={t.value} value={t.value} className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                        {t.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Severity</Label>
-                                        <select
-                                            value={form.severity}
-                                            onChange={e => setForm(p => ({ ...p, severity: parseInt(e.target.value) }))}
-                                            className="w-full h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
+                                        <Select 
+                                            value={form.severity.toString()} 
+                                            onValueChange={(v) => setForm(p => ({ ...p, severity: parseInt(v) }))}
                                         >
-                                            <option value={1}>{severityLabels[1].emoji} Low</option>
-                                            <option value={2}>{severityLabels[2].emoji} Medium</option>
-                                            <option value={3}>{severityLabels[3].emoji} High</option>
-                                            <option value={4}>{severityLabels[4].emoji} Critical</option>
-                                        </select>
+                                            <SelectTrigger className="h-10 rounded-xl bg-slate-50 border-slate-200">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                                                <SelectItem value="1" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                    {severityLabels[1].emoji} Low
+                                                </SelectItem>
+                                                <SelectItem value="2" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                    {severityLabels[2].emoji} Medium
+                                                </SelectItem>
+                                                <SelectItem value="3" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                    {severityLabels[3].emoji} High
+                                                </SelectItem>
+                                                <SelectItem value="4" className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                    {severityLabels[4].emoji} Critical
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-black uppercase tracking-wider text-slate-500">
-                                        Deployment Site {isGuard && activeDeployments.length === 1 ? "(auto-linked)" : ""}
+                                        Deployment Site <span className="text-red-500">*</span> {isGuard && activeDeployments.length === 1 ? "(auto-linked)" : ""}
                                     </Label>
                                     {isGuard && activeDeployments.length === 1 ? (
                                         // Guard with one active deployment — auto-linked on submit
@@ -487,21 +551,38 @@ export default function IncidentsPage() {
                                             {activeDeployments[0].client?.name} — {activeDeployments[0].shift?.name}
                                         </div>
                                     ) : (
-                                        <select
-                                            value={form.deploymentId}
-                                            onChange={e => setForm(p => ({ ...p, deploymentId: e.target.value }))}
-                                            className="w-full h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
-                                        >
-                                            <option value="">Auto-detect deployment</option>
-                                            {(isAdmin ? deployments : activeDeployments).map(d => (
-                                                <option key={d.id} value={d.id}>{d.client?.name || "Unknown"} — {d.shift?.name || "N/A"}</option>
-                                            ))}
-                                        </select>
+                                        <>
+                                            <Select 
+                                                value={form.deploymentId} 
+                                                onValueChange={(v) => {
+                                                    setForm(p => ({ ...p, deploymentId: v }))
+                                                    if (formErrors.deploymentId) setFormErrors(p => ({ ...p, deploymentId: "" }))
+                                                }}
+                                            >
+                                                <SelectTrigger className={cn("h-10 rounded-xl bg-slate-50 border-slate-200", formErrors.deploymentId && "border-red-500 border-2")}>
+                                                    <SelectValue placeholder="Select deployment site" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                                                    {(isAdmin ? deployments : activeDeployments).map(d => (
+                                                        <SelectItem key={d.id} value={d.id} className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                            {d.client?.name || "Unknown"} — {d.shift?.name || "N/A"}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {formErrors.deploymentId && <p className="text-xs text-red-500 font-semibold">{formErrors.deploymentId}</p>}
+                                        </>
                                     )}
                                 </div>
                             </div>
                         </FormCard>
-                        <SubmitButton label="Report Incident" loading={saving} />
+                        <div className="flex justify-center">
+                            <SubmitButton 
+                                label="Report Incident" 
+                                loading={saving}
+                                disabled={!form.title.trim() || saving}
+                            />
+                        </div>
                     </form>
                 </DialogContent>
             </Dialog>

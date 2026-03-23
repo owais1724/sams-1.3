@@ -42,6 +42,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { usePermission } from "@/hooks/usePermission"
@@ -104,6 +105,7 @@ export default function DeploymentsPage() {
     const [statusFilter, setStatusFilter] = useState("")
     const [deleteId, setDeleteId] = useState<string | null>(null)
     const [deleting, setDeleting] = useState(false)
+    const [editConfirmModal, setEditConfirmModal] = useState(false)
 
     // Form state
     const [form, setForm] = useState({
@@ -113,6 +115,14 @@ export default function DeploymentsPage() {
         endDate: "",
         notes: "",
         guardIds: [] as string[],
+    })
+
+    // Form errors state
+    const [formErrors, setFormErrors] = useState({
+        clientId: "",
+        shiftId: "",
+        startDate: "",
+        endDate: "",
     })
 
     // Edit form state
@@ -160,7 +170,19 @@ export default function DeploymentsPage() {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!form.clientId || !form.shiftId || !form.startDate || !form.endDate) {
+        
+        // Reset errors
+        setFormErrors({ clientId: "", shiftId: "", startDate: "", endDate: "" })
+        
+        // Validate required fields
+        const errors: any = {}
+        if (!form.clientId) errors.clientId = "This field is required"
+        if (!form.shiftId) errors.shiftId = "This field is required"
+        if (!form.startDate) errors.startDate = "This field is required"
+        if (!form.endDate) errors.endDate = "This field is required"
+        
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors)
             toast.error("Please fill all required fields")
             return
         }
@@ -252,6 +274,7 @@ export default function DeploymentsPage() {
             toast.success("Deployment created successfully")
             setShowCreate(false)
             setForm({ clientId: "", shiftId: "", startDate: "", endDate: "", notes: "", guardIds: [] })
+            setFormErrors({ clientId: "", shiftId: "", startDate: "", endDate: "" })
             fetchData()
         } catch (err: any) {
             toast.error(err.message || "Failed to create deployment")
@@ -271,13 +294,19 @@ export default function DeploymentsPage() {
         setEditingDeployment(dep)
     }
 
-    const handleEdit = async (e: React.FormEvent) => {
+    const handleEditSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (!editingDeployment) return
         if (!editForm.clientId || !editForm.shiftId || !editForm.startDate || !editForm.endDate) {
             toast.error("Please fill all required fields")
             return
         }
+        // Show confirmation modal
+        setEditConfirmModal(true)
+    }
+
+    const handleEdit = async () => {
+        if (!editingDeployment) return
         setSaving(true)
         try {
             await api.patch(`/deployments/${editingDeployment.id}`, {
@@ -289,6 +318,7 @@ export default function DeploymentsPage() {
             })
             toast.success("Deployment updated successfully")
             setEditingDeployment(null)
+            setEditConfirmModal(false)
             fetchData()
         } catch (err: any) {
             toast.error(err.message || "Failed to update deployment")
@@ -517,54 +547,106 @@ export default function DeploymentsPage() {
                             <FormHeader title="Deployment Details" color="blue" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Client Site *</Label>
-                                    <select
-                                        value={form.clientId}
-                                        onChange={e => setForm(p => ({ ...p, clientId: e.target.value }))}
-                                        className="w-full h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
-                                        required
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Client Site <span className="text-red-500">*</span></Label>
+                                    <Select 
+                                        value={form.clientId} 
+                                        onValueChange={(v) => {
+                                            setForm(p => ({ ...p, clientId: v }))
+                                            if (formErrors.clientId) setFormErrors(p => ({ ...p, clientId: "" }))
+                                        }}
                                     >
-                                        <option value="">Select Client</option>
-                                        {clients.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger className={cn("h-10 rounded-xl bg-slate-50 border-slate-200", formErrors.clientId && "border-red-500 border-2")}>
+                                            <SelectValue placeholder="Select Client" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                                            {clients.map(c => (
+                                                <SelectItem key={c.id} value={c.id} className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                    {c.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {formErrors.clientId && <p className="text-xs text-red-500 font-semibold">{formErrors.clientId}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Shift *</Label>
-                                    <select
-                                        value={form.shiftId}
-                                        onChange={e => setForm(p => ({ ...p, shiftId: e.target.value }))}
-                                        className="w-full h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
-                                        required
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Shift <span className="text-red-500">*</span></Label>
+                                    <Select 
+                                        value={form.shiftId} 
+                                        onValueChange={(v) => {
+                                            setForm(p => ({ ...p, shiftId: v }))
+                                            if (formErrors.shiftId) setFormErrors(p => ({ ...p, shiftId: "" }))
+                                        }}
                                     >
-                                        <option value="">Select Shift</option>
-                                        {shifts.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name} ({s.startTime} – {s.endTime})</option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger className={cn("h-10 rounded-xl bg-slate-50 border-slate-200", formErrors.shiftId && "border-red-500 border-2")}>
+                                            <SelectValue placeholder="Select Shift" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                                            {shifts.map(s => (
+                                                <SelectItem key={s.id} value={s.id} className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                    {s.name} ({s.startTime} – {s.endTime})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {formErrors.shiftId && <p className="text-xs text-red-500 font-semibold">{formErrors.shiftId}</p>}
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Start Date *</Label>
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Start Date <span className="text-red-500">*</span></Label>
                                     <Input
                                         type="date"
+                                        min={new Date().toISOString().split('T')[0]}
                                         value={form.startDate}
-                                        onChange={e => setForm(p => ({ ...p, startDate: e.target.value }))}
-                                        className="h-10 rounded-xl bg-slate-50"
+                                        onChange={e => {
+                                            const selectedDate = e.target.value
+                                            const today = new Date().toISOString().split('T')[0]
+                                            
+                                            if (selectedDate < today) {
+                                                toast.error("Past dates are not allowed")
+                                                return
+                                            }
+                                            
+                                            setForm(p => ({ ...p, startDate: selectedDate }))
+                                            if (formErrors.startDate) setFormErrors(p => ({ ...p, startDate: "" }))
+                                            
+                                            // If end date is before new start date, clear it
+                                            if (form.endDate && selectedDate > form.endDate) {
+                                                setForm(p => ({ ...p, endDate: "" }))
+                                            }
+                                        }}
+                                        className={cn("h-10 rounded-xl bg-slate-50", formErrors.startDate && "border-red-500 border-2")}
                                         required
                                     />
+                                    {formErrors.startDate && <p className="text-xs text-red-500 font-semibold">{formErrors.startDate}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">End Date *</Label>
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">End Date <span className="text-red-500">*</span></Label>
                                     <Input
                                         type="date"
+                                        min={form.startDate || new Date().toISOString().split('T')[0]}
                                         value={form.endDate}
-                                        onChange={e => setForm(p => ({ ...p, endDate: e.target.value }))}
-                                        className="h-10 rounded-xl bg-slate-50"
+                                        onChange={e => {
+                                            const selectedDate = e.target.value
+                                            const today = new Date().toISOString().split('T')[0]
+                                            
+                                            if (selectedDate < today) {
+                                                toast.error("Past dates are not allowed")
+                                                return
+                                            }
+                                            
+                                            if (form.startDate && selectedDate < form.startDate) {
+                                                toast.error("End date cannot be before start date")
+                                                return
+                                            }
+                                            
+                                            setForm(p => ({ ...p, endDate: selectedDate }))
+                                            if (formErrors.endDate) setFormErrors(p => ({ ...p, endDate: "" }))
+                                        }}
+                                        className={cn("h-10 rounded-xl bg-slate-50", formErrors.endDate && "border-red-500 border-2")}
                                         required
                                     />
+                                    {formErrors.endDate && <p className="text-xs text-red-500 font-semibold">{formErrors.endDate}</p>}
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -606,7 +688,13 @@ export default function DeploymentsPage() {
                             )}
                         </FormCard>
 
-                        <SubmitButton label="Create Deployment" loading={saving} />
+                        <div className="flex justify-center">
+                            <SubmitButton 
+                                label="Create Deployment" 
+                                loading={saving}
+                                disabled={!form.clientId || !form.shiftId || !form.startDate || !form.endDate || saving}
+                            />
+                        </div>
                     </form>
                 </DialogContent>
             </Dialog>
@@ -617,37 +705,45 @@ export default function DeploymentsPage() {
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black">Edit Deployment</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleEdit} className="space-y-6 mt-4">
+                    <form onSubmit={handleEditSubmit} className="space-y-6 mt-4">
                         <FormCard>
                             <FormHeader title="Deployment Details" color="blue" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Client Site *</Label>
-                                    <select
-                                        value={editForm.clientId}
-                                        onChange={e => setEditForm(p => ({ ...p, clientId: e.target.value }))}
-                                        className="w-full h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
-                                        required
+                                    <Select 
+                                        value={editForm.clientId} 
+                                        onValueChange={(v) => setEditForm(p => ({ ...p, clientId: v }))}
                                     >
-                                        <option value="">Select Client</option>
-                                        {clients.map(c => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger className="h-10 rounded-xl bg-slate-50 border-slate-200">
+                                            <SelectValue placeholder="Select Client" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                                            {clients.map(c => (
+                                                <SelectItem key={c.id} value={c.id} className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                    {c.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Shift *</Label>
-                                    <select
-                                        value={editForm.shiftId}
-                                        onChange={e => setEditForm(p => ({ ...p, shiftId: e.target.value }))}
-                                        className="w-full h-10 rounded-xl bg-slate-50 border border-slate-200 px-3 text-sm"
-                                        required
+                                    <Select 
+                                        value={editForm.shiftId} 
+                                        onValueChange={(v) => setEditForm(p => ({ ...p, shiftId: v }))}
                                     >
-                                        <option value="">Select Shift</option>
-                                        {shifts.map(s => (
-                                            <option key={s.id} value={s.id}>{s.name} ({s.startTime} – {s.endTime})</option>
-                                        ))}
-                                    </select>
+                                        <SelectTrigger className="h-10 rounded-xl bg-slate-50 border-slate-200">
+                                            <SelectValue placeholder="Select Shift" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-slate-200 bg-white p-2">
+                                            {shifts.map(s => (
+                                                <SelectItem key={s.id} value={s.id} className="py-3 font-medium rounded-lg hover:bg-cyan-50 focus:bg-cyan-50">
+                                                    {s.name} ({s.startTime} – {s.endTime})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -655,8 +751,24 @@ export default function DeploymentsPage() {
                                     <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Start Date *</Label>
                                     <Input
                                         type="date"
+                                        min={new Date().toISOString().split('T')[0]}
                                         value={editForm.startDate}
-                                        onChange={e => setEditForm(p => ({ ...p, startDate: e.target.value }))}
+                                        onChange={e => {
+                                            const selectedDate = e.target.value
+                                            const today = new Date().toISOString().split('T')[0]
+                                            
+                                            if (selectedDate < today) {
+                                                toast.error("Past dates are not allowed")
+                                                return
+                                            }
+                                            
+                                            setEditForm(p => ({ ...p, startDate: selectedDate }))
+                                            
+                                            // If end date is before new start date, clear it
+                                            if (editForm.endDate && selectedDate > editForm.endDate) {
+                                                setEditForm(p => ({ ...p, endDate: "" }))
+                                            }
+                                        }}
                                         className="h-10 rounded-xl bg-slate-50"
                                         required
                                     />
@@ -665,8 +777,24 @@ export default function DeploymentsPage() {
                                     <Label className="text-xs font-black uppercase tracking-wider text-slate-500">End Date *</Label>
                                     <Input
                                         type="date"
+                                        min={editForm.startDate || new Date().toISOString().split('T')[0]}
                                         value={editForm.endDate}
-                                        onChange={e => setEditForm(p => ({ ...p, endDate: e.target.value }))}
+                                        onChange={e => {
+                                            const selectedDate = e.target.value
+                                            const today = new Date().toISOString().split('T')[0]
+                                            
+                                            if (selectedDate < today) {
+                                                toast.error("Past dates are not allowed")
+                                                return
+                                            }
+                                            
+                                            if (editForm.startDate && selectedDate < editForm.startDate) {
+                                                toast.error("End date cannot be before start date")
+                                                return
+                                            }
+                                            
+                                            setEditForm(p => ({ ...p, endDate: selectedDate }))
+                                        }}
                                         className="h-10 rounded-xl bg-slate-50"
                                         required
                                     />
@@ -683,7 +811,13 @@ export default function DeploymentsPage() {
                                 />
                             </div>
                         </FormCard>
-                        <SubmitButton label="Update Deployment" loading={saving} />
+                        <div className="flex justify-center">
+                            <SubmitButton 
+                                label="Update Deployment" 
+                                loading={saving}
+                                disabled={!editForm.clientId || !editForm.shiftId || !editForm.startDate || !editForm.endDate || saving}
+                            />
+                        </div>
                     </form>
                 </DialogContent>
             </Dialog>
@@ -708,6 +842,19 @@ export default function DeploymentsPage() {
                 description="Are you sure you want to delete this deployment? This action cannot be undone."
                 variant="danger"
                 confirmText="Delete"
+                cancelText="Cancel"
+            />
+
+            {/* Edit Confirmation Modal */}
+            <AlertModal
+                isOpen={editConfirmModal}
+                onClose={() => setEditConfirmModal(false)}
+                onConfirm={handleEdit}
+                loading={saving}
+                title="Save Changes"
+                description="Are you sure you want to save changes to this deployment?"
+                variant="primary"
+                confirmText="Save Changes"
                 cancelText="Cancel"
             />
         </div>
@@ -738,9 +885,9 @@ function AssignGuardsDialog({
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-black">Manage Guards</DialogTitle>
+            <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto bg-white rounded-[40px] border-none shadow-2xl">
+                <DialogHeader className="pr-12">
+                    <DialogTitle className="text-2xl font-black text-slate-900">Manage Guards</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-6 mt-4">
                     {/* Currently assigned */}
@@ -799,7 +946,7 @@ function AssignGuardsDialog({
                         </div>
                         {selected.length > 0 && (
                             <Button
-                                className="mt-3 w-full"
+                                className="mt-3 w-full bg-[#06b6d4] hover:bg-[#0891b2] text-white font-black rounded-xl h-11"
                                 onClick={() => {
                                     onAssign(deployment.id, selected)
                                     setSelected([])

@@ -17,8 +17,9 @@ import { cn } from "@/lib/utils"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 import { ClientForm } from "./ClientForm"
-import { SelectInput } from "@/components/ui/select-input"
+import { SelectInput, SelectOption } from "@/components/ui/select-input"
 import { Users, Shield } from "lucide-react"
+import { AlertModal } from "@/components/ui/alert-modal"
 import {
     Dialog,
     DialogContent,
@@ -56,6 +57,8 @@ interface ProjectFormProps {
 export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData, employees = [] }: ProjectFormProps) {
     const [loading, setLoading] = useState(false)
     const [isClientDialogOpen, setIsClientDialogOpen] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [pendingValues, setPendingValues] = useState<z.infer<typeof formSchema> | null>(null)
 
     const isEditing = !!initialData
 
@@ -77,15 +80,24 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData,
     }, [initialData, form])
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        // Store values and show confirmation modal
+        setPendingValues(values)
+        setShowConfirmModal(true)
+    }
+
+    async function handleConfirmedSubmit() {
+        if (!pendingValues) return
         setLoading(true)
         try {
             if (isEditing) {
-                await api.patch(`/projects/${initialData.id}`, values)
+                await api.patch(`/projects/${initialData.id}`, pendingValues)
                 toast.success("Project intelligence updated")
             } else {
-                await api.post("/projects", values)
+                await api.post("/projects", pendingValues)
                 toast.success("Project deployment launched")
             }
+            setShowConfirmModal(false)
+            setPendingValues(null)
             onSuccess()
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Operational failure during save")
@@ -95,9 +107,10 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData,
     }
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <FormCard>
+        <>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    <FormCard>
                     <FormHeader title="Project Intelligence" color="blue" />
                     <FormField
                         control={form.control}
@@ -154,9 +167,9 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData,
                                     )}
                                 </div>
                                 <FormControl>
-                                    <SelectInput {...field} placeholder="Link to institutional partner..." className={selectVariants}>
+                                    <SelectInput value={field.value} onValueChange={field.onChange} placeholder="Link to institutional partner..." className={selectVariants}>
                                         {clients.map(client => (
-                                            <option key={client.id} value={client.id}>{client.name}</option>
+                                            <SelectOption key={client.id} value={client.id}>{client.name}</SelectOption>
                                         ))}
                                     </SelectInput>
                                 </FormControl>
@@ -274,11 +287,11 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData,
                     />
                 </FormCard>
 
-                <div className="pt-4">
+                <div className="pt-4 flex justify-center">
                     <SubmitButton
                         label={isEditing ? "Update Mission Specs" : "Launch Operational Project"}
                         loading={loading}
-                        disabled={!isEditing && clients.length === 0}
+                        disabled={!form.formState.isValid || loading || (!isEditing && clients.length === 0)}
                     />
                 </div>
                 {!isEditing && clients.length === 0 && (
@@ -288,5 +301,26 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData,
                 )}
             </form>
         </Form>
+
+        {/* Confirmation Modal */}
+        <AlertModal
+            isOpen={showConfirmModal}
+            onClose={() => {
+                setShowConfirmModal(false)
+                setPendingValues(null)
+            }}
+            onConfirm={handleConfirmedSubmit}
+            loading={loading}
+            title={isEditing ? "Save Changes" : "Create Project"}
+            description={
+                isEditing
+                    ? `Are you sure you want to save changes to "${pendingValues?.name}"?`
+                    : `Are you sure you want to create the project "${pendingValues?.name}"?`
+            }
+            variant="primary"
+            confirmText={isEditing ? "Save Changes" : "Create Project"}
+            cancelText="Cancel"
+        />
+        </>
     )
 }

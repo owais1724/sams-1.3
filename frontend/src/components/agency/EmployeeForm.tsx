@@ -18,7 +18,8 @@ import api from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
-import { SelectInput } from "@/components/ui/select-input"
+import { SelectInput, SelectOption } from "@/components/ui/select-input"
+import { AlertModal } from "@/components/ui/alert-modal"
 import {
     FormCard,
     FormHeader,
@@ -91,6 +92,8 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     const [designationLoading, setDesignationLoading] = useState(false)
     const { user } = useAuthStore()
     const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [pendingValues, setPendingValues] = useState<FormValues | null>(null)
 
     const resolvedSchema = initialData
         ? baseSchema
@@ -162,20 +165,25 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     }
 
     async function onSubmit(values: FormValues) {
+        const phoneError = validatePhoneNumber(values.phone.phoneNumber, values.phone.countryCode);
+        if (phoneError) {
+            toast.error(phoneError);
+            return;
+        }
+        // Store values and show confirmation modal
+        setPendingValues(values)
+        setShowConfirmModal(true)
+    }
+
+    async function handleConfirmedSubmit() {
+        if (!pendingValues) return
         setLoading(true)
         try {
-            const phoneError = validatePhoneNumber(values.phone.phoneNumber, values.phone.countryCode);
-            if (phoneError) {
-                toast.error(phoneError);
-                setLoading(false);
-                return;
-            }
-
-            const { phone, employeeCode, ...apiValues } = values
+            const { phone, employeeCode, ...apiValues } = pendingValues
             const payload: any = {
                 ...apiValues,
                 phoneNumber: `${phone.countryCode}${phone.phoneNumber}`,
-                basicSalary: Number(values.basicSalary) || 0
+                basicSalary: Number(pendingValues.basicSalary) || 0
             }
 
             if (initialData) {
@@ -186,6 +194,8 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                 await api.post("/employees", { ...payload, agencyId: user?.agencyId })
                 toast.success("Employee added successfully")
             }
+            setShowConfirmModal(false)
+            setPendingValues(null)
             onSuccess()
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Operational failure during save")
@@ -195,6 +205,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     }
 
     return (
+        <>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormCard>
@@ -271,9 +282,9 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                                     </div>
                                 ) : (
                                     <FormControl>
-                                        <SelectInput {...field} placeholder="Choose designation..." className={selectVariants}>
+                                        <SelectInput value={field.value} onValueChange={field.onChange} placeholder="Choose designation..." className={selectVariants}>
                                             {designations.map(d => (
-                                                <option key={d.id} value={d.id}>{d.name}</option>
+                                                <SelectOption key={d.id} value={d.id}>{d.name}</SelectOption>
                                             ))}
                                         </SelectInput>
                                     </FormControl>
@@ -290,9 +301,9 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                             render={({ field }) => (
                                 <FormItem className="space-y-0">
                                     <FormLabelBase label="Currency" />
-                                    <SelectInput {...field} className={selectVariants}>
+                                    <SelectInput value={field.value} onValueChange={field.onChange} className={selectVariants}>
                                         {currencies.map(c => (
-                                            <option key={c.value} value={c.value}>{c.label}</option>
+                                            <SelectOption key={c.value} value={c.value}>{c.label}</SelectOption>
                                         ))}
                                     </SelectInput>
                                 </FormItem>
@@ -362,13 +373,35 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                     />
                 </FormCard>
 
-                <div className="pt-4">
+                <div className="pt-4 flex justify-center">
                     <SubmitButton
                         label={initialData ? "Update Employee" : "Add Employee"}
                         loading={loading}
+                        disabled={!form.formState.isValid || loading}
                     />
                 </div>
             </form>
         </Form>
+
+        {/* Confirmation Modal */}
+        <AlertModal
+            isOpen={showConfirmModal}
+            onClose={() => {
+                setShowConfirmModal(false)
+                setPendingValues(null)
+            }}
+            onConfirm={handleConfirmedSubmit}
+            loading={loading}
+            title={initialData ? "Save Changes" : "Create Employee"}
+            description={
+                initialData
+                    ? `Are you sure you want to save changes to "${pendingValues?.fullName}"?`
+                    : `Are you sure you want to create employee "${pendingValues?.fullName}"?`
+            }
+            variant="primary"
+            confirmText={initialData ? "Save Changes" : "Create Employee"}
+            cancelText="Cancel"
+        />
+        </>
     )
 }

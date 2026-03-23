@@ -160,25 +160,26 @@ export default function RootLoginPage() {
                   )}
                 />
 
-                <Button
-                  type="submit"
-                  variant="success"
-                  size="cta"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Signing in...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Sign in</span>
-                      <ChevronRight className="w-5 h-5" />
-                    </>
-                  )}
-                </Button>
+                <div className="flex justify-center">
+                  <Button
+                    type="submit"
+                    variant="success"
+                    size="cta"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Signing in...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Sign in</span>
+                        <ChevronRight className="w-5 h-5" />
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>

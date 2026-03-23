@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 import { SubmitButton, inputVariants, FormLabelBase } from "@/components/ui/design-system"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 const formSchema = z.object({
     name: z.string().min(2, "Client name is required"),
@@ -30,6 +31,8 @@ interface ClientFormProps {
 
 export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
     const [loading, setLoading] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [pendingValues, setPendingValues] = useState<z.infer<typeof formSchema> | null>(null)
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -51,15 +54,24 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
     }, [initialData, form])
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        // Store values and show confirmation modal
+        setPendingValues(values)
+        setShowConfirmModal(true)
+    }
+
+    async function handleConfirmedSubmit() {
+        if (!pendingValues) return
         setLoading(true)
         try {
             if (initialData?.id) {
-                await api.patch(`/clients/${initialData.id}`, values)
+                await api.patch(`/clients/${initialData.id}`, pendingValues)
                 toast.success("Client updated successfully")
             } else {
-                await api.post("/clients", values)
+                await api.post("/clients", pendingValues)
                 toast.success("Client added successfully")
             }
+            setShowConfirmModal(false)
+            setPendingValues(null)
             onSuccess()
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Something went wrong")
@@ -69,6 +81,7 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
     }
 
     return (
+        <>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
@@ -141,13 +154,35 @@ export function ClientForm({ onSuccess, initialData }: ClientFormProps) {
                     )}
                 />
 
-                <div className="pt-4">
+                <div className="pt-4 flex justify-center">
                     <SubmitButton
                         label={initialData?.id ? "Update Client" : "Add New Client"}
                         loading={loading}
+                        disabled={!form.formState.isValid || loading}
                     />
                 </div>
             </form>
         </Form>
+
+        {/* Confirmation Modal */}
+        <AlertModal
+            isOpen={showConfirmModal}
+            onClose={() => {
+                setShowConfirmModal(false)
+                setPendingValues(null)
+            }}
+            onConfirm={handleConfirmedSubmit}
+            loading={loading}
+            title={initialData?.id ? "Save Changes" : "Create Client"}
+            description={
+                initialData?.id
+                    ? `Are you sure you want to save changes to "${pendingValues?.name}"?`
+                    : `Are you sure you want to create the client "${pendingValues?.name}"?`
+            }
+            variant="primary"
+            confirmText={initialData?.id ? "Save Changes" : "Create Client"}
+            cancelText="Cancel"
+        />
+        </>
     )
 }

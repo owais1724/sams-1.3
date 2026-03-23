@@ -1,7 +1,8 @@
-import { IsString, IsOptional, IsInt, Min, Max } from 'class-validator';
+import { IsString, IsOptional, IsInt, Min, Max, IsNotEmpty } from 'class-validator';
 
 export class CreateIncidentDto {
   @IsString()
+  @IsNotEmpty({ message: 'Title is required' })
   title: string;
 
   @IsOptional()
@@ -12,9 +13,9 @@ export class CreateIncidentDto {
   @IsString()
   type?: string;
 
-  @IsOptional()
   @IsString()
-  deploymentId?: string;
+  @IsNotEmpty({ message: 'Deployment site is required' })
+  deploymentId: string;
 
   @IsOptional()
   @IsInt()

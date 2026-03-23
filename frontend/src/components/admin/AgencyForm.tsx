@@ -18,6 +18,7 @@ import { PhoneInput, validatePhoneNumber } from "@/components/ui/phone-input"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
 import { FormCard, FormHeader, SubmitButton } from "@/components/ui/design-system"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 const baseFormSchema = z.object({
     name: z.string().min(2, "Agency name must be at least 2 characters"),
@@ -53,6 +54,8 @@ function parsePhone(raw: string): { countryCode: string; phoneNumber: string } {
 export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, initialData?: any }) {
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [pendingValues, setPendingValues] = useState<z.infer<typeof baseFormSchema> | null>(null)
 
     const formSchema = initialData ? editFormSchema : createFormSchema;
 
@@ -84,40 +87,45 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
     }, [initialData?.id])
 
     async function onSubmit(values: z.infer<typeof baseFormSchema>) {
+        // Validate phone before showing modal
+        if (values.adminPhone?.phoneNumber) {
+            const phoneError = validatePhoneNumber(values.adminPhone.phoneNumber, values.adminPhone.countryCode);
+            if (phoneError) {
+                toast.error(phoneError);
+                return;
+            }
+        }
+        // Store values and show confirmation modal
+        setPendingValues(values)
+        setShowConfirmModal(true)
+    }
+
+    async function handleConfirmedSubmit() {
+        if (!pendingValues) return
         setLoading(true)
         try {
             if (initialData) {
                 const updateData: any = {
-                    name: values.name,
-                    slug: values.slug
+                    name: pendingValues.name,
+                    slug: pendingValues.slug
                 }
-                if (values.adminName) updateData.adminName = values.adminName;
-                if (values.adminEmail) updateData.adminEmail = values.adminEmail;
-                if (values.adminPassword) updateData.adminPassword = values.adminPassword;
-                if (values.adminPhone?.phoneNumber) {
-                    const phoneError = validatePhoneNumber(values.adminPhone.phoneNumber, values.adminPhone.countryCode);
-                    if (phoneError) {
-                        toast.error(phoneError);
-                        setLoading(false);
-                        return;
-                    }
-                    updateData.adminPhone = values.adminPhone;
+                if (pendingValues.adminName) updateData.adminName = pendingValues.adminName;
+                if (pendingValues.adminEmail) updateData.adminEmail = pendingValues.adminEmail;
+                if (pendingValues.adminPassword) updateData.adminPassword = pendingValues.adminPassword;
+                if (pendingValues.adminPhone?.phoneNumber) {
+                    updateData.adminPhone = pendingValues.adminPhone;
                 }
 
                 await api.patch(`/agencies/${initialData.id}`, updateData)
                 toast.success("Agency and administrator updated successfully")
+                setShowConfirmModal(false)
+                setPendingValues(null)
                 onSuccess()
             } else {
-                if (values.adminPhone?.phoneNumber) {
-                    const phoneError = validatePhoneNumber(values.adminPhone.phoneNumber, values.adminPhone.countryCode);
-                    if (phoneError) {
-                        toast.error(phoneError);
-                        setLoading(false);
-                        return;
-                    }
-                }
-                await api.post("/agencies", values)
+                await api.post("/agencies", pendingValues)
                 toast.success("Agency and Admin created successfully")
+                setShowConfirmModal(false)
+                setPendingValues(null)
                 onSuccess()
             }
         } catch (error: any) {
@@ -128,6 +136,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
     }
 
     return (
+        <>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10 pb-12">
                 <FormCard className="bg-white border-border shadow-xl rounded-[32px] p-8">
@@ -280,14 +289,36 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                     />
                 </FormCard>
 
-                <div className="pt-4">
+                <div className="pt-4 flex justify-center">
                     <SubmitButton
                         label={initialData ? "Authorize Upgrades" : "Authorize Node Creation"}
                         loading={loading}
+                        disabled={!form.formState.isValid || loading}
                         className="h-20 text-lg shadow-[0_0_50px_rgba(255,184,0,0.15)] hover:shadow-[0_0_70px_rgba(255,184,0,0.25)]"
                     />
                 </div>
             </form>
         </Form>
+
+        {/* Confirmation Modal */}
+        <AlertModal
+            isOpen={showConfirmModal}
+            onClose={() => {
+                setShowConfirmModal(false)
+                setPendingValues(null)
+            }}
+            onConfirm={handleConfirmedSubmit}
+            loading={loading}
+            title={initialData ? "Save Changes" : "Create Agency"}
+            description={
+                initialData
+                    ? `Are you sure you want to save changes to "${pendingValues?.name}"?`
+                    : `Are you sure you want to create agency "${pendingValues?.name}"?`
+            }
+            variant="primary"
+            confirmText={initialData ? "Save Changes" : "Create Agency"}
+            cancelText="Cancel"
+        />
+        </>
     )
 }

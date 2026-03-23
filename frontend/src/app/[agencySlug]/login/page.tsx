@@ -172,26 +172,27 @@ export default function AgencyAdminLogin() {
                                     )}
                                 />
 
-                                <Button
-                                    suppressHydrationWarning
-                                    type="submit"
-                                    variant="primary"
-                                    size="cta"
-                                    className="w-full"
-                                    disabled={loading}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                                            <span>Signing in...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>Sign in</span>
-                                            <ChevronRight className="w-4 h-4 ml-2" />
-                                        </>
-                                    )}
-                                </Button>
+                                <div className="flex justify-center">
+                                    <Button
+                                        suppressHydrationWarning
+                                        type="submit"
+                                        variant="primary"
+                                        size="cta"
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                                <span>Signing in...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>Sign in</span>
+                                                <ChevronRight className="w-4 h-4 ml-2" />
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </form>
                         </Form>
                     </CardContent>

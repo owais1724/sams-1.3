@@ -90,9 +90,11 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                         onChange={(e) => setNewDesc(e.target.value)}
                                     />
                                 </div>
-                                <Button type="submit" className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all mt-4" disabled={loading}>
-                                    {loading ? "PROCESSING..." : "ADD DESIGNATION"}
-                                </Button>
+                                <div className="flex justify-center mt-4">
+                                    <Button type="submit" className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest shadow-xl shadow-primary/20 transition-all" disabled={loading}>
+                                        {loading ? "PROCESSING..." : "ADD DESIGNATION"}
+                                    </Button>
+                                </div>
                             </form>
                         </div>
                     </div>

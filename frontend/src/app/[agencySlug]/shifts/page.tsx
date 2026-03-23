@@ -11,6 +11,8 @@ import {
   TableRowEmpty,
   StatCard,
   RowViewButton,
+  RowEditButton,
+  RowDeleteButton,
   SubmitButton,
   SectionHeading,
   inputVariants,
@@ -56,6 +58,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TableCell } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 interface Shift {
   id: string
@@ -128,41 +131,38 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
     if (result) onChange(result)
   }
 
-  const selectClass = "h-12 rounded-xl bg-white border border-border px-3 text-sm font-medium appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all text-slate-900"
-
   return (
-    <div className="flex items-center gap-2">
-      <select
-        value={hour}
-        onChange={(e) => update(e.target.value, minute || "00", period)}
-        className={cn(selectClass, "flex-1")}
-        required
-      >
-        <option value="" disabled>HH</option>
-        {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
-          <option key={h} value={h.toString()}>{h}</option>
-        ))}
-      </select>
+    <div className="grid grid-cols-[1fr_auto_1fr_1fr] gap-2 items-center">
+      <Select value={hour} onValueChange={(v) => update(v, minute || "00", period)} required>
+        <SelectTrigger className="h-12">
+          <SelectValue placeholder="HH" />
+        </SelectTrigger>
+        <SelectContent>
+          {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+            <SelectItem key={h} value={h.toString()}>{h}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <span className="text-lg font-semibold text-slate-400">:</span>
-      <select
-        value={minute}
-        onChange={(e) => update(hour || "12", e.target.value, period)}
-        className={cn(selectClass, "flex-1")}
-        required
-      >
-        <option value="" disabled>MM</option>
-        {["00", "15", "30", "45"].map((m) => (
-          <option key={m} value={m}>{m}</option>
-        ))}
-      </select>
-      <select
-        value={period}
-        onChange={(e) => update(hour || "12", minute || "00", e.target.value)}
-        className={cn(selectClass, "w-20")}
-      >
-        <option value="AM">AM</option>
-        <option value="PM">PM</option>
-      </select>
+      <Select value={minute} onValueChange={(v) => update(hour || "12", v, period)} required>
+        <SelectTrigger className="h-12">
+          <SelectValue placeholder="MM" />
+        </SelectTrigger>
+        <SelectContent>
+          {["00", "15", "30", "45"].map((m) => (
+            <SelectItem key={m} value={m}>{m}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={period} onValueChange={(v) => update(hour || "12", minute || "00", v)}>
+        <SelectTrigger className="h-12">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="AM">AM</SelectItem>
+          <SelectItem value="PM">PM</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   )
 }
@@ -198,6 +198,13 @@ export default function ShiftsPage() {
   // Assignment create dialog
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [assignForm, setAssignForm] = useState({ shiftId: "", employeeId: "", date: "", projectId: "" })
+
+  // Delete confirmation modals
+  const [deleteShiftModal, setDeleteShiftModal] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: "", name: "" })
+  const [deleteAssignmentModal, setDeleteAssignmentModal] = useState<{ open: boolean; id: string }>({ open: false, id: "" })
+  const [toggleShiftModal, setToggleShiftModal] = useState<{ open: boolean; shift: Shift | null }>({ open: false, shift: null })
+  const [editConfirmModal, setEditConfirmModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Filter
   const [filterDate, setFilterDate] = useState(() => {
@@ -316,13 +323,18 @@ export default function ShiftsPage() {
     }
   }
 
-  const handleDeleteShift = async (shiftId: string) => {
+  const handleDeleteShift = async () => {
+    if (!deleteShiftModal.id) return
+    setDeleting(true)
     try {
-      await api.delete(`/shifts/${shiftId}`)
+      await api.delete(`/shifts/${deleteShiftModal.id}`)
       toast.success("Shift deleted")
-      setShifts((prev) => prev.filter((s) => s.id !== shiftId))
+      setShifts((prev) => prev.filter((s) => s.id !== deleteShiftModal.id))
+      setDeleteShiftModal({ open: false, id: "", name: "" })
     } catch (err: any) {
       toast.error(err?.message || "Failed to delete shift")
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -337,8 +349,14 @@ export default function ShiftsPage() {
     setEditShiftDialogOpen(true)
   }
 
-  const handleEditShift = async (e: React.FormEvent) => {
+  const handleEditShiftSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!editingShift || submitting) return
+    // Show confirmation modal instead of saving directly
+    setEditConfirmModal(true)
+  }
+
+  const handleEditShift = async () => {
     if (!editingShift || submitting) return
     setSubmitting(true)
     try {
@@ -346,6 +364,7 @@ export default function ShiftsPage() {
       toast.success("Shift updated successfully")
       setEditShiftDialogOpen(false)
       setEditingShift(null)
+      setEditConfirmModal(false)
       const res = await api.get("/shifts")
       setShifts(res.data)
     } catch (err: any) {
@@ -355,23 +374,34 @@ export default function ShiftsPage() {
     }
   }
 
-  const handleToggleShiftActive = async (shift: Shift) => {
+  const handleToggleShiftActive = async () => {
+    if (!toggleShiftModal.shift) return
+    const shift = toggleShiftModal.shift
+    setDeleting(true)
     try {
       await api.patch(`/shifts/${shift.id}`, { isActive: !shift.isActive })
       toast.success(`Shift ${shift.isActive ? "deactivated" : "activated"}`)
       setShifts((prev) => prev.map((s) => s.id === shift.id ? { ...s, isActive: !s.isActive } : s))
+      setToggleShiftModal({ open: false, shift: null })
     } catch (err: any) {
       toast.error(err?.message || "Failed to toggle shift status")
+    } finally {
+      setDeleting(false)
     }
   }
 
-  const handleDeleteAssignment = async (assignmentId: string) => {
+  const handleDeleteAssignment = async () => {
+    if (!deleteAssignmentModal.id) return
+    setDeleting(true)
     try {
-      await api.delete(`/shift-assignments/${assignmentId}`)
+      await api.delete(`/shift-assignments/${deleteAssignmentModal.id}`)
       toast.success("Assignment removed")
-      setAssignments((prev) => prev.filter((a) => a.id !== assignmentId))
+      setAssignments((prev) => prev.filter((a) => a.id !== deleteAssignmentModal.id))
+      setDeleteAssignmentModal({ open: false, id: "" })
     } catch {
       toast.error("Failed to remove assignment")
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -395,13 +425,12 @@ export default function ShiftsPage() {
                 <DialogTrigger asChild>
                   <CreateButton label="Create Shift" icon={<Plus className="h-4 w-4" />} />
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-[#0A0A0A]">
-                  <DialogHeader className="p-10 bg-black text-white relative overflow-hidden border-b border-white/5">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                    <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase italic">New Shift</DialogTitle>
-                    <DialogDescription className="text-white/40 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Define shift name and timings</DialogDescription>
+                <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
+                  <DialogHeader className="p-8 bg-white border-b border-slate-200">
+                    <DialogTitle className="text-3xl font-black tracking-tight leading-none uppercase italic text-slate-900">New Shift</DialogTitle>
+                    <DialogDescription className="text-slate-500 font-bold text-[10px] mt-2 uppercase tracking-[0.2em]">Define shift name and timings</DialogDescription>
                   </DialogHeader>
-                  <form onSubmit={handleCreateShift} className="p-10 space-y-8">
+                  <form onSubmit={handleCreateShift} className="p-8 space-y-5">
                     <div className="space-y-0">
                       <FormLabelBase label="Shift Name" required />
                       <Input
@@ -412,7 +441,7 @@ export default function ShiftsPage() {
                         required
                       />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-4">
                       <div className="space-y-0">
                         <FormLabelBase label="Start Time" required />
                         <TimePickerAmPm
@@ -428,9 +457,9 @@ export default function ShiftsPage() {
                         />
                       </div>
                     </div>
-                    <div className="pt-4 flex items-center gap-4">
-                      <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1" onClick={() => setShiftDialogOpen(false)}>CANCEL</Button>
-                      <SubmitButton label={submitting ? "CREATING..." : "CREATE SHIFT"} loading={submitting} className="flex-[2] mt-0" />
+                    <div className="pt-2 flex items-center justify-center gap-4">
+                      <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1 text-slate-600 hover:text-slate-900" onClick={() => setShiftDialogOpen(false)}>CANCEL</Button>
+                      <SubmitButton label={submitting ? "CREATING..." : "CREATE SHIFT"} loading={submitting} className="flex-[2] mt-0 bg-[#06b6d4] hover:bg-[#0891b2] text-white" />
                     </div>
                   </form>
                 </DialogContent>
@@ -503,13 +532,13 @@ export default function ShiftsPage() {
                       Assign Guard
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-[#0A0A0A]">
-                    <DialogHeader className="p-10 bg-black text-white relative overflow-hidden border-b border-white/5">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                      <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase italic">Assign Guard</DialogTitle>
-                      <DialogDescription className="text-white/40 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Assign a security guard to a shift</DialogDescription>
+                  <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
+                    <DialogHeader className="p-10 pr-16 pb-6 bg-white text-slate-900 relative overflow-hidden border-b border-slate-200">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-50 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                      <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase italic text-slate-900">Assign Guard</DialogTitle>
+                      <DialogDescription className="text-slate-500 font-bold text-[10px] mt-2 uppercase tracking-[0.2em] z-10">Assign a security guard to a shift</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleAssignGuard} className="p-10 space-y-8">
+                    <form onSubmit={handleAssignGuard} className="p-10 pt-6 space-y-6">
                       <div className="space-y-0">
                         <FormLabelBase label="Select Shift" required />
                         <Select value={assignForm.shiftId} onValueChange={(v) => setAssignForm({ ...assignForm, shiftId: v })}>
@@ -540,8 +569,19 @@ export default function ShiftsPage() {
                         <FormLabelBase label="Date" required />
                         <Input
                           type="date"
+                          min={new Date().toISOString().split('T')[0]}
                           value={assignForm.date}
-                          onChange={(e) => setAssignForm({ ...assignForm, date: e.target.value })}
+                          onChange={(e) => {
+                            const selectedDate = e.target.value
+                            const today = new Date().toISOString().split('T')[0]
+                            
+                            if (selectedDate < today) {
+                              toast.error("Past dates are not allowed")
+                              return
+                            }
+                            
+                            setAssignForm({ ...assignForm, date: selectedDate })
+                          }}
                           className={inputVariants}
                           required
                         />
@@ -560,9 +600,11 @@ export default function ShiftsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="pt-4 flex items-center gap-4">
-                        <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1" onClick={() => setAssignDialogOpen(false)}>CANCEL</Button>
-                        <SubmitButton label={submitting ? "ASSIGNING..." : "ASSIGN GUARD"} loading={submitting} className="flex-[2] mt-0" />
+                      <div className="pt-4 flex items-center justify-center gap-4">
+                        <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1 text-slate-600" onClick={() => setAssignDialogOpen(false)}>CANCEL</Button>
+                        <Button type="submit" disabled={submitting} className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-[2] bg-[#06b6d4] hover:bg-[#0891b2] text-white">
+                          {submitting ? "ASSIGNING..." : "ASSIGN GUARD"}
+                        </Button>
                       </div>
                     </form>
                   </DialogContent>
@@ -652,7 +694,7 @@ export default function ShiftsPage() {
                               size="sm"
                               variant="ghost"
                               className="h-9 w-9 rounded-2xl text-slate-300 hover:text-rose-500 hover:bg-rose-50"
-                              onClick={() => handleDeleteAssignment(a.id)}
+                              onClick={() => setDeleteAssignmentModal({ open: true, id: a.id })}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
@@ -718,14 +760,7 @@ export default function ShiftsPage() {
                     <TableCell className="text-right px-4 sm:px-8">
                       {hasPermission("manage_shifts") && (
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-9 w-9 rounded-2xl text-slate-400 hover:text-primary hover:bg-primary/10"
-                            onClick={() => openEditShift(shift)}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
+                          <RowEditButton onClick={() => openEditShift(shift)} />
                           <Button
                             size="sm"
                             variant="ghost"
@@ -735,19 +770,12 @@ export default function ShiftsPage() {
                                 ? "text-amber-500 hover:text-amber-700 hover:bg-amber-50"
                                 : "text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50"
                             )}
-                            onClick={() => handleToggleShiftActive(shift)}
+                            onClick={() => setToggleShiftModal({ open: true, shift })}
                             title={shift.isActive ? "Deactivate" : "Activate"}
                           >
                             <Power className="h-3.5 w-3.5" />
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-9 w-9 rounded-2xl text-slate-300 hover:text-rose-500 hover:bg-rose-50"
-                            onClick={() => handleDeleteShift(shift.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          <RowDeleteButton onClick={() => setDeleteShiftModal({ open: true, id: shift.id, name: shift.name })} />
                         </div>
                       )}
                     </TableCell>
@@ -762,12 +790,11 @@ export default function ShiftsPage() {
       {/* Edit Shift Dialog */}
       <Dialog open={editShiftDialogOpen} onOpenChange={(open) => { if (!open) { setEditShiftDialogOpen(false); setEditingShift(null) } }}>
         <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-          <DialogHeader className="p-10 bg-slate-900 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-            <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase">Edit Shift</DialogTitle>
-            <DialogDescription className="text-slate-400 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Update shift name, timings, or status</DialogDescription>
+          <DialogHeader className="p-8 bg-white border-b border-slate-200">
+            <DialogTitle className="text-3xl font-black tracking-tight leading-none uppercase italic text-slate-900">Edit Shift</DialogTitle>
+            <DialogDescription className="text-slate-500 font-bold text-[10px] mt-2 uppercase tracking-[0.2em]">Update shift name, timings, or status</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEditShift} className="p-10 space-y-8">
+          <form onSubmit={handleEditShiftSubmit} className="p-8 space-y-5">
             <div className="space-y-0">
               <FormLabelBase label="Shift Name" required />
               <Input
@@ -778,7 +805,7 @@ export default function ShiftsPage() {
                 required
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div className="space-y-0">
                 <FormLabelBase label="Start Time" required />
                 <TimePickerAmPm
@@ -815,13 +842,69 @@ export default function ShiftsPage() {
                 />
               </button>
             </div>
-            <div className="pt-4 flex items-center gap-4">
-              <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1" onClick={() => { setEditShiftDialogOpen(false); setEditingShift(null) }}>CANCEL</Button>
-              <SubmitButton label={submitting ? "SAVING..." : "SAVE CHANGES"} loading={submitting} className="flex-[2] mt-0" />
+            <div className="pt-2 flex items-center justify-center gap-4">
+              <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1 text-slate-600 hover:text-slate-900" onClick={() => { setEditShiftDialogOpen(false); setEditingShift(null) }}>CANCEL</Button>
+              <SubmitButton label={submitting ? "SAVING..." : "SAVE CHANGES"} loading={submitting} className="flex-[2] mt-0 bg-[#06b6d4] hover:bg-[#0891b2] text-white" />
             </div>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Shift Confirmation Modal */}
+      <AlertModal
+        isOpen={deleteShiftModal.open}
+        onClose={() => setDeleteShiftModal({ open: false, id: "", name: "" })}
+        onConfirm={handleDeleteShift}
+        loading={deleting}
+        title="Delete Shift"
+        description={`Are you sure you want to delete "${deleteShiftModal.name}"? This action cannot be undone.`}
+        variant="danger"
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+
+      {/* Delete Assignment Confirmation Modal */}
+      <AlertModal
+        isOpen={deleteAssignmentModal.open}
+        onClose={() => setDeleteAssignmentModal({ open: false, id: "" })}
+        onConfirm={handleDeleteAssignment}
+        loading={deleting}
+        title="Remove Assignment"
+        description="Are you sure you want to remove this shift assignment? This action cannot be undone."
+        variant="danger"
+        confirmText="Remove"
+        cancelText="Cancel"
+      />
+
+      {/* Toggle Shift Active/Inactive Confirmation Modal */}
+      <AlertModal
+        isOpen={toggleShiftModal.open}
+        onClose={() => setToggleShiftModal({ open: false, shift: null })}
+        onConfirm={handleToggleShiftActive}
+        loading={deleting}
+        title={toggleShiftModal.shift?.isActive ? "Deactivate Shift" : "Activate Shift"}
+        description={
+          toggleShiftModal.shift?.isActive
+            ? `Are you sure you want to deactivate "${toggleShiftModal.shift?.name}"? This shift will no longer be available for new assignments.`
+            : `Are you sure you want to activate "${toggleShiftModal.shift?.name}"? This shift will be available for new assignments.`
+        }
+        variant={toggleShiftModal.shift?.isActive ? "warning" : "primary"}
+        confirmText={toggleShiftModal.shift?.isActive ? "Deactivate" : "Activate"}
+        cancelText="Cancel"
+      />
+
+      {/* Edit Shift Confirmation Modal */}
+      <AlertModal
+        isOpen={editConfirmModal}
+        onClose={() => setEditConfirmModal(false)}
+        onConfirm={handleEditShift}
+        loading={submitting}
+        title="Save Changes"
+        description={`Are you sure you want to save changes to "${editingShift?.name}"?`}
+        variant="primary"
+        confirmText="Save Changes"
+        cancelText="Cancel"
+      />
     </div>
   )
 }

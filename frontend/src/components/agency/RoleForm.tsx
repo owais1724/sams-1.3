@@ -247,9 +247,11 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
                     <FormMessage />
                 </div>
 
-                <Button type="submit" className="w-full py-6 text-lg font-bold rounded-2xl bg-slate-900" disabled={loading}>
-                    {loading ? "Processing..." : initialData ? "Update Role" : "Create Role"}
-                </Button>
+                <div className="flex justify-center">
+                    <Button type="submit" className="w-full py-6 text-lg font-bold rounded-2xl bg-slate-900" disabled={loading}>
+                        {loading ? "Processing..." : initialData ? "Update Role" : "Create Role"}
+                    </Button>
+                </div>
 
             </form>
         </Form>

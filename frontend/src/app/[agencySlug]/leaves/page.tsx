@@ -249,8 +249,24 @@ export default function LeavesPage() {
                       <FormLabelBase label="From Date" required />
                       <Input
                         type="date"
+                        min={new Date().toISOString().split('T')[0]}
                         value={formData.startDate}
-                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        onChange={(e) => {
+                          const selectedDate = e.target.value
+                          const today = new Date().toISOString().split('T')[0]
+                          
+                          if (selectedDate < today) {
+                            toast.error("Past dates are not allowed")
+                            return
+                          }
+                          
+                          setFormData({ ...formData, startDate: selectedDate })
+                          
+                          // If end date is before new start date, clear it
+                          if (formData.endDate && selectedDate > formData.endDate) {
+                            setFormData({ ...formData, startDate: selectedDate, endDate: "" })
+                          }
+                        }}
                         className={inputVariants}
                         required
                       />
@@ -259,8 +275,24 @@ export default function LeavesPage() {
                       <FormLabelBase label="To Date" required />
                       <Input
                         type="date"
+                        min={formData.startDate || new Date().toISOString().split('T')[0]}
                         value={formData.endDate}
-                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                        onChange={(e) => {
+                          const selectedDate = e.target.value
+                          const today = new Date().toISOString().split('T')[0]
+                          
+                          if (selectedDate < today) {
+                            toast.error("Past dates are not allowed")
+                            return
+                          }
+                          
+                          if (formData.startDate && selectedDate < formData.startDate) {
+                            toast.error("End date cannot be before start date")
+                            return
+                          }
+                          
+                          setFormData({ ...formData, endDate: selectedDate })
+                        }}
                         className={inputVariants}
                         required
                       />
@@ -278,7 +310,7 @@ export default function LeavesPage() {
                     />
                   </div>
 
-                  <div className="pt-4 flex items-center gap-4">
+                  <div className="pt-4 flex items-center justify-center gap-4">
                     <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1" onClick={() => setIsDialogOpen(false)}>CANCEL</Button>
                     <SubmitButton
                       label={submitting ? "SUBMITTING..." : "SUBMIT REQUEST"}

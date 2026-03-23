@@ -188,7 +188,7 @@ export default function PayrollPage() {
               </p>
             </div>
 
-            <div className="pt-4 pb-10">
+            <div className="pt-4 pb-10 flex justify-center">
               <SubmitButton
                 onClick={handleGeneratePayroll}
                 loading={generating}

@@ -92,7 +92,16 @@ export function SubmitButton({
     className,
 }: SubmitButtonProps) {
     return (
-        <Button type="submit" disabled={disabled || loading} variant="primary" size="cta" className={className}>
+        <Button 
+            type="submit" 
+            disabled={disabled || loading} 
+            variant="primary" 
+            size="cta" 
+            className={cn(
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                className
+            )}
+        >
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {loading ? "Saving..." : label}
         </Button>
@@ -444,15 +453,15 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
                 "group flex items-center rounded-lg px-4 py-3 text-[14px] font-medium transition-colors duration-200 relative select-none",
                 collapsed && "justify-center px-3",
                 isActive
-                    ? "bg-[rgba(6,182,212,0.14)] text-[var(--primary)]"
-                    : "text-[var(--sidebar-foreground)] hover:text-white hover:bg-white/5",
+                    ? "bg-[#06b6d4] text-white border-l-[3px] border-[#0e7490]"
+                    : "text-[#374151] hover:bg-[#ecfeff] hover:text-[#0e7490]",
                 className
             )}
         >
             <Icon className={cn(
                 "h-5 w-5 shrink-0",
                 !collapsed && "mr-3",
-                isActive ? "text-[var(--primary)]" : "text-[var(--sidebar-foreground)] group-hover:text-white"
+                isActive ? "text-white" : "text-[#6b7280] group-hover:text-[#06b6d4]"
             )} />
             <span className={cn(
                 "whitespace-nowrap transition-all duration-300",
@@ -460,9 +469,6 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
             )}>
                 {name}
             </span>
-            {isActive && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--primary)]" />
-            )}
         </Link>
     )
 }
@@ -491,7 +497,7 @@ export function SidebarLogout({ onClick, label = "Sign Out", className, collapse
 export function SidebarSectionLabel({ children, collapsed, className }: { children: React.ReactNode, collapsed?: boolean, className?: string }) {
     return (
         <p className={cn(
-            "px-4 text-[12px] font-semibold text-[var(--sidebar-foreground)] uppercase tracking-wider mb-3 transition-opacity duration-300",
+            "px-4 text-[12px] font-semibold text-[#6b7280] uppercase tracking-wider mb-3 transition-opacity duration-300",
             collapsed ? "opacity-0 h-0" : "opacity-100",
             className
         )}>

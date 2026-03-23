@@ -23,14 +23,14 @@ const SelectTrigger = React.forwardRef<
     className={cn(
       // Base layout
       "flex h-14 w-full items-center justify-between",
-      // Shape — matches Input and PhoneInput
-      "rounded-2xl border border-transparent bg-slate-50 px-4",
+      // Shape — clean white with border (no focus border change to avoid double border)
+      "rounded-2xl border-2 border-slate-200 bg-white px-4",
       // Typography
-      "text-sm font-semibold text-[var(--popover-foreground)] placeholder:text-[var(--muted-foreground)]",
-      // Focus — subtle white bg + primary border, no ugly ring box
-      "focus:outline-none focus:bg-[var(--background)] focus:border-[var(--primary)]/20",
+      "text-sm font-semibold text-slate-900 placeholder:text-slate-400",
+      // Focus — no border change, just remove outline
+      "focus:outline-none",
       // Transitions & states
-      "transition-all duration-150",
+      "transition-colors duration-150",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "[&>span]:line-clamp-1",
       className
@@ -39,7 +39,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
+      <ChevronDown className="h-5 w-5 text-slate-400 shrink-0" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -83,15 +83,13 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        // Shape & shadow — premium card feel
-        "relative z-50 min-w-[8rem] overflow-hidden",
-        "rounded-2xl border border-border bg-[var(--popover)] shadow-2xl shadow-slate-200/60",
+        // Shape & shadow — clean white dropdown
+        "relative z-50 overflow-hidden",
+        "rounded-2xl border-2 border-slate-200 bg-white shadow-xl",
         // Animations
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-        "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
-        "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         position === "popper" &&
         "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
         className
@@ -139,24 +137,22 @@ const SelectItem = React.forwardRef<
       // Layout
       "relative flex w-full cursor-pointer select-none items-center",
       // Shape & spacing
-      "rounded-xl py-3 pl-10 pr-4",
+      "rounded-xl py-3 px-4",
       // Typography
-      "text-sm font-semibold text-[var(--popover-foreground)]",
+      "text-sm font-medium text-slate-700",
       // States
       "outline-none transition-colors",
-      "focus:bg-[var(--primary)]/5 focus:text-[var(--primary)]",
-      "data-[state=checked]:text-[var(--primary)] data-[state=checked]:bg-[var(--primary)]/5",
+      "hover:bg-[#ecfeff]",
+      "data-[state=checked]:bg-[#ecfeff] data-[state=checked]:text-[#06b6d4] data-[state=checked]:font-semibold",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
       className
     )}
     {...props}
   >
-    <span className="absolute left-3 flex h-4 w-4 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-3.5 w-3.5 text-[var(--primary)]" />
-      </SelectPrimitive.ItemIndicator>
-    </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+    <SelectPrimitive.ItemIndicator className="ml-auto">
+      <Check className="h-4 w-4 text-[#06b6d4]" />
+    </SelectPrimitive.ItemIndicator>
   </SelectPrimitive.Item>
 ))
 SelectItem.displayName = SelectPrimitive.Item.displayName

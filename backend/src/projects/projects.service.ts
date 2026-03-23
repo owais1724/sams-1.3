@@ -193,7 +193,11 @@ export class ProjectsService {
       where: { id },
       include: {
         _count: {
-          select: { attendances: true, assignedEmployees: true }
+          select: { 
+            attendances: true, 
+            assignedEmployees: true,
+            shiftAssignments: true
+          }
         }
       }
     });
@@ -202,17 +206,31 @@ export class ProjectsService {
     if (projectExists.agencyId !== agencyId) throw new ForbiddenException('Access to this project is forbidden');
     const project = projectExists;
 
-    if (project._count.attendances > 0) {
-      throw new ForbiddenException(`Cannot delete project "${project.name}" with existing attendance records. Consider deactivating it instead.`);
-    }
+    const attendanceCount = project._count.attendances;
+    const shiftAssignmentCount = project._count.shiftAssignments;
 
-    await this.prisma.project.delete({
-      where: { id },
+    // Delete in transaction to ensure all related records are removed
+    await this.prisma.$transaction(async (tx) => {
+      // Delete all related records first
+      await tx.attendance.deleteMany({ where: { projectId: id } });
+      await tx.shiftAssignment.deleteMany({ where: { projectId: id } });
+      await tx.checkpoint.deleteMany({ where: { projectId: id } });
+      
+      // Disconnect employees (many-to-many relationship)
+      await tx.project.update({
+        where: { id },
+        data: {
+          assignedEmployees: { set: [] }
+        }
+      });
+
+      // Finally delete the project
+      await tx.project.delete({ where: { id } });
     });
 
     await this.auditLogsService.create(agencyId, {
       action: 'DELETE_PROJECT',
-      details: `Project "${project.name}" has been permanently removed.`,
+      details: `Project "${project.name}" and all associated records (${attendanceCount} attendances, ${shiftAssignmentCount} shift assignments) have been permanently removed.`,
       entity: 'Project',
       entityId: id,
       severity: 'WARNING'

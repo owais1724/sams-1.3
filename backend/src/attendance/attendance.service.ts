@@ -190,9 +190,9 @@ export class AttendanceService {
       throw new NotFoundException('User is not associated with an employee record');
     }
 
-    // Allow check-in via deployment OR project
+    // Require either deployment or project
     if (!data.projectId && !data.deploymentId) {
-      throw new ForbiddenException('Project or deployment selection is required for check-in');
+      throw new ForbiddenException('Deployment or project selection is required for check-in');
     }
 
     const startOfDay = new Date();
@@ -200,26 +200,38 @@ export class AttendanceService {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    // ── Deployment-based check-in ──
+    // ── PRIORITY 1: Deployment-based check-in (guards with active deployments) ──
     if (data.deploymentId) {
-      const deploymentExists = await this.prisma.deployment.findUnique({ where: { id: data.deploymentId } });
-      if (!deploymentExists) throw new NotFoundException('Deployment not found');
-      if (deploymentExists.agencyId !== agencyId) throw new ForbiddenException('Access to this deployment is forbidden');
-
       const deployment = await this.prisma.deployment.findUnique({
         where: { id: data.deploymentId },
-        include: { guards: { where: { userId } } },
+        include: { 
+          guards: { where: { userId } },
+          shift: true,
+          client: { select: { name: true } }
+        },
       });
+
+      if (!deployment) {
+        throw new NotFoundException('Deployment not found');
+      }
+
+      if (deployment.agencyId !== agencyId) {
+        throw new ForbiddenException('Access to this deployment is forbidden');
+      }
+
+      // Verify guard is assigned to this deployment
       if (deployment.guards.length === 0) {
         throw new ForbiddenException('You are not assigned to this deployment');
       }
+
+      // Verify deployment is active
       if (deployment.status !== 'active') {
         throw new ForbiddenException(
           `Cannot check in — deployment is currently "${deployment.status}". Only active deployments allow check-in.`,
         );
       }
 
-      // Duplicate check for this deployment today
+      // Check for duplicate check-in today
       const existing = await this.prisma.attendance.findFirst({
         where: {
           employeeId: user.employee.id,
@@ -227,52 +239,24 @@ export class AttendanceService {
           date: { gte: startOfDay, lte: endOfDay },
         },
       });
+
       if (existing) {
         throw new ConflictException(
           `Already checked in for this deployment today at ${new Date(existing.checkIn!).toLocaleTimeString()}`,
         );
       }
 
-      // Cross-check: if a project-only record exists at the same client, upgrade it
-      const projectAtClient = await this.prisma.project.findFirst({
-        where: {
-          clientId: deployment.clientId,
-          agencyId,
-          assignedEmployees: { some: { id: user.employee.id } },
-        },
-        select: { id: true },
-      });
-      if (projectAtClient) {
-        const existingProjectRecord = await this.prisma.attendance.findFirst({
-          where: {
-            employeeId: user.employee.id,
-            projectId: projectAtClient.id,
-            deploymentId: null,
-            date: { gte: startOfDay, lte: endOfDay },
-          },
-        });
-        if (existingProjectRecord) {
-          // Upgrade the existing project record to include this deployment
-          return this.prisma.attendance.update({
-            where: { id: existingProjectRecord.id },
-            data: {
-              deploymentId: data.deploymentId,
-              photo: data.photo || existingProjectRecord.photo,
-              latitude: data.latitude || existingProjectRecord.latitude,
-              longitude: data.longitude || existingProjectRecord.longitude,
-            },
-          });
-        }
-      }
-
       // Validate check-in timing against shift window
-      const shiftData = await this.prisma.shift.findUnique({ where: { id: deployment.shiftId } });
       let status = 'PRESENT';
-      if (shiftData?.startTime && shiftData?.endTime) {
-        status = this.validateShiftTiming(shiftData.startTime, shiftData.endTime, shiftData.name);
+      if (deployment.shift?.startTime && deployment.shift?.endTime) {
+        status = this.validateShiftTiming(
+          deployment.shift.startTime, 
+          deployment.shift.endTime, 
+          deployment.shift.name
+        );
       }
 
-      // Auto-link the projectId — find a project at this client that the employee is assigned to
+      // Auto-link projectId if employee is assigned to a project at this client
       let linkedProjectId: string | null = null;
       const assignedProject = await this.prisma.project.findFirst({
         where: {
@@ -293,8 +277,8 @@ export class AttendanceService {
           status,
           method: data.method || 'WEB',
           photo: data.photo || null,
-          latitude: data.latitude || null,
-          longitude: data.longitude || null,
+          latitude: data.latitude ? parseFloat(data.latitude) : null,
+          longitude: data.longitude ? parseFloat(data.longitude) : null,
           agencyId,
           employeeId: user.employee.id,
           deploymentId: data.deploymentId,
@@ -303,9 +287,7 @@ export class AttendanceService {
       });
     }
 
-    // ── Project-based check-in ──
-
-    // If guard has active deployments today, auto-convert to deployment check-in
+    // ── PRIORITY 2: Check if guard has active deployments today ──
     const activeDeployments = await this.prisma.deploymentGuard.findMany({
       where: {
         userId,
@@ -320,77 +302,27 @@ export class AttendanceService {
         deployment: {
           include: {
             client: { select: { id: true, name: true } },
-            shift: { select: { name: true } },
+            shift: { select: { name: true, startTime: true, endTime: true } },
           },
         },
       },
     });
 
-    if (activeDeployments.length > 0 && data.projectId) {
-      // Find which client this project belongs to
-      const targetProject = await this.prisma.project.findFirst({
-        where: { id: data.projectId, agencyId },
-        select: { clientId: true, name: true },
-      });
-
-      if (targetProject) {
-        // Find matching deployment for this client
-        const matchingDeployment = activeDeployments.find(
-          dg => dg.deployment.clientId === targetProject.clientId,
-        );
-
-        if (matchingDeployment) {
-          // Auto-convert: check in via deployment path instead
-          const existingDep = await this.prisma.attendance.findFirst({
-            where: {
-              employeeId: user.employee.id,
-              deploymentId: matchingDeployment.deploymentId,
-              date: { gte: startOfDay, lte: endOfDay },
-            },
-          });
-          if (existingDep) {
-            throw new ConflictException(
-              `Already checked in for this deployment today at ${new Date(existingDep.checkIn!).toLocaleTimeString()}`,
-            );
-          }
-
-          // Validate timing against deployment shift
-          let depStatus = 'PRESENT';
-          const shiftData = await this.prisma.shift.findUnique({ where: { id: matchingDeployment.deployment.shiftId } });
-          if (shiftData?.startTime && shiftData?.endTime) {
-            depStatus = this.validateShiftTiming(shiftData.startTime, shiftData.endTime, shiftData.name);
-          }
-
-          return this.prisma.attendance.create({
-            data: {
-              date: new Date(),
-              checkIn: new Date(),
-              status: depStatus,
-              method: data.method || 'WEB',
-              photo: data.photo || null,
-              latitude: data.latitude || null,
-              longitude: data.longitude || null,
-              agencyId,
-              employeeId: user.employee.id,
-              deploymentId: matchingDeployment.deploymentId,
-              projectId: data.projectId,
-            },
-          });
-        }
-
-        // Project doesn't match any active deployment — block it
-        const deploymentNames = activeDeployments
-          .map(dg => `"${dg.deployment.client.name}" (${dg.deployment.shift.name})`)
-          .join(', ');
-        throw new ForbiddenException(
-          `You have active deployments today at ${deploymentNames}. You can only check in at your deployed sites.`,
-        );
-      }
+    // If guard has active deployments, they MUST check in via deployment
+    if (activeDeployments.length > 0) {
+      const deploymentNames = activeDeployments
+        .map(dg => `"${dg.deployment.client.name}" (${dg.deployment.shift.name})`)
+        .join(', ');
+      
+      throw new ForbiddenException(
+        `No active deployment found for today. You have deployments at ${deploymentNames}. Please select your deployment to check in.`,
+      );
     }
 
-    const projectExists = await this.prisma.project.findUnique({ where: { id: data.projectId } });
-    if (!projectExists) throw new NotFoundException('Project not found');
-    if (projectExists.agencyId !== agencyId) throw new ForbiddenException('Access to this project is forbidden');
+    // ── PRIORITY 3: Project-based check-in (for non-deployed staff) ──
+    if (!data.projectId) {
+      throw new ForbiddenException('No active deployment found for today. Please contact your supervisor.');
+    }
 
     const project = await this.prisma.project.findUnique({
       where: { id: data.projectId },
@@ -401,52 +333,35 @@ export class AttendanceService {
       },
     });
 
-    // If checking in via QR, validate employee is assigned to this project
-    if (data.method === 'QR' && project.assignedEmployees.length === 0) {
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    if (project.agencyId !== agencyId) {
+      throw new ForbiddenException('Access to this project is forbidden');
+    }
+
+    // Verify employee is assigned to this project
+    if (project.assignedEmployees.length === 0) {
       throw new ForbiddenException('You are not assigned to this project site');
     }
 
-    // ── DUPLICATE PROTECTION: Check if already checked in today for THIS PROJECT ────────────────
+    // Check for duplicate check-in today
     const existingAttendance = await this.prisma.attendance.findFirst({
       where: {
         employeeId: user.employee.id,
         projectId: data.projectId,
-        date: {
-          gte: startOfDay,
-          lte: endOfDay,
-        },
+        date: { gte: startOfDay, lte: endOfDay },
       },
     });
 
     if (existingAttendance) {
-      throw new ConflictException(`Already checked in for this project today at ${new Date(existingAttendance.checkIn!).toLocaleTimeString()}`);
+      throw new ConflictException(
+        `Already checked in for this project today at ${new Date(existingAttendance.checkIn!).toLocaleTimeString()}`,
+      );
     }
 
-    // Cross-check: if a deployment-based record exists at the same client, upgrade it
-    if (project.clientId) {
-      const existingDeploymentRecord = await this.prisma.attendance.findFirst({
-        where: {
-          employeeId: user.employee.id,
-          projectId: null,
-          deployment: { clientId: project.clientId },
-          date: { gte: startOfDay, lte: endOfDay },
-        },
-      });
-      if (existingDeploymentRecord) {
-        // Upgrade the existing deployment record to also include projectId
-        return this.prisma.attendance.update({
-          where: { id: existingDeploymentRecord.id },
-          data: {
-            projectId: data.projectId,
-            photo: data.photo || existingDeploymentRecord.photo,
-            latitude: data.latitude || existingDeploymentRecord.latitude,
-            longitude: data.longitude || existingDeploymentRecord.longitude,
-          },
-        });
-      }
-    }
-
-    // Validate shift timing if employee has a shift assignment for today at this project
+    // Validate shift timing if employee has a shift assignment
     let projectStatus = 'PRESENT';
     const shiftAssignment = await this.prisma.shiftAssignment.findFirst({
       where: {
@@ -457,6 +372,7 @@ export class AttendanceService {
       },
       include: { shift: true },
     });
+
     if (shiftAssignment?.shift?.startTime && shiftAssignment?.shift?.endTime) {
       projectStatus = this.validateShiftTiming(
         shiftAssignment.shift.startTime,
@@ -472,9 +388,9 @@ export class AttendanceService {
         status: projectStatus,
         method: data.method || 'WEB',
         photo: data.photo || null,
-        latitude: data.latitude || null,
-        longitude: data.longitude || null,
-        agencyId: agencyId,
+        latitude: data.latitude ? parseFloat(data.latitude) : null,
+        longitude: data.longitude ? parseFloat(data.longitude) : null,
+        agencyId,
         employeeId: user.employee.id,
         projectId: data.projectId,
       },

@@ -113,15 +113,15 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="flex h-screen bg-[var(--background)] font-inter p-2 sm:p-4 overflow-hidden selection:bg-primary/30">
+        <div className="flex min-h-screen w-full bg-[var(--background)] font-inter overflow-hidden selection:bg-primary/30">
             {/* Unified Container — sidebar + content as one panel */}
-            <div className="flex flex-1 h-full rounded-2xl sm:rounded-[28px] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-border bg-white">
+            <div className="flex flex-1 min-h-screen w-full overflow-hidden bg-white">
                 {/* Desktop Sidebar */}
-                <div className={`hidden lg:flex shrink-0 z-20 transition-all duration-300 ${sidebarCollapsed ? 'w-24' : 'w-[22rem]'}`}>
+                <div className={`hidden lg:flex shrink-0 z-20 transition-all duration-300 border-r border-slate-200 ${sidebarCollapsed ? 'w-24' : 'w-[22rem]'}`}>
                     <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
                 </div>
 
-                <div className="flex-1 flex flex-col h-full overflow-hidden bg-[var(--background)]">
+                <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-[var(--background)]">
                 {/* Mobile Header - Elevated */}
                 <header className="lg:hidden flex items-center justify-between px-4 sm:px-6 h-16 sm:h-20 bg-white text-slate-900 border-b border-border shrink-0 z-30">
                     <div className="flex items-center gap-4">
@@ -147,7 +147,7 @@ export default function AdminLayout({
                 </header>
 
                 <main className="flex-1 overflow-y-auto scrollbar-hide relative">
-                    <div className="p-4 sm:p-6 md:p-10 lg:p-12">
+                    <div className="h-full w-full p-4 sm:p-6 md:p-8">
                         {children}
                     </div>
                 </main>

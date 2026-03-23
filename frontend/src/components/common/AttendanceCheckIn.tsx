@@ -9,7 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Camera, MapPin, CheckCircle2, Loader2, X } from "lucide-react"
+import { Camera, MapPin, CheckCircle2, Loader2, X, AlertTriangle } from "lucide-react"
 import { toast } from "@/components/ui/sonner"
 import api from "@/lib/api"
 
@@ -24,9 +24,10 @@ interface AttendanceCheckInProps {
 }
 
 export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, deploymentId, projectName, projectLocation }: AttendanceCheckInProps) {
-    const [step, setStep] = useState<'photo' | 'location' | 'submitting'>('photo')
+    const [step, setStep] = useState<'photo' | 'location' | 'submitting' | 'camera-error'>('photo')
     const [photoData, setPhotoData] = useState<string>("")
     const [location, setLocation] = useState<{ latitude: number, longitude: number } | null>(null)
+    const [cameraError, setCameraError] = useState<string>("")
     const videoRef = useRef<HTMLVideoElement>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const streamRef = useRef<MediaStream | null>(null)
@@ -34,8 +35,21 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
     // Step 1: Start camera for photo
     const startCamera = async () => {
         try {
+            setCameraError("")
+            
+            // Check if mediaDevices is supported
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setCameraError("Camera is not supported on this device or browser.")
+                setStep('camera-error')
+                return
+            }
+
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user' }, // Front camera for selfie
+                video: { 
+                    facingMode: 'user', // Front camera for selfie
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
                 audio: false
             })
             
@@ -43,8 +57,26 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
                 videoRef.current.srcObject = stream
                 streamRef.current = stream
             }
-        } catch (error) {
-            toast.error("Failed to access camera. Please check permissions.")
+        } catch (error: any) {
+            console.error("Camera error:", error)
+            
+            let errorMessage = "Failed to access camera. "
+            
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                errorMessage += "Camera permission was denied. Please allow camera access in your browser settings and try again."
+            } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                errorMessage += "No camera found on this device."
+            } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                errorMessage += "Camera is already in use by another application."
+            } else if (error.name === 'OverconstrainedError') {
+                errorMessage += "Camera does not meet the required specifications."
+            } else {
+                errorMessage += "Please check your camera permissions and try again."
+            }
+            
+            setCameraError(errorMessage)
+            setStep('camera-error')
+            toast.error(errorMessage)
         }
     }
 
@@ -91,13 +123,24 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
                     })
                 },
                 (error) => {
-                    toast.error("Failed to get location. Please enable GPS.")
+                    console.error("Location error:", error)
+                    let errorMsg = "Failed to get location. "
+                    
+                    if (error.code === error.PERMISSION_DENIED) {
+                        errorMsg += "Location permission was denied."
+                    } else if (error.code === error.POSITION_UNAVAILABLE) {
+                        errorMsg += "Location information is unavailable."
+                    } else if (error.code === error.TIMEOUT) {
+                        errorMsg += "Location request timed out."
+                    }
+                    
+                    toast.warning(errorMsg + " Submitting without location.")
                     // Still allow submission without location
                     submitAttendance(null)
                 }
             )
         } else {
-            toast.error("Geolocation not supported")
+            toast.warning("Geolocation not supported. Submitting without location.")
             submitAttendance(null)
         }
     }
@@ -107,20 +150,32 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
         setStep('submitting')
         
         try {
-            await api.post('/attendance/check-in', {
-                ...(deploymentId ? { deploymentId } : { projectId }),
-                method: 'BIOMETRIC',
+            const payload: any = {
+                method: 'WEB',
                 photo: photoData,
-                latitude: gpsLocation?.latitude,
-                longitude: gpsLocation?.longitude
-            })
+                latitude: gpsLocation?.latitude?.toString(),
+                longitude: gpsLocation?.longitude?.toString()
+            }
+
+            // Always prioritize deploymentId if available
+            if (deploymentId) {
+                payload.deploymentId = deploymentId
+            } else if (projectId) {
+                payload.projectId = projectId
+            } else {
+                throw new Error("No deployment or project selected")
+            }
+
+            await api.post('/attendance/check-in', payload)
             
             toast.success("Attendance recorded successfully!")
             onSuccess()
             onOpenChange(false)
             resetFlow()
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to record attendance")
+            console.error("Check-in error:", error)
+            const errorMessage = error.response?.data?.message || error.message || "Failed to record attendance"
+            toast.error(errorMessage)
             setStep('photo')
         }
     }
@@ -129,6 +184,7 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
         setStep('photo')
         setPhotoData("")
         setLocation(null)
+        setCameraError("")
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop())
         }
@@ -137,6 +193,12 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
     const handleClose = () => {
         resetFlow()
         onOpenChange(false)
+    }
+
+    const retryCamera = () => {
+        setCameraError("")
+        setStep('photo')
+        startCamera()
     }
 
     // Start camera when dialog opens
@@ -204,6 +266,36 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
                             >
                                 <Camera className="h-4 w-4 mr-2" />
                                 Capture Photo
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Camera Error Dialog */}
+            <Dialog open={step === 'camera-error'} onOpenChange={handleClose}>
+                <DialogContent className="sm:max-w-[450px] p-0">
+                    <div className="p-8 text-center">
+                        <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                            <AlertTriangle className="h-8 w-8 text-red-500" />
+                        </div>
+                        <DialogTitle className="text-xl font-black mb-3">Camera Access Required</DialogTitle>
+                        <DialogDescription className="text-sm text-slate-600 mb-6">
+                            {cameraError}
+                        </DialogDescription>
+                        <div className="flex gap-3">
+                            <Button
+                                onClick={handleClose}
+                                variant="outline"
+                                className="flex-1 h-11 rounded-xl"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={retryCamera}
+                                className="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700"
+                            >
+                                Retry
                             </Button>
                         </div>
                     </div>
