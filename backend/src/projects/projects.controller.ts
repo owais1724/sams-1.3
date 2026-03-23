@@ -33,6 +33,13 @@ export class ProjectsController {
     return this.projectsService.findAll(req.user.agencyId);
   }
 
+  // Special endpoint for attendance - allows all authenticated users to see projects for attendance marking
+  @Get('for-attendance')
+  async findForAttendance(@Request() req) {
+    // No specific permission required - all authenticated users can see projects for attendance
+    return this.projectsService.findAll(req.user.agencyId);
+  }
+
   @Patch(':id')
   @Permissions('edit_project')
   async update(@Request() req, @Param('id') id: string, @Body() data: any) {

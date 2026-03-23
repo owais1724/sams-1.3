@@ -56,7 +56,8 @@ export default function AttendancePage() {
     const isStaff = user?.role?.toLowerCase().includes('staff') || user?.role?.toLowerCase().includes('guard')
     const isAdmin = user?.role?.toLowerCase().includes('admin')
     const isHR = user?.role?.toLowerCase().includes('hr') || user?.role?.toLowerCase().includes('human resource')
-    const canMark = user?.permissions?.includes('record_attendance') || user?.permissions?.includes('view_attendance') || isStaff || isHR || isAdmin
+    // Allow all authenticated users to mark attendance - it's a basic employee function
+    const canMark = true // Everyone can mark their own attendance
 
     // Debug: Log user permissions
     useEffect(() => {
@@ -79,8 +80,16 @@ export default function AttendancePage() {
                     }
                     throw err
                 }),
-                canMark ? api.get('/projects') : Promise.resolve({ data: [] }),
-                canMark ? api.get('/deployments/my-schedule').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+                // Use special endpoint that doesn't require view_projects permission
+                api.get('/projects/for-attendance').catch(err => {
+                    console.warn('Projects fetch failed:', err.response?.status)
+                    return { data: [] }
+                }),
+                // Don't fail if deployments fetch fails - just return empty array
+                api.get('/deployments/my-schedule').catch(err => {
+                    console.warn('Deployments fetch failed:', err.response?.status)
+                    return { data: [] }
+                }),
             ])
 
             const attendanceResponse = attendanceRes.data || []
@@ -118,7 +127,10 @@ export default function AttendancePage() {
             // Don't set myStatus here - will be calculated based on selected project
         } catch (error: any) {
             console.error('Failed to load attendance:', error)
-            toast.error("Failed to load attendance data.")
+            // Only show error if it's not a permission issue
+            if (error.response?.status !== 403) {
+                toast.error("Failed to load attendance data.")
+            }
         } finally {
             setLoading(false)
         }
