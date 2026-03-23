@@ -147,11 +147,11 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
-                                    Strategic Entity Name <span className="text-[var(--primary)]">*</span>
+                                    Agency Name <span className="text-[var(--primary)]">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <Input
-                                        placeholder="Enter Agency Entity Name..."
+                                        placeholder="Enter Agency Name..."
                                         className="h-14 bg-slate-50 border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-2xl focus:border-[var(--primary)]/20 focus:ring-[var(--primary)]/20 transition-all font-medium"
                                         {...field}
                                     />
@@ -166,13 +166,13 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
-                                    Mission Endpoint <span className="text-[var(--primary)]">*</span>
+                                    Agency Slug <span className="text-[var(--primary)]">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <div className="relative group">
                                         <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--primary)] font-semibold text-lg group-focus-within:animate-pulse z-10">/</div>
                                         <Input
-                                            placeholder="endpoint-identifier"
+                                            placeholder="agency-slug"
                                             className="h-14 pl-12 bg-slate-50 border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-2xl focus:border-[var(--primary)]/20 focus:ring-[var(--primary)]/20 transition-all font-mono font-medium lowercase"
                                             {...field}
                                         />

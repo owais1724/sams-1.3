@@ -117,7 +117,7 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData,
                         name="name"
                         render={({ field }) => (
                             <FormItem className="space-y-0">
-                                <FormLabelBase label="Project Designation" required />
+                                <FormLabelBase label="Project Name" required />
                                 <FormControl>
                                     <Input
                                         placeholder="e.g. Sector-7 Perimeter Control"

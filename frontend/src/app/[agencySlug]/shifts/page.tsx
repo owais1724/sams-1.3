@@ -137,7 +137,7 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
         <SelectTrigger className="h-12">
           <SelectValue placeholder="HH" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-[200px] overflow-y-auto">
           {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
             <SelectItem key={h} value={h.toString()}>{h}</SelectItem>
           ))}
@@ -148,7 +148,7 @@ function TimePickerAmPm({ value, onChange }: { value: string; onChange: (v: stri
         <SelectTrigger className="h-12">
           <SelectValue placeholder="MM" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-[200px] overflow-y-auto">
           {["00", "15", "30", "45"].map((m) => (
             <SelectItem key={m} value={m}>{m}</SelectItem>
           ))}
