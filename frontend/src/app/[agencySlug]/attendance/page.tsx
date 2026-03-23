@@ -56,7 +56,16 @@ export default function AttendancePage() {
     const isStaff = user?.role?.toLowerCase().includes('staff') || user?.role?.toLowerCase().includes('guard')
     const isAdmin = user?.role?.toLowerCase().includes('admin')
     const isHR = user?.role?.toLowerCase().includes('hr') || user?.role?.toLowerCase().includes('human resource')
-    const canMark = user?.permissions?.includes('record_attendance') || isStaff || isHR || isAdmin
+    const canMark = user?.permissions?.includes('record_attendance') || user?.permissions?.includes('view_attendance') || isStaff || isHR || isAdmin
+
+    // Debug: Log user permissions
+    useEffect(() => {
+        if (user) {
+            console.log('User permissions:', user.permissions)
+            console.log('User role:', user.role)
+            console.log('Can mark attendance:', canMark)
+        }
+    }, [user])
 
     const fetchData = async () => {
         setLoading(true)
