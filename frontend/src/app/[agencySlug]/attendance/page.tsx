@@ -62,7 +62,14 @@ export default function AttendancePage() {
         setLoading(true)
         try {
             const [attendanceRes, projectsRes, deploymentsRes] = await Promise.all([
-                api.get(`/attendance?today=true&page=${currentPage}&limit=${pageSize}`),
+                api.get(`/attendance?today=true&page=${currentPage}&limit=${pageSize}`).catch(err => {
+                    console.error('Attendance fetch error:', err)
+                    // If user doesn't have view permission, return empty data instead of failing
+                    if (err.response?.status === 403) {
+                        return { data: { data: [], pagination: { total: 0 } } }
+                    }
+                    throw err
+                }),
                 canMark ? api.get('/projects') : Promise.resolve({ data: [] }),
                 canMark ? api.get('/deployments/my-schedule').catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
             ])
@@ -101,6 +108,7 @@ export default function AttendancePage() {
 
             // Don't set myStatus here - will be calculated based on selected project
         } catch (error: any) {
+            console.error('Failed to load attendance:', error)
             toast.error("Failed to load attendance data.")
         } finally {
             setLoading(false)
