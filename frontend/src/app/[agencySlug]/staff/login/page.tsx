@@ -88,7 +88,7 @@ export default function StaffLogin() {
             login(user)
             sessionStorage.setItem('sams_portal_type', 'staff')
             toast.success("Ready for duty. Welcome back.")
-            window.location.href = `/${agencySlug}/staff/dashboard`
+            router.push(`/${agencySlug}/staff/dashboard`)
         } catch (error: any) {
             console.group("[StaffLogin] Authentication Error");
             console.error("Message:", error.message);
