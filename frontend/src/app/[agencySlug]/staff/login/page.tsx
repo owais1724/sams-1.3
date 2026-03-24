@@ -87,6 +87,14 @@ export default function StaffLogin() {
 
             login(user)
             sessionStorage.setItem('sams_portal_type', 'staff')
+            
+            // Debug logging
+            console.log('[Staff Login] User logged in:', {
+                role: user.role,
+                permissions: user.permissions,
+                hasDashboardPermission: user.permissions?.includes('view_dashboard')
+            })
+            
             toast.success("Ready for duty. Welcome back.")
             
             // Check if user has dashboard permission
@@ -94,6 +102,8 @@ export default function StaffLogin() {
             const redirectPath = hasDashboardPermission 
                 ? `/${agencySlug}/staff/dashboard` 
                 : `/${agencySlug}/my-schedule`
+            
+            console.log('[Staff Login] Redirecting to:', redirectPath)
             
             // Use window.location for hard redirect to avoid root page interference
             window.location.href = redirectPath
