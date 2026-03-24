@@ -61,14 +61,17 @@ export function middleware(request: NextRequest) {
     console.log('[Middleware] ALLOWING: Super admin access');
   }
 
-  // Staff/Guard Portal: /[agencySlug]/staff/*
-  const isStaffRoute = pathname.match(/^\/[^\/]+\/staff\//) && !pathname.includes('/staff-login')
+  // Staff/Guard Portal: /[agencySlug]/staff/* AND /[agencySlug]/my-schedule
+  // STRICT: Only allow Guard, HR, and Staff roles (NOT Agency Admin, NOT Supervisor)
+  const isStaffRoute = (pathname.match(/^\/[^\/]+\/staff\//) && !pathname.includes('/staff-login')) || 
+                       pathname.match(/^\/[^\/]+\/my-schedule/)
+  
   if (isStaffRoute) {
     console.log('[Middleware] Staff portal check');
-    // Allow any staff role (GUARD, STAFF, HR, etc). Block admins from staff portal.
-    const adminRoles = ['SUPER_ADMIN', 'AGENCY_ADMIN', 'SUPERVISOR']
-    if (adminRoles.includes(normalizedRole)) {
-      console.log('[Middleware] BLOCKING: Admin trying to access staff portal. Role:', normalizedRole);
+    // Staff portal ONLY for Guard, HR, and Staff - NO ADMINS
+    const STAFF_ONLY_ROLES = ['GUARD', 'HR', 'STAFF']
+    if (!STAFF_ONLY_ROLES.includes(normalizedRole)) {
+      console.log('[Middleware] BLOCKING: Non-staff role trying to access staff portal:', normalizedRole);
       const response = NextResponse.redirect(new URL('/', request.url))
       response.cookies.delete('access_token')
       response.cookies.delete('token')
@@ -77,11 +80,11 @@ export function middleware(request: NextRequest) {
       response.cookies.delete('sams-auth-v2')
       return response
     }
-    console.log('[Middleware] ALLOWING: Staff/Guard access');
+    console.log('[Middleware] ALLOWING: Staff access');
   }
 
-  // Agency Admin Portal: /[agencySlug]/* (excluding /staff/ routes)
-  const isAgencyRoute = pathname.match(/^\/[^\/]+\/(?!staff\/)/) && 
+  // Agency Admin Portal: /[agencySlug]/* (excluding /staff/ routes and /my-schedule)
+  const isAgencyRoute = pathname.match(/^\/[^\/]+\/(?!staff\/|my-schedule)/) && 
                         !pathname.startsWith('/admin') &&
                         !pathname.endsWith('/login') &&
                         !pathname.endsWith('/staff-login')

@@ -84,7 +84,7 @@ export default function AgencyAdminLogin() {
             login(user)
             sessionStorage.setItem('sams_portal_type', 'agency')
             toast.success("Identity verified. Welcome back.")
-            router.push(`/${agencySlug}/dashboard`)
+            window.location.href = `/${agencySlug}/dashboard`
         } catch (error: any) {
             console.error('[Login Error]', error)
             toast.error("Invalid credentials")

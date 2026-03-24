@@ -65,8 +65,8 @@ export default function AgencyLayout({
 
                 // Strict boundary check: User must belong to this specific agency.
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
-                // Only allow Agency Admin and Supervisor roles
-                const allowedRoles = ['Agency Admin', 'Supervisor'];
+                // Allow Agency Admin, Supervisor, Guard, HR, and Staff roles
+                const allowedRoles = ['Agency Admin', 'Supervisor', 'Guard', 'HR', 'Staff'];
                 const hasCorrectRole = allowedRoles.includes(userData.role);
                 
                 if (userData.role === 'Super Admin' || userData.agencySlug !== agencySlug || !hasCorrectRole) {

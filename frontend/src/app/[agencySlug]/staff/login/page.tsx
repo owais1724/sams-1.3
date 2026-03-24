@@ -88,7 +88,15 @@ export default function StaffLogin() {
             login(user)
             sessionStorage.setItem('sams_portal_type', 'staff')
             toast.success("Ready for duty. Welcome back.")
-            router.push(`/${agencySlug}/staff/dashboard`)
+            
+            // Check if user has dashboard permission
+            const hasDashboardPermission = user.permissions?.includes('view_dashboard')
+            const redirectPath = hasDashboardPermission 
+                ? `/${agencySlug}/staff/dashboard` 
+                : `/${agencySlug}/my-schedule`
+            
+            // Use window.location for hard redirect to avoid root page interference
+            window.location.href = redirectPath
         } catch (error: any) {
             console.group("[StaffLogin] Authentication Error");
             console.error("Message:", error.message);

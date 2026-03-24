@@ -29,9 +29,17 @@ export default function StaffLayout({
                 const response = await api.get('/auth/me');
                 const userData = response.data;
 
-                // STRICT: Only allow Guard and Staff roles
-                const allowedRoles = ['Guard', 'Staff'];
-                const hasCorrectRole = allowedRoles.includes(userData.role);
+                if (!userData) {
+                    window.location.href = `/${agencySlug}/staff-login`;
+                    return;
+                }
+
+                console.log('Staff layout role check:', userData.role);
+                console.log('Is authenticated:', !!userData);
+
+                // STRICT: Only allow Guard, HR, and Staff roles (NO Agency Admin, NO Supervisor)
+                const staffOnlyRoles = ['Guard', 'HR', 'Staff'];
+                const hasCorrectRole = staffOnlyRoles.includes(userData.role);
                 
                 if (!hasCorrectRole || userData.agencySlug !== agencySlug) {
                     console.warn(`Staff portal access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}`);

@@ -61,26 +61,16 @@ export default function StaffDashboard() {
       const perms = user.permissions || []
       setUserPermissions(perms)
 
-      // Strict Dynamic Permission check
-      const isAdmin = user?.role === 'Agency Admin'
-      
-      if (!isAdmin) {
-        // If they have NO permissions at all, they shouldn't be here
-        if (perms.length === 0) {
-          toast.error("Account Pending Designation: No active permissions identified.")
-          logout()
-          router.push(`/${agencySlug}/staff-login`)
-          return
-        }
-
-        // If they don't have dashboard permission, redirect to their primary allowed area
-        if (!perms.includes('view_dashboard')) {
-          const fallbackPath = perms.includes('view_attendance') ? 'my-schedule' : 'attendance'
-          router.push(`/${agencySlug}/${fallbackPath}`)
-          return
-        }
+      // Strict Dynamic Permission check - ALL staff must have view_dashboard permission
+      // No role-based exceptions, only permission-based access
+      if (!perms.includes('view_dashboard')) {
+        router.push(`/${agencySlug}/my-schedule`)
+        return
       }
 
+      // Check which data user can view based on permissions
+      const isAdmin = ['Agency Admin', 'Supervisor'].includes(user?.role)
+      
       const [empRes, attRes, projRes, leaveRes] = await Promise.allSettled([
         (isAdmin || perms.includes('view_employee')) ? api.get('/employees') : Promise.reject('No permission'),
         (isAdmin || perms.includes('view_attendance')) ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'),

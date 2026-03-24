@@ -31,44 +31,21 @@ export default function RootLoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [checking, setChecking] = useState(true)
-  const { user, isAuthenticated, login, logout } = useAuthStore()
+  const { login, logout } = useAuthStore()
 
   useEffect(() => {
-    // Check if user is already authenticated and redirect to their portal
-    const checkAuthAndRedirect = async () => {
-      if (isAuthenticated && user) {
-        console.log('[Root Page] User already authenticated:', user.role)
-        
-        // Redirect based on role
-        if (user.role === 'Super Admin') {
-          console.log('[Root Page] Redirecting Super Admin to /admin/dashboard')
-          router.replace('/admin/dashboard')
-          return
-        } else if (user.role === 'Agency Admin' || user.role === 'Supervisor') {
-          console.log('[Root Page] Redirecting Agency Admin/Supervisor to agency dashboard')
-          router.replace(`/${user.agencySlug}/dashboard`)
-          return
-        } else if (user.role === 'Guard' || user.role === 'Staff' || user.role === 'HR' || user.agencySlug) {
-          console.log(`[Root Page] Redirecting ${user.role} to staff dashboard`)
-          router.replace(`/${user.agencySlug}/staff/dashboard`)
-          return
-        }
-      }
-      
-      // Not authenticated, clear any stale session
+    // Clear session on mount
+    const clearSession = async () => {
       try {
         await api.post("/auth/logout")
       } catch (e) {
         // Silently fail session clearing
       } finally {
         logout()
-        setChecking(false)
       }
     }
-    
-    checkAuthAndRedirect()
-  }, [isAuthenticated, user, router, logout])
+    clearSession()
+  }, [logout])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -101,15 +78,6 @@ export default function RootLoginPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  // Show loading while checking authentication
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#06b6d4]">
-        <Loader2 className="w-8 h-8 text-white animate-spin" />
-      </div>
-    )
   }
 
   return (

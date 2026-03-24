@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAuthStore } from "@/store/authStore"
+import { useRouter, useParams } from "next/navigation"
 import api from "@/lib/api"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,12 +11,24 @@ import { toast } from "@/components/ui/sonner"
 
 export default function MySchedulePage() {
     const { user } = useAuthStore()
+    const router = useRouter()
+    const { agencySlug } = useParams()
     const [deployments, setDeployments] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        // RBAC: Only allow Guard, HR, and Staff to access this page
+        const staffOnlyRoles = ['Guard', 'HR', 'Staff']
+        if (user && !staffOnlyRoles.includes(user.role || '')) {
+            console.warn(`[My Schedule] Access denied for role: ${user.role}`)
+            toast.error("Unauthorized access. You have been logged out.")
+            api.post('/auth/logout').catch(() => {})
+            router.push(`/${agencySlug}/login`)
+            return
+        }
+        
         fetchMySchedule()
-    }, [])
+    }, [user, router, agencySlug])
 
     const fetchMySchedule = async () => {
         try {
