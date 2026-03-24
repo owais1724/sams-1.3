@@ -65,10 +65,10 @@ export function middleware(request: NextRequest) {
   const isStaffRoute = pathname.match(/^\/[^\/]+\/staff\//) && !pathname.includes('/staff-login')
   if (isStaffRoute) {
     console.log('[Middleware] Staff portal check');
-    // Only allow Guard and Staff roles
-    const allowedStaffRoles = ['GUARD', 'STAFF']
-    if (!allowedStaffRoles.includes(normalizedRole)) {
-      console.log('[Middleware] BLOCKING: Non-staff/guard trying to access staff portal. Role:', normalizedRole);
+    // Allow any staff role (GUARD, STAFF, HR, etc). Block admins from staff portal.
+    const adminRoles = ['SUPER_ADMIN', 'AGENCY_ADMIN', 'SUPERVISOR']
+    if (adminRoles.includes(normalizedRole)) {
+      console.log('[Middleware] BLOCKING: Admin trying to access staff portal. Role:', normalizedRole);
       const response = NextResponse.redirect(new URL('/', request.url))
       response.cookies.delete('access_token')
       response.cookies.delete('token')

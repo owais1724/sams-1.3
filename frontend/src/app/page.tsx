@@ -46,11 +46,11 @@ export default function RootLoginPage() {
           router.replace('/admin/dashboard')
           return
         } else if (user.role === 'Agency Admin' || user.role === 'Supervisor') {
-          console.log('[Root Page] Redirecting Agency Admin to agency dashboard')
+          console.log('[Root Page] Redirecting Agency Admin/Supervisor to agency dashboard')
           router.replace(`/${user.agencySlug}/dashboard`)
           return
-        } else if (user.role === 'Guard' || user.role === 'Staff') {
-          console.log('[Root Page] Redirecting Staff/Guard to staff dashboard')
+        } else if (user.role === 'Guard' || user.role === 'Staff' || user.role === 'HR' || user.agencySlug) {
+          console.log(`[Root Page] Redirecting ${user.role} to staff dashboard`)
           router.replace(`/${user.agencySlug}/staff/dashboard`)
           return
         }
