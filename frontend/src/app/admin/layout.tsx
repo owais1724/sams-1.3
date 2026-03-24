@@ -8,6 +8,7 @@ import api from "@/lib/api"
 import { Menu, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { toast } from "sonner"
 
 export default function AdminLayout({
     children,
@@ -56,6 +57,7 @@ export default function AdminLayout({
                 const response = await api.get('/auth/me');
                 if (response.data.role !== 'Super Admin') {
                     // Explicitly clear session if role mismatch
+                    toast.error("Unauthorized access. You have been logged out.");
                     isActive = false;
                     await api.post('/auth/logout').catch(() => { });
                     logout();

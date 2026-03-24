@@ -9,6 +9,7 @@ import api from "@/lib/api"
 import { Menu, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { toast } from "sonner"
 
 export default function AgencyLayout({
     children,
@@ -64,8 +65,13 @@ export default function AgencyLayout({
 
                 // Strict boundary check: User must belong to this specific agency.
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
-                if (userData.role === 'Super Admin' || userData.agencySlug !== agencySlug) {
-                    console.warn(`Access denied. Rule violation: User from ${userData.agencySlug || 'Super Admin'} tried to enter ${agencySlug}`);
+                // Only allow Agency Admin and Supervisor roles
+                const allowedRoles = ['Agency Admin', 'Supervisor'];
+                const hasCorrectRole = allowedRoles.includes(userData.role);
+                
+                if (userData.role === 'Super Admin' || userData.agencySlug !== agencySlug || !hasCorrectRole) {
+                    console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}`);
+                    toast.error("Unauthorized access. You have been logged out.");
                     // Force hard redirect immediately and stop rendering
                     isActive = false;
                     await api.post('/auth/logout').catch(() => { });

@@ -27,12 +27,25 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             login: (user) => {
                 set({ user, isAuthenticated: true });
+                // Store role in cookie for middleware access
+                if (typeof document !== 'undefined' && user.role) {
+                    document.cookie = `userRole=${user.role}; path=/; max-age=86400; SameSite=Lax`;
+                }
             },
             logout: () => {
                 set({ user: null, isAuthenticated: false });
+                // Clear all auth cookies
+                if (typeof document !== 'undefined') {
+                    document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                    document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                    document.cookie = 'user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                    document.cookie = 'sams-auth-v2=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                }
                 try {
                     if (typeof window !== 'undefined') {
                         sessionStorage.removeItem('sams_portal_type');
+                        localStorage.removeItem('sams-auth-v2');
                     }
                 } catch (e) { /* ignore */ }
             },
