@@ -36,12 +36,19 @@ export default function StaffLayout({
 
                 console.log('Staff layout role check:', userData.role);
                 console.log('Is authenticated:', !!userData);
+                console.log('User permissions:', userData.permissions);
 
                 // STRICT: Only allow Guard, HR, and Staff roles (NO Agency Admin, NO Supervisor)
                 // Case-insensitive role check
                 const userRole = userData.role?.toLowerCase() || '';
                 const staffOnlyRoles = ['guard', 'hr', 'staff'];
                 const hasCorrectRole = staffOnlyRoles.includes(userRole);
+                
+                console.log('[Staff Layout] Role check:', {
+                    userRole,
+                    hasCorrectRole,
+                    agencyMatch: userData.agencySlug === agencySlug
+                });
                 
                 if (!hasCorrectRole || userData.agencySlug !== agencySlug) {
                     console.warn(`Staff portal access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}`);
@@ -54,6 +61,8 @@ export default function StaffLayout({
                     }
                     return;
                 }
+
+                console.log('[Staff Layout] Access granted');
 
                 if (isActive) {
                     login(userData);

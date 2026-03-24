@@ -61,12 +61,21 @@ export default function StaffDashboard() {
       const perms = user.permissions || []
       setUserPermissions(perms)
 
+      console.log('[Staff Dashboard] Permission check:', {
+        role: user.role,
+        permissions: perms,
+        hasDashboardPermission: perms.includes('view_dashboard')
+      })
+
       // Strict Dynamic Permission check - ALL staff must have view_dashboard permission
       // No role-based exceptions, only permission-based access
       if (!perms.includes('view_dashboard')) {
+        console.log('[Staff Dashboard] No view_dashboard permission, redirecting to my-schedule')
         router.push(`/${agencySlug}/my-schedule`)
         return
       }
+
+      console.log('[Staff Dashboard] Permission check passed, loading dashboard data')
 
       // Check which data user can view based on permissions
       const isAdmin = ['Agency Admin', 'Supervisor'].includes(user?.role)
