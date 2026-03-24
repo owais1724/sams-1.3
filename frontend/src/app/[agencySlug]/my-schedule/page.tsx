@@ -18,8 +18,11 @@ export default function MySchedulePage() {
 
     useEffect(() => {
         // RBAC: Only allow Guard, HR, and Staff to access this page
-        const staffOnlyRoles = ['Guard', 'HR', 'Staff']
-        if (user && !staffOnlyRoles.includes(user.role || '')) {
+        // Case-insensitive role check
+        const userRole = user?.role?.toLowerCase() || '';
+        const staffOnlyRoles = ['guard', 'hr', 'staff'];
+        
+        if (user && !staffOnlyRoles.includes(userRole)) {
             console.warn(`[My Schedule] Access denied for role: ${user.role}`)
             toast.error("Unauthorized access. You have been logged out.")
             api.post('/auth/logout').catch(() => {})
