@@ -4,8 +4,12 @@ import type { NextRequest } from 'next/server'
 // Normalize role names for comparison
 const normalizeRole = (role: string) => role.toUpperCase().replace(/\s+/g, '_');
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  
+  // Extract agency slug from path if present (e.g. /agencySlug/login -> agencySlug)
+  const pathParts = pathname.split('/').filter(Boolean)
+  const agencySlug = pathParts.length > 0 && !['admin', 'api', '_next', 'register'].includes(pathParts[0]) ? pathParts[0] : null
   
   // PUBLIC ROUTES - NEVER block these
   const publicRoutes = [
@@ -13,6 +17,7 @@ export function middleware(request: NextRequest) {
     '/login',
     '/register',
     '/staff-login',
+    '/admin/login'
   ]
   
   // Check if current path is a public route
@@ -23,87 +28,52 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Get auth data from cookies
+  // Get auth data from cookies (session simulation)
   const token = request.cookies.get('access_token')?.value || request.cookies.get('token')?.value
   const userRole = request.cookies.get('userRole')?.value
 
-  console.log('[Middleware] Path:', pathname, 'Token:', !!token, 'Role:', userRole);
-
-  // If no token, redirect to home (login will handle it)
+  // If no token, redirect to proper login page immediately without deleting anything
   if (!token) {
-    console.log('[Middleware] No token, redirecting to home');
+    if (pathname.startsWith('/admin')) {
+        return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
+    if (agencySlug) {
+        return NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
+    }
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // If no role in cookie, allow through (layout will verify with /auth/me)
+  // If token exists but no role cookie, let layouts verify via /auth/me
   if (!userRole) {
-    console.log('[Middleware] No role in cookie, allowing through for layout verification');
     return NextResponse.next()
   }
 
-  // Now check role-based access
   const normalizedRole = normalizeRole(userRole);
-  console.log('[Middleware] Normalized role:', normalizedRole);
 
-  // Super Admin Portal: /admin/*
+  // Super Admin Portal protection
   if (pathname.startsWith('/admin')) {
-    console.log('[Middleware] Admin portal check');
     if (normalizedRole !== 'SUPER_ADMIN') {
-      console.log('[Middleware] BLOCKING: Non-super-admin trying to access admin portal');
-      const response = NextResponse.redirect(new URL('/', request.url))
-      response.cookies.delete('access_token')
-      response.cookies.delete('token')
-      response.cookies.delete('userRole')
-      response.cookies.delete('user')
-      response.cookies.delete('sams-auth-v2')
-      return response
+      const redirectUrl = agencySlug ? `/${agencySlug}/login` : '/'
+      return NextResponse.redirect(new URL(redirectUrl, request.url))
     }
-    console.log('[Middleware] ALLOWING: Super admin access');
   }
 
-  // Staff/Guard Portal: /[agencySlug]/staff/* AND /[agencySlug]/my-schedule
-  // STRICT: Only allow Guard, HR, and Staff roles (NOT Agency Admin, NOT Supervisor)
+  // Staff Portal protection
   const isStaffRoute = (pathname.match(/^\/[^\/]+\/staff\//) && !pathname.includes('/staff-login')) || 
                        pathname.match(/^\/[^\/]+\/my-schedule/)
-  
   if (isStaffRoute) {
-    console.log('[Middleware] Staff portal check');
-    // Staff portal ONLY for Guard, HR, and Staff - NO ADMINS
     const STAFF_ONLY_ROLES = ['GUARD', 'HR', 'STAFF']
     if (!STAFF_ONLY_ROLES.includes(normalizedRole)) {
-      console.log('[Middleware] BLOCKING: Non-staff role trying to access staff portal:', normalizedRole);
-      const response = NextResponse.redirect(new URL('/', request.url))
-      response.cookies.delete('access_token')
-      response.cookies.delete('token')
-      response.cookies.delete('userRole')
-      response.cookies.delete('user')
-      response.cookies.delete('sams-auth-v2')
-      return response
+      return NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
     }
-    console.log('[Middleware] ALLOWING: Staff access');
   }
 
-  // Agency Admin Portal: /[agencySlug]/* (excluding /staff/ routes and /my-schedule)
-  const isAgencyRoute = pathname.match(/^\/[^\/]+\/(?!staff\/|my-schedule)/) && 
-                        !pathname.startsWith('/admin') &&
-                        !pathname.endsWith('/login') &&
-                        !pathname.endsWith('/staff-login')
-  
-  if (isAgencyRoute) {
-    console.log('[Middleware] Agency portal check');
-    // Only allow Agency Admin and Supervisor
-    const allowedAdminRoles = ['AGENCY_ADMIN', 'SUPERVISOR']
-    if (!allowedAdminRoles.includes(normalizedRole)) {
-      console.log('[Middleware] BLOCKING: Non-admin trying to access agency portal. Role:', normalizedRole);
-      const response = NextResponse.redirect(new URL('/', request.url))
-      response.cookies.delete('access_token')
-      response.cookies.delete('token')
-      response.cookies.delete('userRole')
-      response.cookies.delete('user')
-      response.cookies.delete('sams-auth-v2')
-      return response
-    }
-    console.log('[Middleware] ALLOWING: Agency admin access');
+  // Agency Portal protection (Blocks staff from accessing some purely administrative routes)
+  // HOWEVER we must allow them to access components that rely on permission checks like /attendance, /projects
+  // So we will NOT aggressively log them out if they have the wrong role. The layouts/pages will handle RBAC.
+  // We only block purely Super Admin from entering agency.
+  if (normalizedRole === 'SUPER_ADMIN' && agencySlug) {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
   }
 
   return NextResponse.next()
@@ -111,13 +81,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)',
   ],
 }

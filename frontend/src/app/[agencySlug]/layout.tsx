@@ -43,11 +43,11 @@ export default function AgencyLayout({
         let isActive = true;
 
         // ── Per-tab Session Isolation ──
-        // sessionStorage is per-tab. If this tab doesn't have the 'agency' flag,
+        // sessionStorage is per-tab. If this tab doesn't have the 'agency' or 'staff' flag,
         // we block automatic cookie-based login to prevent session leakage across tabs
         // when a URL is copy-pasted.
         const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
-        if (!isLoginPage && tabPortalType !== 'agency') {
+        if (!isLoginPage && tabPortalType !== 'agency' && tabPortalType !== 'staff') {
             logout();
             if (pathname?.includes('/staff')) {
                 window.location.href = `/${agencySlug}/staff-login`;
@@ -127,6 +127,9 @@ export default function AgencyLayout({
             </div>
         )
     }
+
+    // Step 6 debug log
+    console.log('Navigation check - User:', user?.role, 'Loading:', verifying, 'Path:', pathname)
 
     if (isLoginPage) {
         return <>{children}</>
