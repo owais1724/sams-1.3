@@ -41,6 +41,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { Pagination } from "@/components/ui/Pagination"
+import { AlertModal } from "@/components/ui/alert-modal"
 import { cn } from "@/lib/utils"
 
 interface Incident {
@@ -118,6 +119,7 @@ export default function IncidentsPage() {
     const [reviewTarget, setReviewTarget] = useState<{ id: string; status: string } | null>(null)
     const [reviewNotes, setReviewNotes] = useState("")
     const [reviewSaving, setReviewSaving] = useState(false)
+    const [showConfirmation, setShowConfirmation] = useState(false)
 
     const [form, setForm] = useState({
         title: "",
@@ -232,9 +234,16 @@ export default function IncidentsPage() {
         setShowReview(true)
     }
 
+    const handleReviewSubmit = () => {
+        // Close the review dialog and show confirmation modal
+        setShowReview(false)
+        setShowConfirmation(true)
+    }
+
     const handleStatusChange = async () => {
         if (!reviewTarget) return
         setReviewSaving(true)
+        setShowConfirmation(false)
         try {
             await api.patch(`/incidents/${reviewTarget.id}/status`, {
                 status: reviewTarget.status,
@@ -246,8 +255,8 @@ export default function IncidentsPage() {
                 closed: "Incident has been Closed",
             }
             toast.success(messages[reviewTarget.status] || "Status updated")
-            setShowReview(false)
             setReviewTarget(null)
+            setReviewNotes("")
             fetchData()
         } catch (err: any) {
             toast.error(err.response?.data?.message || "Failed to update status")
@@ -620,7 +629,7 @@ export default function IncidentsPage() {
                         <div className="flex justify-end gap-3">
                             <Button variant="outline" onClick={() => setShowReview(false)} className="rounded-xl">Cancel</Button>
                             <Button
-                                onClick={handleStatusChange}
+                                onClick={handleReviewSubmit}
                                 disabled={reviewSaving}
                                 className={cn("rounded-xl font-bold",
                                     reviewTarget?.status === "under_review" ? "bg-amber-500 hover:bg-amber-600" :
@@ -711,6 +720,40 @@ export default function IncidentsPage() {
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* ─── Confirmation Modal ─── */}
+            <AlertModal
+                isOpen={showConfirmation}
+                onClose={() => {
+                    setShowConfirmation(false)
+                    setShowReview(true) // Reopen review dialog if user cancels
+                }}
+                onConfirm={handleStatusChange}
+                loading={reviewSaving}
+                title={
+                    reviewTarget?.status === "under_review" ? "Mark as Under Review?" :
+                    reviewTarget?.status === "resolved" ? "Resolve Incident?" :
+                    "Close Incident?"
+                }
+                description={
+                    reviewTarget?.status === "under_review" 
+                        ? "This incident will be marked as under review. You can add resolution details later."
+                        : reviewTarget?.status === "resolved"
+                        ? "This incident will be marked as resolved. Make sure all necessary actions have been taken."
+                        : "This incident will be permanently closed. This action cannot be undone."
+                }
+                variant={
+                    reviewTarget?.status === "under_review" ? "warning" :
+                    reviewTarget?.status === "resolved" ? "success" :
+                    "primary"
+                }
+                confirmText={
+                    reviewTarget?.status === "under_review" ? "Mark as Under Review" :
+                    reviewTarget?.status === "resolved" ? "Resolve" :
+                    "Close"
+                }
+                cancelText="Go Back"
+            />
         </div>
     )
 }
