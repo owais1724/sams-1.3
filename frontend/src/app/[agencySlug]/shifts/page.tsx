@@ -217,7 +217,16 @@ export default function ShiftsPage() {
   const [filterStatus, setFilterStatus] = useState("")
 
   useEffect(() => {
-    if (user) fetchAll()
+    if (user) {
+      if (!user?.role?.toLowerCase().includes('admin') && !hasPermission("view_shifts")) {
+          toast.error("RBAC Violation: Unauthorized access to Shifts portal. You have been isolated and logged out.");
+          api.post('/auth/logout').catch(() => {});
+          useAuthStore.getState().logout();
+          window.location.href = `/${agencySlug}/staff-login`;
+          return;
+      }
+      fetchAll()
+    }
   }, [user])
 
   useEffect(() => {

@@ -151,10 +151,18 @@ export default function AgencyDashboard() {
 
     useEffect(() => {
         if (authUser) {
+            // Strictly prevent Staff roles from viewing the Agency Admin dashboard
+            const staffRoles = ['Guard', 'HR', 'Staff'];
+            if (staffRoles.includes(authUser.role as string)) {
+                console.log('[Agency Dashboard] Access denied. Redirecting staff to staff dashboard.');
+                router.replace(`/${agencySlug}/staff/dashboard`);
+                return;
+            }
+
             setLoading(true)
             fetchData()
         }
-    }, [authUser])
+    }, [authUser, router, agencySlug])
 
     // Auto-refresh every 30 seconds
     useEffect(() => {

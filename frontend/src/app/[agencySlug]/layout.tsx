@@ -65,19 +65,32 @@ export default function AgencyLayout({
 
                 // Strict boundary check: User must belong to this specific agency.
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
-                // Allow Agency Admin, Supervisor, Guard, HR, and Staff roles
                 const allowedRoles = ['Agency Admin', 'Supervisor', 'Guard', 'HR', 'Staff'];
                 const hasCorrectRole = allowedRoles.includes(userData.role);
+
+                // ── RBAC Cross-Tab Session Isolation ──
+                // If a user logs into Staff portal on one tab (changing the global browser cookies),
+                // and tries to use the Agency Admin tab, we must block the cross-contamination.
+                const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
+                const isAgencyAdminRole = ['Agency Admin', 'Supervisor'].includes(userData.role);
+                const isStaffRole = ['Guard', 'HR', 'Staff'].includes(userData.role);
                 
-                if (userData.role === 'Super Admin' || userData.agencySlug !== agencySlug || !hasCorrectRole) {
-                    console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}`);
-                    toast.error("Unauthorized access. You have been logged out.");
+                let isRoleMismatch = false;
+                if (tabPortalType === 'agency' && !isAgencyAdminRole) {
+                    isRoleMismatch = true; // Tab intended for Admin, but cookies are Staff
+                } else if (tabPortalType === 'staff' && !isStaffRole) {
+                    isRoleMismatch = true; // Tab intended for Staff, but cookies are Admin
+                }
+                
+                if (userData.role === 'Super Admin' || userData.agencySlug !== agencySlug || !hasCorrectRole || isRoleMismatch) {
+                    console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, Mismatch: ${isRoleMismatch}`);
+                    toast.error(isRoleMismatch ? "Session conflict detected. Please sign in again with appropriate credentials." : "Unauthorized access. You have been logged out.");
                     // Force hard redirect immediately and stop rendering
                     isActive = false;
                     await api.post('/auth/logout').catch(() => { });
                     logout();
                     if (!isLoginPage) {
-                        window.location.href = `/${agencySlug}/login`;
+                        window.location.href = tabPortalType === 'staff' ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`;
                     }
                     return;
                 }

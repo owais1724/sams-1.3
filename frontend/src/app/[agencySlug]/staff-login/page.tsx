@@ -79,7 +79,7 @@ export default function StaffLogin() {
             }
 
             login(user)
-            sessionStorage.setItem('sams_portal_type', 'agency')
+            sessionStorage.setItem('sams_portal_type', 'staff')
             toast.success("Ready for duty. Welcome back.")
             
             // If user is a guard/operator without dashboard permission, land on schedule

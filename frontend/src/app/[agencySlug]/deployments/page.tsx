@@ -165,8 +165,15 @@ export default function DeploymentsPage() {
     }
 
     useEffect(() => {
+        if (!isAdmin && !hasPermission('view_deployments')) {
+            toast.error("RBAC Violation: Unauthorized access to Deployments portal. You have been isolated and logged out.");
+            api.post('/auth/logout').catch(() => {});
+            useAuthStore.getState().logout();
+            window.location.href = `/${agencySlug}/staff-login`;
+            return;
+        }
         fetchData()
-    }, [])
+    }, [isAdmin, agencySlug])
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault()
