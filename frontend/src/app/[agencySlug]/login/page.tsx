@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/lib/api"
+import { loginWithRetry, waitForBackend } from "@/lib/apiWithRetry"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
@@ -60,8 +61,20 @@ export default function AgencyAdminLogin() {
         toast.dismiss()
 
         try {
-            const response = await api.post("/auth/login", values)
-            const { user } = response.data
+            // Check if backend is ready (cold start handling)
+            toast.info("Connecting to server...")
+            const isBackendReady = await waitForBackend()
+            toast.dismiss()
+            
+            if (!isBackendReady) {
+                toast.error("Server is starting up. Please try again in a moment.")
+                setLoading(false)
+                return
+            }
+
+            // Login with retry logic
+            const data = await loginWithRetry(values)
+            const { user } = data
 
             const currentSlug = Array.isArray(agencySlug) ? agencySlug[0] : agencySlug
             if (user.agencySlug !== currentSlug) {
@@ -87,7 +100,15 @@ export default function AgencyAdminLogin() {
             window.location.href = `/${agencySlug}/dashboard`
         } catch (error: any) {
             console.error('[Login Error]', error)
-            toast.error("Invalid credentials")
+            
+            // Better error messages
+            if (error.response?.status === 401) {
+                toast.error("Invalid credentials")
+            } else if (error.message?.includes('Network Error') || error.code === 'ECONNREFUSED') {
+                toast.error("Unable to connect to server. Please try again.")
+            } else {
+                toast.error("Invalid credentials")
+            }
             setLoading(false)
         }
     }

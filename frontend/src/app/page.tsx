@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/lib/api"
+import { loginWithRetry, waitForBackend } from "@/lib/apiWithRetry"
 import { toast } from "@/components/ui/sonner"
 import { ShieldCheck, Lock, Mail, ChevronRight, Loader2, Eye, EyeOff } from "lucide-react"
 import { motion } from "framer-motion"
@@ -55,9 +56,22 @@ export default function RootLoginPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true)
     toast.dismiss()
+    
     try {
-      const response = await api.post("/auth/login", values)
-      const { user } = response.data
+      // Check if backend is ready (cold start handling)
+      toast.info("Connecting to server...")
+      const isBackendReady = await waitForBackend()
+      toast.dismiss()
+      
+      if (!isBackendReady) {
+        toast.error("Server is starting up. Please try again in a moment.")
+        setLoading(false)
+        return
+      }
+
+      // Login with retry logic
+      const data = await loginWithRetry(values)
+      const { user } = data
 
       // RESTRICTION: Root login is EXCLUSIVELY for Super Admins
       if (user.role !== 'Super Admin') {
@@ -74,7 +88,15 @@ export default function RootLoginPage() {
 
     } catch (error: any) {
       console.error(error)
-      toast.error("Invalid credentials")
+      
+      // Better error messages
+      if (error.response?.status === 401) {
+        toast.error("Invalid credentials")
+      } else if (error.message?.includes('Network Error') || error.code === 'ECONNREFUSED') {
+        toast.error("Unable to connect to server. Please try again.")
+      } else {
+        toast.error("Invalid credentials")
+      }
     } finally {
       setLoading(false)
     }

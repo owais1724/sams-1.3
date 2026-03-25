@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/lib/api"
+import { loginWithRetry, waitForBackend } from "@/lib/apiWithRetry"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
@@ -56,9 +57,23 @@ export default function StaffLogin() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true)
+        toast.dismiss()
+        
         try {
-            const response = await api.post("/auth/login", values)
-            const { user } = response.data
+            // Check if backend is ready (cold start handling)
+            toast.info("Connecting to server...")
+            const isBackendReady = await waitForBackend()
+            toast.dismiss()
+            
+            if (!isBackendReady) {
+                toast.error("Server is starting up. Please try again in a moment.")
+                setLoading(false)
+                return
+            }
+
+            // Login with retry logic
+            const data = await loginWithRetry(values)
+            const { user } = data
 
             // STRICT MULTI-TENANCY CHECK: Verify user belongs to this specific agency
             const currentSlug = Array.isArray(agencySlug) ? agencySlug[0] : agencySlug
@@ -110,17 +125,22 @@ export default function StaffLogin() {
         } catch (error: any) {
             console.group("[StaffLogin] Authentication Error");
             console.error("Message:", error.message);
-            console.error("Status:", error.status);
+            console.error("Status:", error.response?.status);
             console.error("Payload:", error.response?.data);
             console.groupEnd();
 
-            const message = error.extractedMessage || error.message || "Authentication failed"
-            toast.error(`Login Error: ${message}`)
+            // Better error messages
+            if (error.response?.status === 401) {
+                toast.error("Invalid credentials. Please check your email and password.")
+            } else if (error.message?.includes('Network Error') || error.code === 'ECONNREFUSED') {
+                toast.error("Unable to connect to server. Please check your connection and try again.")
+            } else {
+                const message = error.response?.data?.message || error.message || "Authentication failed"
+                toast.error(`Login Error: ${message}`)
+            }
         } finally {
             setLoading(false)
         }
-
-
     }
 
     return (
