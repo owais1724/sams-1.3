@@ -120,6 +120,7 @@ export default function IncidentsPage() {
     const [reviewNotes, setReviewNotes] = useState("")
     const [reviewSaving, setReviewSaving] = useState(false)
     const [showConfirmation, setShowConfirmation] = useState(false)
+    const [showCreateConfirmation, setShowCreateConfirmation] = useState(false)
 
     const [form, setForm] = useState({
         title: "",
@@ -207,7 +208,20 @@ export default function IncidentsPage() {
             return
         }
         
+        // Show confirmation modal instead of directly creating
+        setShowCreate(false)
+        setShowCreateConfirmation(true)
+    }
+
+    const handleConfirmCreate = async () => {
+        // Auto-link deployment if guard has only one active deployment
+        let deploymentId = form.deploymentId
+        if (isGuard && activeDeployments.length === 1 && !deploymentId) {
+            deploymentId = activeDeployments[0].id
+        }
+        
         setSaving(true)
+        setShowCreateConfirmation(false)
         try {
             await api.post("/incidents", {
                 title: form.title,
@@ -217,7 +231,6 @@ export default function IncidentsPage() {
                 severity: form.severity || 1,
             })
             toast.success("Incident reported successfully")
-            setShowCreate(false)
             setForm({ title: "", description: "", type: "", deploymentId: "", severity: 1 })
             setFormErrors({ title: "", deploymentId: "" })
             fetchData()
@@ -752,6 +765,29 @@ export default function IncidentsPage() {
                     reviewTarget?.status === "resolved" ? "Resolve" :
                     "Close"
                 }
+                cancelText="Go Back"
+            />
+
+            {/* ─── Create Incident Confirmation Modal ─── */}
+            <AlertModal
+                isOpen={showCreateConfirmation}
+                onClose={() => {
+                    setShowCreateConfirmation(false)
+                    setShowCreate(true) // Reopen create dialog if user cancels
+                }}
+                onConfirm={handleConfirmCreate}
+                loading={saving}
+                title="Report This Incident?"
+                description={
+                    <>
+                        You are about to report: <strong>{form.title}</strong>
+                        <br />
+                        <br />
+                        This will notify supervisors and create an official incident record.
+                    </>
+                }
+                variant="danger"
+                confirmText="Report Incident"
                 cancelText="Go Back"
             />
         </div>
