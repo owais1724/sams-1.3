@@ -55,13 +55,10 @@ export default function RootLoginPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true)
-    toast.dismiss()
     
     try {
       // Check if backend is ready (cold start handling)
-      toast.info("Connecting to server...")
       const isBackendReady = await waitForBackend()
-      toast.dismiss()
       
       if (!isBackendReady) {
         toast.error("Server is starting up. Please try again in a moment.")
