@@ -580,7 +580,11 @@ export default function IncidentsPage() {
                             <SubmitButton 
                                 label="Report Incident" 
                                 loading={saving}
-                                disabled={!form.title.trim() || saving}
+                                disabled={
+                                    !form.title.trim() || 
+                                    (!form.deploymentId && !(isGuard && activeDeployments.length === 1)) || 
+                                    saving
+                                }
                             />
                         </div>
                     </form>
