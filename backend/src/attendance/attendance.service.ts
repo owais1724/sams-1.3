@@ -58,7 +58,7 @@ export class AttendanceService {
 
     if (localNow > shiftEnd) {
       throw new ForbiddenException(
-        `Your shift${label} (${startTime} – ${endTime}) has already ended. Check-in is no longer available.`,
+        `Too late to check in. Your shift${label} (${startTime} – ${endTime}) has already ended. Check-in is no longer available.`,
       );
     }
 
