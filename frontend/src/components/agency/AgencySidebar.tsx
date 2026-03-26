@@ -166,7 +166,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
 
 
 
-    const isStaff = user?.role === "staff";
+    const isStaff = ['guard', 'hr', 'staff'].includes(user?.role?.toLowerCase() || '');
 
 
 

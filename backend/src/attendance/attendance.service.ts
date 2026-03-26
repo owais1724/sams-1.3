@@ -231,6 +231,26 @@ export class AttendanceService {
         );
       }
 
+      // Verify deployment date range includes today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const deploymentStart = new Date(deployment.startDate);
+      deploymentStart.setHours(0, 0, 0, 0);
+      const deploymentEnd = new Date(deployment.endDate);
+      deploymentEnd.setHours(23, 59, 59, 999);
+
+      if (today < deploymentStart) {
+        throw new ForbiddenException(
+          `Too early to check in. This deployment starts on ${deploymentStart.toLocaleDateString()}. Check-in will be available from that date.`,
+        );
+      }
+
+      if (today > deploymentEnd) {
+        throw new ForbiddenException(
+          `Too late to check in. This deployment ended on ${deploymentEnd.toLocaleDateString()}. Check-in is no longer available.`,
+        );
+      }
+
       // Check for duplicate check-in today
       const existing = await this.prisma.attendance.findFirst({
         where: {
