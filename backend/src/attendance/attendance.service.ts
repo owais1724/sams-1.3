@@ -239,16 +239,41 @@ export class AttendanceService {
       const deploymentEnd = new Date(deployment.endDate);
       deploymentEnd.setHours(23, 59, 59, 999);
 
-      if (today < deploymentStart) {
-        throw new ForbiddenException(
-          `Too early to check in. This deployment starts on ${deploymentStart.toLocaleDateString()}. Check-in will be available from that date.`,
-        );
-      }
+      // For overnight shifts, allow check-in on both start and end dates
+      // Check if shift crosses midnight
+      const isOvernightShift = deployment.shift?.startTime && deployment.shift?.endTime && 
+        (() => {
+          const [sh, sm] = deployment.shift.startTime.split(':').map(Number);
+          const [eh, em] = deployment.shift.endTime.split(':').map(Number);
+          const startMinutes = sh * 60 + sm;
+          const endMinutes = eh * 60 + em;
+          return endMinutes <= startMinutes;
+        })();
 
-      if (today > deploymentEnd) {
-        throw new ForbiddenException(
-          `Too late to check in. This deployment ended on ${deploymentEnd.toLocaleDateString()}. Check-in is no longer available.`,
-        );
+      if (isOvernightShift) {
+        // For overnight shifts, allow check-in from start date to end date (inclusive)
+        if (today < deploymentStart) {
+          throw new ForbiddenException(
+            `Too early to check in. This deployment starts on ${deploymentStart.toLocaleDateString()}. Check-in will be available from that date.`,
+          );
+        }
+        if (today > deploymentEnd) {
+          throw new ForbiddenException(
+            `Too late to check in. This deployment ended on ${deploymentEnd.toLocaleDateString()}. Check-in is no longer available.`,
+          );
+        }
+      } else {
+        // For regular shifts, only allow check-in on dates within the range
+        if (today < deploymentStart) {
+          throw new ForbiddenException(
+            `Too early to check in. This deployment starts on ${deploymentStart.toLocaleDateString()}. Check-in will be available from that date.`,
+          );
+        }
+        if (today > deploymentEnd) {
+          throw new ForbiddenException(
+            `Too late to check in. This deployment ended on ${deploymentEnd.toLocaleDateString()}. Check-in is no longer available.`,
+          );
+        }
       }
 
       // Check for duplicate check-in today
