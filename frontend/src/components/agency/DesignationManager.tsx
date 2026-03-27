@@ -20,26 +20,43 @@ import { RowDeleteButton, TableRowEmpty } from "@/components/ui/design-system"
 import { useAuthStore } from "@/store/authStore"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
 import { Label } from "@/components/ui/label"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 export function DesignationManager({ designations, onUpdate }: { designations: any[], onUpdate: () => void }) {
     const [loading, setLoading] = useState(false)
+    const [deleteLoading, setDeleteLoading] = useState(false)
     const [newName, setNewName] = useState("")
     const [newDesc, setNewDesc] = useState("")
+    const [showCreateConfirmModal, setShowCreateConfirmModal] = useState(false)
+    const [pendingDesignation, setPendingDesignation] = useState<{ name: string; description: string } | null>(null)
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
     const { user } = useAuthStore()
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!newName) return
+        const trimmedName = newName.trim()
+        if (!trimmedName) return
+        setPendingDesignation({
+            name: trimmedName,
+            description: newDesc.trim()
+        })
+        setShowCreateConfirmModal(true)
+    }
+
+    const handleConfirmedAdd = async () => {
+        if (!pendingDesignation?.name) return
         setLoading(true)
         try {
             await api.post("/designations", {
-                name: newName,
-                description: newDesc,
+                name: pendingDesignation.name,
+                description: pendingDesignation.description,
                 agencyId: user?.agencyId
             })
             toast.success("Designation protocol initialized.")
             setNewName("")
             setNewDesc("")
+            setPendingDesignation(null)
+            setShowCreateConfirmModal(false)
             onUpdate()
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to initialize designation.")
@@ -48,13 +65,18 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
         }
     }
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async () => {
+        if (!deleteTarget?.id) return
+        setDeleteLoading(true)
         try {
-            await api.delete(`/designations/${id}`)
+            await api.delete(`/designations/${deleteTarget.id}`)
             toast.success("Designation purged from roster.")
+            setDeleteTarget(null)
             onUpdate()
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Purge protocol failed.")
+        } finally {
+            setDeleteLoading(false)
         }
     }
 
@@ -138,7 +160,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                         </TableCell>
                                         <TableCell className="text-right px-4 sm:px-8">
                                             <PermissionGuard permission="manage_roles">
-                                                <RowDeleteButton onClick={() => handleDelete(des.id)} />
+                                                <RowDeleteButton onClick={() => setDeleteTarget({ id: des.id, name: des.name })} />
                                             </PermissionGuard>
                                         </TableCell>
                                     </TableRow>
@@ -148,6 +170,33 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                     </Table>
                 </div>
             </div>
+
+            <AlertModal
+                isOpen={showCreateConfirmModal}
+                onClose={() => {
+                    setShowCreateConfirmModal(false)
+                    setPendingDesignation(null)
+                }}
+                onConfirm={handleConfirmedAdd}
+                loading={loading}
+                title="Create Designation"
+                description={`Are you sure you want to create the designation "${pendingDesignation?.name}"?`}
+                variant="primary"
+                confirmText="Create Designation"
+                cancelText="Cancel"
+            />
+
+            <AlertModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={handleDelete}
+                loading={deleteLoading}
+                title="Delete Designation"
+                description={`Are you sure you want to delete the designation "${deleteTarget?.name}"?`}
+                variant="danger"
+                confirmText="Delete Designation"
+                cancelText="Cancel"
+            />
         </div>
     )
 }

@@ -94,6 +94,8 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmModal, setShowConfirmModal] = useState(false)
     const [pendingValues, setPendingValues] = useState<FormValues | null>(null)
+    const [showDesignationConfirmModal, setShowDesignationConfirmModal] = useState(false)
+    const [pendingDesignationName, setPendingDesignationName] = useState("")
 
     const resolvedSchema = initialData
         ? baseSchema
@@ -142,16 +144,25 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
     }, [initialData, form])
 
     const handleQuickAddDesignation = async () => {
-        if (!newDesignationName) return
+        const trimmedName = newDesignationName.trim()
+        if (!trimmedName) return
+        setPendingDesignationName(trimmedName)
+        setShowDesignationConfirmModal(true)
+    }
+
+    const handleConfirmedQuickAddDesignation = async () => {
+        if (!pendingDesignationName) return
         setDesignationLoading(true)
         try {
             const response = await api.post("/designations", {
-                name: newDesignationName,
+                name: pendingDesignationName,
                 agencyId: user?.agencyId
             })
             toast.success("Designation created")
             const newId = response.data.id;
             setNewDesignationName("")
+            setPendingDesignationName("")
+            setShowDesignationConfirmModal(false)
             setShowQuickAdd(false)
             await refetchDesignations();
             setTimeout(() => {
@@ -400,6 +411,21 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
             }
             variant="primary"
             confirmText={initialData ? "Save Changes" : "Create Employee"}
+            cancelText="Cancel"
+        />
+
+        <AlertModal
+            isOpen={showDesignationConfirmModal}
+            onClose={() => {
+                setShowDesignationConfirmModal(false)
+                setPendingDesignationName("")
+            }}
+            onConfirm={handleConfirmedQuickAddDesignation}
+            loading={designationLoading}
+            title="Create Designation"
+            description={`Are you sure you want to create the designation "${pendingDesignationName}"?`}
+            variant="primary"
+            confirmText="Create Designation"
             cancelText="Cancel"
         />
         </>
