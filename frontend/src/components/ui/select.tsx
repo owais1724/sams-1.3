@@ -84,7 +84,7 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         // Shape & shadow — clean white dropdown
-        "relative z-50 overflow-hidden",
+        "relative z-50 overflow-hidden max-h-[min(24rem,var(--radix-select-content-available-height))]",
         "rounded-2xl border-2 border-slate-200 bg-white shadow-xl",
         // Animations
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
@@ -95,6 +95,8 @@ const SelectContent = React.forwardRef<
         className
       )}
       position={position}
+      sideOffset={8}
+      collisionPadding={16}
       {...props}
     >
       <SelectScrollUpButton />
@@ -102,7 +104,7 @@ const SelectContent = React.forwardRef<
         className={cn(
           "p-2",
           position === "popper" &&
-          "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+          "w-full min-w-[var(--radix-select-trigger-width)]"
         )}
       >
         {children}
