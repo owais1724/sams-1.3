@@ -92,14 +92,14 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[640px] p-0 border-none rounded-[32px] shadow-2xl overflow-hidden">
-                <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-blue-100">
+            <DialogContent className="sm:max-w-[640px] p-0 border border-border rounded-[32px] shadow-2xl overflow-hidden bg-white">
+                <div className="p-8 bg-white border-b border-slate-100">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black font-outfit uppercase tracking-tight text-slate-900 flex items-center gap-3">
                             <Building2 className="h-6 w-6 text-blue-600" />
                             Assign to Projects
                         </DialogTitle>
-                        <DialogDescription className="font-bold text-slate-600 font-outfit text-xs uppercase tracking-widest mt-2">
+                        <DialogDescription className="font-bold text-slate-500 font-outfit text-xs uppercase tracking-widest mt-2">
                             Select project sites for {employee.fullName}
                         </DialogDescription>
                     </DialogHeader>
@@ -118,16 +118,16 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
                         </div>
                     ) : (
                         <>
-                            <div className="mb-4 p-4 bg-blue-50 rounded-2xl border border-blue-200">
+                            <div className="mb-4 p-4 bg-white rounded-2xl border border-slate-200">
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 rounded-xl bg-blue-500 flex items-center justify-center">
                                         <Users className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-black text-blue-900 uppercase tracking-widest">
+                                        <p className="text-xs font-black text-slate-900 uppercase tracking-widest">
                                             Employee: {employee.fullName}
                                         </p>
-                                        <p className="text-[10px] font-bold text-blue-600 mt-0.5">
+                                        <p className="text-[10px] font-bold text-slate-500 mt-0.5">
                                             {employee.employeeCode} • {employee.designation?.name || 'No Designation'}
                                         </p>
                                     </div>
@@ -189,7 +189,7 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
                     )}
                 </div>
 
-                <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-4">
+                <div className="p-6 bg-white border-t border-slate-100 flex items-center justify-between gap-4">
                     <Button
                         onClick={() => onOpenChange(false)}
                         variant="outline"
