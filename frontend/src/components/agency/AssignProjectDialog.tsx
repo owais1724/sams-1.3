@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import { Building2, CheckCircle2, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 interface AssignProjectDialogProps {
     employee: any
@@ -27,6 +28,7 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
     const [selectedProjects, setSelectedProjects] = useState<string[]>([])
     const [loading, setLoading] = useState(false)
     const [saving, setSaving] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
 
     useEffect(() => {
         if (open && employee) {
@@ -37,33 +39,33 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
     const fetchProjects = async () => {
         setLoading(true)
         try {
-            // Get all projects with assigned employees
-            const response = await api.get('/projects')
+            const response = await api.get("/projects")
             const allProjects = response.data || []
             setProjects(allProjects)
 
-            // Pre-select projects this employee is already assigned to
             const assignedProjectIds = allProjects
                 .filter((p: any) => p.assignedEmployees?.some((emp: any) => emp.id === employee.id))
                 .map((p: any) => p.id)
-            
+
             setSelectedProjects(assignedProjectIds)
-        } catch (error) {
+        } catch {
             toast.error("Failed to load projects")
         } finally {
             setLoading(false)
         }
     }
 
-    const handleSave = async () => {
+    const handleSave = () => {
+        setShowConfirmModal(true)
+    }
+
+    const handleConfirmedSave = async () => {
         setSaving(true)
         try {
-            // Update each project's employee assignments
             const updatePromises = projects.map(async (project) => {
                 const isCurrentlyAssigned = project.assignedEmployees?.some((emp: any) => emp.id === employee.id)
                 const shouldBeAssigned = selectedProjects.includes(project.id)
 
-                // Only update if there's a change
                 if (isCurrentlyAssigned !== shouldBeAssigned) {
                     const currentEmployeeIds = project.assignedEmployees?.map((emp: any) => emp.id) || []
                     const newEmployeeIds = shouldBeAssigned
@@ -71,14 +73,17 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
                         : currentEmployeeIds.filter((id: string) => id !== employee.id)
 
                     return api.patch(`/projects/${project.id}`, {
-                        employeeIds: newEmployeeIds
+                        employeeIds: newEmployeeIds,
                     })
                 }
+
+                return null
             })
 
             await Promise.all(updatePromises.filter(Boolean))
-            
+
             toast.success(`Project assignments updated for ${employee.fullName}`)
+            setShowConfirmModal(false)
             onSuccess?.()
             onOpenChange(false)
         } catch (error: any) {
@@ -128,7 +133,7 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
                                             Employee: {employee.fullName}
                                         </p>
                                         <p className="text-[10px] font-bold text-slate-500 mt-0.5">
-                                            {employee.employeeCode} • {employee.designation?.name || 'No Designation'}
+                                            {employee.employeeCode} - {employee.designation?.name || "No Designation"}
                                         </p>
                                     </div>
                                 </div>
@@ -144,18 +149,14 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
                                             key={project.id}
                                             className={cn(
                                                 "flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer hover:border-blue-200 hover:bg-blue-50/50",
-                                                isSelected
-                                                    ? "border-blue-500 bg-blue-50"
-                                                    : "border-slate-200 bg-white"
+                                                isSelected ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white"
                                             )}
                                         >
                                             <Checkbox
                                                 checked={isSelected}
                                                 onCheckedChange={(checked) => {
-                                                    setSelectedProjects(prev =>
-                                                        checked
-                                                            ? [...prev, project.id]
-                                                            : prev.filter(id => id !== project.id)
+                                                    setSelectedProjects((prev) =>
+                                                        checked ? [...prev, project.id] : prev.filter((id) => id !== project.id)
                                                     )
                                                 }}
                                             />
@@ -173,9 +174,9 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
                                                 </div>
                                                 <div className="flex items-center gap-3 mt-1.5">
                                                     <span className="text-[10px] font-bold text-slate-500">
-                                                        📍 {project.location || 'No location'}
+                                                        {project.location || "No location"}
                                                     </span>
-                                                    <span className="text-slate-300">•</span>
+                                                    <span className="text-slate-300">-</span>
                                                     <span className="text-[10px] font-bold text-slate-400">
                                                         {assignedCount} staff assigned
                                                     </span>
@@ -216,6 +217,18 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
                         )}
                     </Button>
                 </div>
+
+                <AlertModal
+                    isOpen={showConfirmModal}
+                    onClose={() => setShowConfirmModal(false)}
+                    onConfirm={handleConfirmedSave}
+                    loading={saving}
+                    title="Save Assignments"
+                    description={`Are you sure you want to update project assignments for "${employee.fullName}"?`}
+                    variant="primary"
+                    confirmText="Save Assignments"
+                    cancelText="Cancel"
+                />
             </DialogContent>
         </Dialog>
     )

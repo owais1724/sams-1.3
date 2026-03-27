@@ -198,6 +198,7 @@ export default function ShiftsPage() {
   // Assignment create dialog
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [assignForm, setAssignForm] = useState({ shiftId: "", employeeId: "", date: "", projectId: "" })
+  const [assignConfirmModal, setAssignConfirmModal] = useState(false)
 
   // Delete confirmation modals
   const [deleteShiftModal, setDeleteShiftModal] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: "", name: "" })
@@ -284,10 +285,19 @@ export default function ShiftsPage() {
   const handleAssignGuard = async (e: React.FormEvent) => {
     e.preventDefault()
     if (submitting) return
+    if (!assignForm.shiftId || !assignForm.employeeId || !assignForm.date) {
+      toast.error("Please fill all required assignment fields")
+      return
+    }
+    setAssignConfirmModal(true)
+  }
+
+  const handleConfirmedAssignGuard = async () => {
     setSubmitting(true)
     try {
       await api.post("/shift-assignments", assignForm)
       toast.success("Guard assigned to shift")
+      setAssignConfirmModal(false)
       setAssignDialogOpen(false)
       setAssignForm({ shiftId: "", employeeId: "", date: "", projectId: "" })
       fetchAssignments()
@@ -860,6 +870,18 @@ export default function ShiftsPage() {
       </Dialog>
 
       {/* Delete Shift Confirmation Modal */}
+      <AlertModal
+        isOpen={assignConfirmModal}
+        onClose={() => setAssignConfirmModal(false)}
+        onConfirm={handleConfirmedAssignGuard}
+        loading={submitting}
+        title="Assign Guard"
+        description="Are you sure you want to assign this employee to the selected shift?"
+        variant="primary"
+        confirmText="Assign Guard"
+        cancelText="Cancel"
+      />
+
       <AlertModal
         isOpen={deleteShiftModal.open}
         onClose={() => setDeleteShiftModal({ open: false, id: "", name: "" })}
