@@ -17,6 +17,24 @@ export class DeploymentsService {
     private auditLogsService: AuditLogsService,
   ) {}
 
+  private normalizeStartDate(dateInput: string | Date) {
+    const date = new Date(dateInput);
+    if (Number.isNaN(date.getTime())) {
+      throw new BadRequestException('Invalid start date');
+    }
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  private normalizeEndDate(dateInput: string | Date) {
+    const date = new Date(dateInput);
+    if (Number.isNaN(date.getTime())) {
+      throw new BadRequestException('Invalid end date');
+    }
+    date.setHours(23, 59, 59, 999);
+    return date;
+  }
+
   async findAll(agencyId: string, filters?: { status?: string; clientId?: string }) {
     if (!agencyId) return [];
     const where: any = { agencyId };
@@ -91,10 +109,10 @@ export class DeploymentsService {
     if (!shift) throw new BadRequestException('Shift not found or inactive');
 
     // Validate date range
-    const startDate = new Date(dto.startDate);
-    const endDate = new Date(dto.endDate);
-    if (endDate <= startDate) {
-      throw new BadRequestException('End date must be after start date');
+    const startDate = this.normalizeStartDate(dto.startDate);
+    const endDate = this.normalizeEndDate(dto.endDate);
+    if (endDate < startDate) {
+      throw new BadRequestException('End date cannot be before start date');
     }
 
     // Use transaction to ensure deployment is only created if guard assignment succeeds
@@ -266,8 +284,19 @@ export class DeploymentsService {
     }
 
     const { ...cleanData } = dto;
-    if (cleanData.startDate) cleanData.startDate = new Date(cleanData.startDate).toISOString();
-    if (cleanData.endDate) cleanData.endDate = new Date(cleanData.endDate).toISOString();
+    const nextStartDate = cleanData.startDate
+      ? this.normalizeStartDate(cleanData.startDate)
+      : deployment.startDate;
+    const nextEndDate = cleanData.endDate
+      ? this.normalizeEndDate(cleanData.endDate)
+      : deployment.endDate;
+
+    if (nextEndDate < nextStartDate) {
+      throw new BadRequestException('End date cannot be before start date');
+    }
+
+    if (cleanData.startDate) cleanData.startDate = nextStartDate as any;
+    if (cleanData.endDate) cleanData.endDate = nextEndDate as any;
 
     const updated = await this.prisma.deployment.update({
       where: { id },
