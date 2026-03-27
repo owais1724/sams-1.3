@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePayrollDto, UpdatePayrollDto, Payroll } from './payroll.entity';
 
@@ -6,10 +6,32 @@ import { CreatePayrollDto, UpdatePayrollDto, Payroll } from './payroll.entity';
 export class PayrollService {
   constructor(private prisma: PrismaService) {}
 
+  private validatePayrollMonth(month: string) {
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+      throw new BadRequestException('Month must be in YYYY-MM format');
+    }
+
+    const [year, monthPart] = month.split('-').map(Number);
+    if (monthPart < 1 || monthPart > 12) {
+      throw new BadRequestException('Month must be between 01 and 12');
+    }
+
+    const selectedMonth = new Date(year, monthPart - 1, 1);
+    const currentMonth = new Date();
+    currentMonth.setDate(1);
+    currentMonth.setHours(0, 0, 0, 0);
+
+    if (selectedMonth > currentMonth) {
+      throw new BadRequestException('Payroll can only be generated for the current month or past months');
+    }
+  }
+
   async createPayroll(
     createPayrollDto: CreatePayrollDto,
     agencyId: string,
   ): Promise<Payroll> {
+    this.validatePayrollMonth(createPayrollDto.month);
+
     // Validate employee belongs to this agency
     if (createPayrollDto.employeeId) {
       const exists = await this.prisma.employee.findUnique({
@@ -110,6 +132,12 @@ export class PayrollService {
     agencyId: string,
     designationId?: string,
   ): Promise<number> {
+    if (!month) {
+      throw new BadRequestException('Month is required');
+    }
+
+    this.validatePayrollMonth(month);
+
     // Get active employees, optionally filtered by designation
     const where: any = { agencyId, status: 'ACTIVE' };
     if (designationId) {
@@ -119,6 +147,10 @@ export class PayrollService {
     const employees = await this.prisma.employee.findMany({
       where,
     });
+
+    if (employees.length === 0) {
+      throw new NotFoundException('No active employees found for the selected payroll scope');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       let count = 0;
@@ -145,6 +177,11 @@ export class PayrollService {
           count++;
         }
       }
+
+      if (count === 0) {
+        throw new ConflictException('Payroll has already been generated for the selected month and scope');
+      }
+
       return count;
     });
   }
@@ -153,6 +190,8 @@ export class PayrollService {
     data: { employeeId: string; month: string; amount: number },
     agencyId: string,
   ): Promise<Payroll> {
+    this.validatePayrollMonth(data.month);
+
     // 1. Validate employee exists within this agency
     const exists = await this.prisma.employee.findUnique({
       where: { id: data.employeeId },

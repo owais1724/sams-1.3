@@ -3,23 +3,14 @@
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import {
-  PageHeader,
   StatCard,
   PageLoading
 } from "@/components/ui/design-system"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   CalendarDays,
   Users,
-  Clock,
-  TrendingUp,
-  Briefcase,
-  Award,
-  Building2,
-  Wallet,
   ShieldCheck,
-  ArrowRight,
   Activity,
   Zap,
   Target
@@ -27,7 +18,6 @@ import {
 import api from "@/lib/api"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuthStore } from "@/store/authStore"
 
@@ -47,7 +37,7 @@ export default function StaffDashboard() {
   const [userPermissions, setUserPermissions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState<any>(null)
-  const { login, logout } = useAuthStore()
+  const { login } = useAuthStore()
 
   const fetchDashboardData = async () => {
     setLoading(true)
@@ -182,36 +172,6 @@ export default function StaffDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
         <div className="lg:col-span-2 space-y-10">
-          <div>
-            <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-[20px] font-semibold text-slate-900 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                Quick Links
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[
-                { label: 'Attendance', icon: Clock, path: '/attendance', perm: 'record_attendance' },
-                { label: 'Personnel', icon: Users, path: '/employees', perm: 'view_employee' },
-                { label: 'Projects', icon: Briefcase, path: '/projects', perm: 'view_projects' },
-                { label: 'Clients', icon: Building2, path: '/clients', perm: 'view_clients' },
-                { label: 'Payroll', icon: Wallet, path: '/payroll', perm: 'view_payroll' },
-                { label: 'Leave Logs', icon: CalendarDays, path: '/leaves', perm: 'apply_leave' },
-              ].filter(link => userPermissions.includes(link.perm) || userData?.role?.toLowerCase().includes('admin')).map((link) => (
-                <Button
-                  key={link.label}
-                  variant="outline"
-                  className="h-28 flex-col gap-3 rounded-xl border border-border bg-white hover:bg-slate-50 transition-all shadow-[0_1px_3px_rgba(0,0,0,0.1)] text-slate-700"
-                  onClick={() => router.push(`/${agencySlug}${link.path}`)}
-                >
-                  <link.icon className="h-7 w-7 transition-transform group-hover:scale-110 duration-500" />
-                  <span className="text-[14px] font-medium">{link.label}</span>
-                  <ArrowRight className="h-3 w-3 absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-                </Button>
-              ))}
-            </div>
-          </div>
-
           <div className="bg-white p-6 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[20px] font-semibold text-slate-900">Permissions</h3>

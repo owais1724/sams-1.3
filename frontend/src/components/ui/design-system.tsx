@@ -89,11 +89,15 @@ export function SubmitButton({
     label,
     loading = false,
     disabled = false,
+    onClick,
+    icon,
+    type = "submit",
     className,
 }: SubmitButtonProps) {
     return (
         <Button 
-            type="submit" 
+            type={type}
+            onClick={onClick}
             disabled={disabled || loading} 
             variant="primary" 
             size="cta" 
@@ -102,7 +106,7 @@ export function SubmitButton({
                 className
             )}
         >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
             {loading ? "Saving..." : label}
         </Button>
     )

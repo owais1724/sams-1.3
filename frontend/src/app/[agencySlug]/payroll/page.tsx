@@ -27,6 +27,8 @@ import { useAuthStore } from "@/store/authStore"
 import { cn } from "@/lib/utils"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { FormModal } from "@/components/common/FormModal"
+import { AlertModal } from "@/components/ui/alert-modal"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface Payroll {
@@ -58,21 +60,30 @@ interface Designation {
 
 export default function PayrollPage() {
   const { agencySlug } = useParams()
+  const currentPayrollMonth = new Date().toISOString().slice(0, 7)
   const [payrolls, setPayrolls] = useState<Payroll[]>([])
   const [designations, setDesignations] = useState<Designation[]>([])
   const [activeTab, setActiveTab] = useState("ALL")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [generateConfirmModal, setGenerateConfirmModal] = useState(false)
+  const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null)
+  const [statusConfirmModal, setStatusConfirmModal] = useState<{ open: boolean; payroll: Payroll | null; status: string }>({
+    open: false,
+    payroll: null,
+    status: "",
+  })
 
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
+  const [selectedMonth, setSelectedMonth] = useState(currentPayrollMonth)
   const [generateDesignationId, setGenerateDesignationId] = useState<string>("all")
 
   const { user: authUser } = useAuthStore()
+  const isAdmin = authUser?.role === 'Super Admin' || authUser?.role === 'Agency Admin'
+  const canManagePayroll = isAdmin || authUser?.permissions?.includes('manage_payroll')
 
   const fetchData = async () => {
     setLoading(true)
-    const isAdmin = authUser?.role === 'Super Admin' || authUser?.role === 'Agency Admin'
     const hasPerm = (p: string) => isAdmin || authUser?.permissions?.includes(p)
 
     try {
@@ -94,18 +105,58 @@ export default function PayrollPage() {
     fetchData()
   }, [])
 
-  const handleGeneratePayroll = async () => {
+  const handleGeneratePayroll = () => {
+    if (selectedMonth > currentPayrollMonth) {
+      toast.error("Payroll can only be generated for the current month or past months.")
+      return
+    }
+    setGenerateConfirmModal(true)
+  }
+
+  const handleRequestStatusChange = (payroll: Payroll, status: string) => {
+    setStatusConfirmModal({ open: true, payroll, status })
+  }
+
+  const handleConfirmedGeneratePayroll = async () => {
     setGenerating(true)
     try {
-      await api.post('/payrolls/generate', {
+      const response = await api.post('/payrolls/generate-bulk', {
         month: selectedMonth,
         designationId: generateDesignationId === 'all' ? undefined : generateDesignationId
       })
-      toast.success("Payroll ledger generated successfully.")
+      const generatedCount = typeof response.data === "number" ? response.data : undefined
+      toast.success(
+        generatedCount !== undefined
+          ? `Payroll ledger generated for ${generatedCount} employee${generatedCount === 1 ? "" : "s"}.`
+          : "Payroll ledger generated successfully."
+      )
+      setGenerateConfirmModal(false)
       setIsDialogOpen(false)
       fetchData()
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Generation failed.")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleConfirmedStatusChange = async () => {
+    if (!statusConfirmModal.payroll || !statusConfirmModal.status) return
+    setGenerating(true)
+    try {
+      await api.post(`/payrolls/${statusConfirmModal.payroll.id}/status`, {
+        status: statusConfirmModal.status
+      })
+      toast.success(`Payroll marked as ${statusConfirmModal.status}.`)
+      setStatusConfirmModal({ open: false, payroll: null, status: "" })
+      setSelectedPayroll((prev) =>
+        prev?.id === statusConfirmModal.payroll?.id
+          ? { ...prev, status: statusConfirmModal.status }
+          : prev
+      )
+      fetchData()
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update payroll status.")
     } finally {
       setGenerating(false)
     }
@@ -123,6 +174,12 @@ export default function PayrollPage() {
     if (!monthStr) return "N/A"
     const [year, month] = monthStr.split('-')
     return new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' })
+  }
+
+  const getStatusTone = (status: string) => {
+    if (status === "PAID") return "text-emerald-600 bg-emerald-50 border-emerald-100"
+    if (status === "DRAFT") return "text-amber-600 bg-amber-50 border-amber-100"
+    return "text-slate-600 bg-slate-50 border-slate-200"
   }
 
   // Filter unique designation names for tabs to avoid "diff diff hr hr"
@@ -159,7 +216,15 @@ export default function PayrollPage() {
               <Input
                 type="month"
                 value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
+                max={currentPayrollMonth}
+                onChange={(e) => {
+                  const nextMonth = e.target.value
+                  if (nextMonth > currentPayrollMonth) {
+                    toast.error("Future payroll months are not allowed.")
+                    return
+                  }
+                  setSelectedMonth(nextMonth)
+                }}
                 className={inputVariants}
               />
             </div>
@@ -270,13 +335,26 @@ export default function PayrollPage() {
                     <StatusBadge status={payroll.status} />
                   </TableCell>
                   <TableCell className="text-right px-4 sm:px-8">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11 rounded-2xl hover:bg-white hover:text-primary hover:shadow-xl hover:shadow-slate-200/50 transition-all"
-                    >
-                      <Eye className="h-4.5 w-4.5" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-2">
+                      {canManagePayroll && payroll.status === "DRAFT" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-10 px-4 rounded-xl text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-bold"
+                          onClick={() => handleRequestStatusChange(payroll, "PAID")}
+                        >
+                          Mark Paid
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 rounded-2xl hover:bg-white hover:text-primary hover:shadow-xl hover:shadow-slate-200/50 transition-all"
+                        onClick={() => setSelectedPayroll(payroll)}
+                      >
+                        <Eye className="h-4.5 w-4.5" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </motion.tr>
               ))
@@ -284,6 +362,90 @@ export default function PayrollPage() {
           </AnimatePresence>
         </DataTable>
       </div>
+
+      <AlertModal
+        isOpen={generateConfirmModal}
+        onClose={() => setGenerateConfirmModal(false)}
+        onConfirm={handleConfirmedGeneratePayroll}
+        loading={generating}
+        title="Generate Payroll"
+        description={`Are you sure you want to generate payroll for ${getMonthName(selectedMonth)}${generateDesignationId === "all" ? " for all employees" : " for the selected designation"}?`}
+        variant="primary"
+        confirmText="Generate Payroll"
+        cancelText="Cancel"
+      />
+
+      <Dialog open={!!selectedPayroll} onOpenChange={(open) => { if (!open) setSelectedPayroll(null) }}>
+        <DialogContent className="sm:max-w-[640px] bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black text-slate-900">Payroll Details</DialogTitle>
+          </DialogHeader>
+          {selectedPayroll && (
+            <div className="space-y-6 pt-2">
+              <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="font-black text-xl text-slate-900">{selectedPayroll.employee?.fullName || "Employee"}</div>
+                <div className="mt-1 text-[11px] font-black uppercase tracking-widest text-slate-400">
+                  {selectedPayroll.employee?.designation?.name || "Employee"}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Month</p>
+                  <p className="mt-2 text-sm font-black text-slate-900">{getMonthName(selectedPayroll.month)}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Generated Date</p>
+                  <p className="mt-2 text-sm font-black text-slate-900">{new Date(selectedPayroll.generatedDate).toLocaleString()}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Basic Salary</p>
+                  <p className="mt-2 text-sm font-black text-slate-900">{formatCurrency(selectedPayroll.basicSalary)}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Allowances</p>
+                  <p className="mt-2 text-sm font-black text-slate-900">{formatCurrency(selectedPayroll.allowances)}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Deductions</p>
+                  <p className="mt-2 text-sm font-black text-slate-900">{formatCurrency(selectedPayroll.deductions)}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Net Pay</p>
+                  <p className="mt-2 text-sm font-black text-emerald-600">{formatCurrency(selectedPayroll.netPay)}</p>
+                </div>
+              </div>
+
+              <div className={cn("inline-flex items-center rounded-full border px-4 py-2 text-[11px] font-black uppercase tracking-widest", getStatusTone(selectedPayroll.status))}>
+                {selectedPayroll.status}
+              </div>
+
+              {canManagePayroll && selectedPayroll.status === "DRAFT" && (
+                <div className="flex justify-end">
+                  <Button
+                    className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black"
+                    onClick={() => handleRequestStatusChange(selectedPayroll, "PAID")}
+                  >
+                    Mark as Paid
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <AlertModal
+        isOpen={statusConfirmModal.open}
+        onClose={() => setStatusConfirmModal({ open: false, payroll: null, status: "" })}
+        onConfirm={handleConfirmedStatusChange}
+        loading={generating}
+        title="Update Payroll Status"
+        description={`Are you sure you want to mark "${statusConfirmModal.payroll?.employee?.fullName || "this payroll"}" as ${statusConfirmModal.status}?`}
+        variant="primary"
+        confirmText="Update Status"
+        cancelText="Cancel"
+      />
     </div>
   )
 }

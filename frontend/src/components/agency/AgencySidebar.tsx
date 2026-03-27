@@ -36,6 +36,7 @@ type SidebarNavItem = {
     icon: any
     permissions?: string[]
     staffOnly?: boolean
+    agencyOnly?: boolean
 }
 
 export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse }: AgencySidebarProps) {
@@ -124,6 +125,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
 
     const sidebarItems = allItems.filter((item) => {
         if (item.staffOnly && !isStaff) return false
+        if (item.agencyOnly && isStaff) return false
         if (isAdmin) return true
         if (!item.permissions || item.permissions.length === 0) return true
         return item.permissions.some((perm) => user?.permissions?.includes(perm))
