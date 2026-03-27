@@ -45,6 +45,7 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     if (typeof window !== 'undefined') {
                         sessionStorage.removeItem('sams_portal_type');
+                        sessionStorage.removeItem('sams-auth-v2');
                         localStorage.removeItem('sams-auth-v2');
                     }
                 } catch (e) { /* ignore */ }
@@ -60,10 +61,10 @@ export const useAuthStore = create<AuthState>()(
                 };
                 try {
                     if (typeof window !== 'undefined') {
-                        return localStorage;
+                        return sessionStorage;
                     }
                 } catch (e) {
-                    console.warn('LocalStorage access blocked or unavailable:', e);
+                    console.warn('SessionStorage access blocked or unavailable:', e);
                 }
                 return dummyStorage;
             }),

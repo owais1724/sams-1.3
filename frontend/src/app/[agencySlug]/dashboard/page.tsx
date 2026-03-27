@@ -406,24 +406,24 @@ export default function AgencyDashboard() {
             </div>
 
             {/* Quick Nav Banner */}
-            <Card className="rounded-3xl border border-slate-200 bg-slate-900 shadow-xl p-8 relative overflow-hidden">
+            <Card className="rounded-3xl border border-slate-200 bg-white shadow-xl p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 opacity-10">
-                    <ShieldCheck className="h-32 w-32 text-white" />
+                    <ShieldCheck className="h-32 w-32 text-slate-900" />
                 </div>
                 <CardContent className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 p-0 relative z-10">
                     <div>
                         <div className="flex items-center gap-4 mb-4">
-                            <h3 className="text-2xl font-bold text-white tracking-tight">Mission Control Center</h3>
+                            <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Mission Control Center</h3>
                         </div>
-                        <p className="text-slate-300 text-sm max-w-xl leading-relaxed font-medium">
+                        <p className="text-slate-700 text-sm max-w-xl leading-relaxed font-medium">
                             Manage your tactical personnel, monitor real-time deployments, and respond to breaches from a single unified operational dashboard.
                         </p>
                     </div>
                     <div className="flex items-center gap-4 flex-wrap">
-                        <Button className="bg-white text-slate-900 hover:bg-slate-100 font-bold px-8 h-12 rounded-xl transition-all shadow-lg" onClick={() => router.push(`/${agencySlug}/deployments`)}>
+                        <Button className="bg-slate-100 text-slate-900 hover:bg-cyan-500 hover:text-white font-bold px-8 h-12 rounded-xl transition-all shadow-lg" onClick={() => router.push(`/${agencySlug}/deployments`)}>
                             Deploy Personnel
                         </Button>
-                        <Button variant="outline" className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 font-bold px-8 h-12 rounded-xl transition-all" onClick={() => router.push(`/${agencySlug}/incidents`)}>
+                        <Button variant="outline" className="border-slate-300 bg-white text-slate-900 hover:bg-cyan-500 hover:text-white hover:border-cyan-500 font-bold px-8 h-12 rounded-xl transition-all" onClick={() => router.push(`/${agencySlug}/incidents`)}>
                             Review Intel
                         </Button>
                     </div>

@@ -116,7 +116,7 @@ export default function AdminDashboard() {
                     description={editingAgency
                         ? "Update agency details and access settings."
                         : "Provision a new agency portal and operational node."}
-                    maxWidth={600}
+                    maxWidth={640}
                     trigger={
                         <Button
                             variant="primary"

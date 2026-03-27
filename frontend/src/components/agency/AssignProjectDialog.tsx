@@ -92,7 +92,7 @@ export function AssignProjectDialog({ employee, open, onOpenChange, onSuccess }:
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px] p-0 border-none rounded-[32px] shadow-2xl overflow-hidden">
+            <DialogContent className="sm:max-w-[640px] p-0 border-none rounded-[32px] shadow-2xl overflow-hidden">
                 <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-b border-blue-100">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black font-outfit uppercase tracking-tight text-slate-900 flex items-center gap-3">

@@ -1,7 +1,7 @@
 "use client"
 
 import { AgencySidebar } from "@/components/agency/AgencySidebar"
-import { usePathname, useRouter, useParams } from "next/navigation"
+import { usePathname, useParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuthStore } from "@/store/authStore"
 import { useEffect, useState } from "react"
@@ -11,15 +11,80 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { toast } from "sonner"
 
+type PortalType = "agency" | "staff"
+
+type RouteAccessRule = {
+    pattern: RegExp
+    portal?: PortalType
+    anyPermissions?: string[]
+}
+
+const routeAccessRules: RouteAccessRule[] = [
+    { pattern: /^\/staff\/dashboard$/, portal: "staff", anyPermissions: ["view_dashboard"] },
+    { pattern: /^\/my-schedule$/, portal: "staff" },
+    { pattern: /^\/dashboard$/, portal: "agency", anyPermissions: ["view_dashboard"] },
+    { pattern: /^\/clients$/, anyPermissions: ["view_clients"] },
+    { pattern: /^\/projects$/, anyPermissions: ["view_projects"] },
+    { pattern: /^\/employees$/, anyPermissions: ["view_employee"] },
+    { pattern: /^\/rbac$/, anyPermissions: ["manage_roles"] },
+    { pattern: /^\/attendance$/, anyPermissions: ["view_attendance", "record_attendance", "mark_attendance"] },
+    { pattern: /^\/shifts$/, anyPermissions: ["view_shifts", "manage_shifts"] },
+    { pattern: /^\/deployments$/, anyPermissions: ["view_deployments", "manage_deployments"] },
+    { pattern: /^\/incidents$/, anyPermissions: ["view_incidents", "report_incident", "manage_incidents"] },
+    { pattern: /^\/leaves$/, anyPermissions: ["view_leaves", "apply_leave", "approve_leave"] },
+    { pattern: /^\/payroll$/, anyPermissions: ["view_payroll", "manage_payroll"] },
+    { pattern: /^\/platform-agencies$/, anyPermissions: ["view_agencies", "create_agency", "edit_agency", "delete_agency"] },
+    { pattern: /^\/audit-logs$/, anyPermissions: ["view_reports"] },
+]
+
+function normalizeAgencyPath(pathname: string | null | undefined, agencySlug: string) {
+    if (!pathname) return "/"
+    const prefix = `/${agencySlug}`
+    if (!pathname.startsWith(prefix)) return pathname
+    const normalized = pathname.slice(prefix.length)
+    return normalized || "/"
+}
+
+function getRouteRule(pathname: string | null | undefined, agencySlug: string) {
+    const normalizedPath = normalizeAgencyPath(pathname, agencySlug)
+    return routeAccessRules.find((rule) => rule.pattern.test(normalizedPath))
+}
+
+function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
+    if (!requiredPermissions.length) return true
+
+    const roleName = userData?.role?.toLowerCase?.() || ""
+    const isPrivilegedUser = ["agency admin", "super admin", "supervisor"].includes(roleName)
+
+    if (isPrivilegedUser) return true
+
+    return requiredPermissions.some((permission) =>
+        userData?.permissions?.includes(permission)
+    )
+}
+
+function getSafeRouteForUser(userData: any, agencySlug: string) {
+    const roleName = userData?.role?.toLowerCase?.() || ""
+    const permissions: string[] = userData?.permissions || []
+
+    if (["guard", "hr", "staff"].includes(roleName)) {
+        return permissions.includes("view_dashboard")
+            ? `/${agencySlug}/staff/dashboard`
+            : `/${agencySlug}/my-schedule`
+    }
+
+    return `/${agencySlug}/dashboard`
+}
+
 export default function AgencyLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
     const pathname = usePathname()
-    const router = useRouter()
     const { agencySlug } = useParams()
-    const { user, isAuthenticated, logout, login } = useAuthStore()
+    const currentAgencySlug = (Array.isArray(agencySlug) ? agencySlug[0] : agencySlug) || ""
+    const { user, logout, login } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -50,9 +115,9 @@ export default function AgencyLayout({
         if (!isLoginPage && tabPortalType !== 'agency' && tabPortalType !== 'staff') {
             logout();
             if (pathname?.includes('/staff')) {
-                window.location.href = `/${agencySlug}/staff-login`;
+                window.location.href = `/${currentAgencySlug}/staff-login`;
             } else {
-                window.location.href = `/${agencySlug}/login`;
+                window.location.href = `/${currentAgencySlug}/login`;
             }
             return;
         }
@@ -67,6 +132,7 @@ export default function AgencyLayout({
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
                 const allowedRoles = ['Agency Admin', 'Supervisor', 'Guard', 'HR', 'Staff'];
                 const hasCorrectRole = allowedRoles.includes(userData.role);
+                const routeRule = getRouteRule(pathname, currentAgencySlug);
 
                 // ── RBAC Cross-Tab Session Isolation ──
                 // If a user logs into Staff portal on one tab (changing the global browser cookies),
@@ -82,7 +148,7 @@ export default function AgencyLayout({
                     isRoleMismatch = true; // Tab intended for Staff, but cookies are Admin
                 }
                 
-                if (userData.role === 'Super Admin' || userData.agencySlug !== agencySlug || !hasCorrectRole || isRoleMismatch) {
+                if (userData.role === 'Super Admin' || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || isRoleMismatch) {
                     console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, Mismatch: ${isRoleMismatch}`);
                     toast.error(isRoleMismatch ? "Session conflict detected. Please sign in again with appropriate credentials." : "Unauthorized access. You have been logged out.");
                     // Force hard redirect immediately and stop rendering
@@ -90,9 +156,36 @@ export default function AgencyLayout({
                     await api.post('/auth/logout').catch(() => { });
                     logout();
                     if (!isLoginPage) {
-                        window.location.href = tabPortalType === 'staff' ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`;
+                        window.location.href = tabPortalType === 'staff' ? `/${currentAgencySlug}/staff-login` : `/${currentAgencySlug}/login`;
                     }
                     return;
+                }
+
+                const routePortalMismatch =
+                    (routeRule?.portal === 'agency' && tabPortalType === 'staff') ||
+                    (routeRule?.portal === 'staff' && tabPortalType === 'agency');
+
+                const routePermissionDenied =
+                    Boolean(routeRule) && !hasRoutePermission(userData, routeRule?.anyPermissions);
+
+                if (routePortalMismatch) {
+                    toast.error("Session conflict detected for this portal. Please sign in again.");
+                    isActive = false;
+                    await api.post('/auth/logout').catch(() => { });
+                    logout();
+                    window.location.href = tabPortalType === 'staff'
+                        ? `/${currentAgencySlug}/staff-login`
+                        : `/${currentAgencySlug}/login`;
+                    return;
+                }
+
+                if (routePermissionDenied) {
+                    const safeRoute = getSafeRouteForUser(userData, currentAgencySlug);
+                    if (pathname !== safeRoute) {
+                        toast.error("Access denied for this page.");
+                        window.location.href = safeRoute;
+                        return;
+                    }
                 }
 
                 if (isActive) {
@@ -104,9 +197,9 @@ export default function AgencyLayout({
                 logout();
                 if (!isLoginPage) {
                     if (pathname?.includes('/staff')) {
-                        window.location.href = `/${agencySlug}/staff-login`;
+                        window.location.href = `/${currentAgencySlug}/staff-login`;
                     } else {
-                        window.location.href = `/${agencySlug}/login`;
+                        window.location.href = `/${currentAgencySlug}/login`;
                     }
                 }
             } finally {
@@ -131,7 +224,7 @@ export default function AgencyLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [isLoginPage, router, logout, login, agencySlug, pathname]);
+    }, [isLoginPage, logout, login, currentAgencySlug, pathname]);
 
     if (verifying) {
         return (
@@ -149,15 +242,15 @@ export default function AgencyLayout({
     }
 
     return (
-        <div className="flex min-h-screen w-full bg-[var(--background)] font-inter overflow-hidden selection:bg-primary/30">
+        <div className="flex h-screen w-full bg-[var(--background)] font-inter overflow-hidden selection:bg-primary/30">
             {/* Unified Container — sidebar + content as one panel */}
-            <div className="flex flex-1 min-h-screen w-full overflow-hidden bg-white">
+            <div className="flex flex-1 h-screen w-full overflow-hidden bg-white min-h-0">
                 {/* Desktop Sidebar */}
-                <div className={`hidden lg:flex shrink-0 z-20 transition-all duration-300 border-r border-slate-200 ${sidebarCollapsed ? 'w-20' : 'w-76'}`}>
+                <div className={`hidden lg:flex sticky top-0 h-screen shrink-0 overflow-hidden z-20 transition-all duration-300 border-r border-slate-200 ${sidebarCollapsed ? 'w-20' : 'w-76'}`}>
                     <AgencySidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
                 </div>
 
-                <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+                <div className="flex-1 flex min-h-0 flex-col h-screen overflow-hidden">
                 {/* Mobile Header - Elevated */}
                 <header className="lg:hidden flex items-center justify-between px-4 sm:px-6 h-16 sm:h-20 bg-white text-slate-900 border-b border-border shrink-0 z-30">
                     <div className="flex items-center gap-3 sm:gap-4">
@@ -184,7 +277,7 @@ export default function AgencyLayout({
                     </Sheet>
                 </header>
 
-                <main className="flex-1 overflow-y-auto custom-scrollbar bg-[var(--background)]">
+                <main className="flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-[var(--background)]">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={pathname}

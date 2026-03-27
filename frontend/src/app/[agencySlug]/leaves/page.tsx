@@ -82,6 +82,12 @@ export default function LeavesPage() {
   const [submitting, setSubmitting] = useState(false)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [viewingLeave, setViewingLeave] = useState<LeaveRequest | null>(null)
+  const isLeaveFormComplete =
+    Boolean(formData.leaveType) &&
+    Boolean(formData.startDate) &&
+    Boolean(formData.endDate) &&
+    Boolean(formData.reason.trim()) &&
+    new Date(formData.endDate) >= new Date(formData.startDate)
 
   useEffect(() => {
     if (user) fetchLeaveRequests()
@@ -222,103 +228,105 @@ export default function LeavesPage() {
                   icon={<Plus className="h-4 w-4" />}
                 />
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-                <DialogHeader className="p-10 bg-slate-900 text-white relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                  <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase text-white">New Leave Request</DialogTitle>
-                  <DialogDescription className="text-slate-300 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Submit your leave request details</DialogDescription>
+              <DialogContent className="sm:max-w-[640px] max-h-[90vh] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white flex flex-col">
+                <DialogHeader className="shrink-0 px-10 pt-10 pb-4 bg-white text-slate-900 relative overflow-hidden">
+                  <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase text-slate-900">New Leave Request</DialogTitle>
+                  <DialogDescription className="text-slate-500 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Submit your leave request details</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="p-10 space-y-8">
-                  <div className="space-y-0">
-                    <FormLabelBase label="Type of Leave" required />
-                    <Select value={formData.leaveType} onValueChange={(value) => setFormData({ ...formData, leaveType: value })}>
-                      <SelectTrigger className={selectVariants}>
-                        <SelectValue placeholder="Select leave category" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-slate-100 p-2">
-                        <SelectItem value="SICK" className="py-3 font-bold rounded-xl">Sick Leave</SelectItem>
-                        <SelectItem value="CASUAL" className="py-3 font-bold rounded-xl">Casual Leave</SelectItem>
-                        <SelectItem value="ANNUAL" className="py-3 font-bold rounded-xl">Annual Leave</SelectItem>
-                        <SelectItem value="EMERGENCY" className="py-3 font-bold rounded-xl">Emergency Leave</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="flex-1 overflow-y-auto px-10 pb-10 pt-4">
+                  <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="space-y-0">
-                      <FormLabelBase label="From Date" required />
-                      <Input
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        value={formData.startDate}
-                        onChange={(e) => {
-                          const selectedDate = e.target.value
-                          const today = new Date().toISOString().split('T')[0]
-                          
-                          if (selectedDate < today) {
-                            toast.error("Past dates are not allowed")
-                            return
-                          }
-                          
-                          setFormData({ ...formData, startDate: selectedDate })
-                          
-                          // If end date is before new start date, clear it
-                          if (formData.endDate && selectedDate > formData.endDate) {
-                            setFormData({ ...formData, startDate: selectedDate, endDate: "" })
-                          }
-                        }}
-                        className={inputVariants}
+                      <FormLabelBase label="Type of Leave" required />
+                      <Select value={formData.leaveType} onValueChange={(value) => setFormData({ ...formData, leaveType: value })}>
+                        <SelectTrigger className={selectVariants}>
+                          <SelectValue placeholder="Select leave category" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-slate-100 p-2">
+                          <SelectItem value="SICK" className="py-3 font-bold rounded-xl">Sick Leave</SelectItem>
+                          <SelectItem value="CASUAL" className="py-3 font-bold rounded-xl">Casual Leave</SelectItem>
+                          <SelectItem value="ANNUAL" className="py-3 font-bold rounded-xl">Annual Leave</SelectItem>
+                          <SelectItem value="EMERGENCY" className="py-3 font-bold rounded-xl">Emergency Leave</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="space-y-0">
+                        <FormLabelBase label="From Date" required />
+                        <Input
+                          type="date"
+                          min={new Date().toISOString().split('T')[0]}
+                          value={formData.startDate}
+                          onChange={(e) => {
+                            const selectedDate = e.target.value
+                            const today = new Date().toISOString().split('T')[0]
+                            
+                            if (selectedDate < today) {
+                              toast.error("Past dates are not allowed")
+                              return
+                            }
+                            
+                            setFormData({ ...formData, startDate: selectedDate })
+                            
+                            // If end date is before new start date, clear it
+                            if (formData.endDate && selectedDate > formData.endDate) {
+                              setFormData({ ...formData, startDate: selectedDate, endDate: "" })
+                            }
+                          }}
+                          className={inputVariants}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-0">
+                        <FormLabelBase label="To Date" required />
+                        <Input
+                          type="date"
+                          min={formData.startDate || new Date().toISOString().split('T')[0]}
+                          value={formData.endDate}
+                          onChange={(e) => {
+                            const selectedDate = e.target.value
+                            const today = new Date().toISOString().split('T')[0]
+                            
+                            if (selectedDate < today) {
+                              toast.error("Past dates are not allowed")
+                              return
+                            }
+                            
+                            if (formData.startDate && selectedDate < formData.startDate) {
+                              toast.error("End date cannot be before start date")
+                              return
+                            }
+                            
+                            setFormData({ ...formData, endDate: selectedDate })
+                          }}
+                          className={inputVariants}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-0">
+                      <FormLabelBase label="Reason for Leave" required />
+                      <Textarea
+                        value={formData.reason}
+                        onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                        placeholder="Provide reason for leave..."
+                        className="min-h-[140px] rounded-3xl bg-slate-50 border-none focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all p-5 text-sm font-bold italic text-slate-900 placeholder:text-slate-300"
                         required
                       />
                     </div>
-                    <div className="space-y-0">
-                      <FormLabelBase label="To Date" required />
-                      <Input
-                        type="date"
-                        min={formData.startDate || new Date().toISOString().split('T')[0]}
-                        value={formData.endDate}
-                        onChange={(e) => {
-                          const selectedDate = e.target.value
-                          const today = new Date().toISOString().split('T')[0]
-                          
-                          if (selectedDate < today) {
-                            toast.error("Past dates are not allowed")
-                            return
-                          }
-                          
-                          if (formData.startDate && selectedDate < formData.startDate) {
-                            toast.error("End date cannot be before start date")
-                            return
-                          }
-                          
-                          setFormData({ ...formData, endDate: selectedDate })
-                        }}
-                        className={inputVariants}
-                        required
+
+                    <div className="pt-4 flex items-center justify-center gap-4">
+                      <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1" onClick={() => setIsDialogOpen(false)}>CANCEL</Button>
+                      <SubmitButton
+                        label={submitting ? "SUBMITTING..." : "SUBMIT REQUEST"}
+                        loading={submitting}
+                        disabled={!isLeaveFormComplete}
+                        className="flex-[2] mt-0"
                       />
                     </div>
-                  </div>
-
-                  <div className="space-y-0">
-                    <FormLabelBase label="Reason for Leave" required />
-                    <Textarea
-                      value={formData.reason}
-                      onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                      placeholder="Provide reason for leave..."
-                      className="min-h-[140px] rounded-3xl bg-slate-50 border-none focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all p-5 text-sm font-bold italic text-slate-900 placeholder:text-slate-300"
-                      required
-                    />
-                  </div>
-
-                  <div className="pt-4 flex items-center justify-center gap-4">
-                    <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1" onClick={() => setIsDialogOpen(false)}>CANCEL</Button>
-                    <SubmitButton
-                      label={submitting ? "SUBMITTING..." : "SUBMIT REQUEST"}
-                      loading={submitting}
-                      className="flex-[2] mt-0"
-                    />
-                  </div>
-                </form>
+                  </form>
+                </div>
               </DialogContent>
             </Dialog>
           )
@@ -429,14 +437,13 @@ export default function LeavesPage() {
       </div>
 
       <Dialog open={!!viewingLeave} onOpenChange={(val) => !val && setViewingLeave(null)}>
-        <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-          <DialogHeader className="p-10 bg-slate-900 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-            <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase">Leave Details</DialogTitle>
-            <DialogDescription className="text-slate-400 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Verification & Information Protocol</DialogDescription>
+        <DialogContent className="sm:max-w-[640px] max-h-[90vh] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white flex flex-col">
+          <DialogHeader className="shrink-0 px-10 pt-10 pb-4 bg-white text-slate-900 relative overflow-hidden">
+            <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase text-slate-900">Leave Details</DialogTitle>
+            <DialogDescription className="text-slate-500 font-bold text-[10px] mt-3 uppercase tracking-[0.2em] z-10">Verification & Information Protocol</DialogDescription>
           </DialogHeader>
           {viewingLeave && (
-            <div className="p-10 space-y-8">
+            <div className="flex-1 overflow-y-auto px-10 pb-10 pt-4 space-y-8">
               <div className="flex items-center gap-5 p-6 bg-slate-50 rounded-[32px] border border-slate-100">
                 <div className="h-16 w-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-primary font-black text-2xl shadow-sm">
                   {viewingLeave.employee?.fullName?.charAt(0)}
@@ -484,7 +491,7 @@ export default function LeavesPage() {
                 </div>
               )}
 
-              <Button onClick={() => setViewingLeave(null)} className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest shadow-xl shadow-slate-200/50">CLOSE RECORD</Button>
+              <Button onClick={() => setViewingLeave(null)} className="w-full h-14 rounded-2xl bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 font-black uppercase tracking-widest shadow-xl shadow-slate-200/50">CLOSE RECORD</Button>
             </div>
           )}
         </DialogContent>

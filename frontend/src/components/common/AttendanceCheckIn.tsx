@@ -217,7 +217,7 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
         <>
             {/* Photo Capture Dialog */}
             <Dialog open={open && step === 'photo'} onOpenChange={handleClose}>
-                <DialogContent className="sm:max-w-[500px] p-0">
+                <DialogContent className="sm:max-w-[640px] p-0">
                     <div className="p-6 pb-4">
                         <DialogHeader>
                             <DialogTitle className="text-2xl font-black font-outfit uppercase tracking-tight flex items-center gap-3">
@@ -274,7 +274,7 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
 
             {/* Camera Error Dialog */}
             <Dialog open={step === 'camera-error'} onOpenChange={handleClose}>
-                <DialogContent className="sm:max-w-[450px] p-0">
+                <DialogContent className="sm:max-w-[640px] p-0">
                     <div className="p-8 text-center">
                         <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
                             <AlertTriangle className="h-8 w-8 text-red-500" />
@@ -304,7 +304,7 @@ export function AttendanceCheckIn({ open, onOpenChange, onSuccess, projectId, de
 
             {/* Location & Submission */}
             <Dialog open={step === 'location' || step === 'submitting'} onOpenChange={() => {}}>
-                <DialogContent className="sm:max-w-[400px] p-0">
+                <DialogContent className="sm:max-w-[640px] p-0">
                     <DialogHeader className="sr-only">
                         <DialogTitle>
                             {step === 'location' ? 'Getting Location' : 'Submitting Attendance'}

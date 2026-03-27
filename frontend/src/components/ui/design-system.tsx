@@ -450,7 +450,7 @@ export function SidebarItem({ name, href, icon: Icon, isActive, className, onCli
             onClick={onClick}
             title={collapsed ? name : undefined}
             className={cn(
-                "group flex items-center rounded-lg px-4 py-3 text-[14px] font-medium transition-colors duration-200 relative select-none",
+                "group flex items-center rounded-lg px-4 py-3 text-[15px] font-semibold transition-colors duration-200 relative select-none",
                 collapsed && "justify-center px-3",
                 isActive
                     ? "bg-[#06b6d4] text-white border-l-[3px] border-[#0e7490]"
@@ -479,11 +479,11 @@ export function SidebarLogout({ onClick, label = "Sign Out", className, collapse
             onClick={onClick}
             title={collapsed ? label : undefined}
             className={cn(
-                "flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 px-3 py-3 text-xs font-black text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 group",
+                "flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 px-3 py-3 text-[13px] font-black text-red-400 hover:bg-red-500 hover:text-white transition-all duration-300 group",
                 className
             )}
         >
-            <LogOut className="h-4 w-4 transform group-hover:-translate-x-1 transition-transform shrink-0" />
+            <LogOut className="h-5 w-5 transform group-hover:-translate-x-1 transition-transform shrink-0" />
             <span className={cn(
                 "whitespace-nowrap transition-all duration-300",
                 collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
@@ -497,7 +497,7 @@ export function SidebarLogout({ onClick, label = "Sign Out", className, collapse
 export function SidebarSectionLabel({ children, collapsed, className }: { children: React.ReactNode, collapsed?: boolean, className?: string }) {
     return (
         <p className={cn(
-            "px-4 text-[12px] font-semibold text-[#6b7280] uppercase tracking-wider mb-3 transition-opacity duration-300",
+            "px-4 text-[11px] font-bold text-[#6b7280] uppercase tracking-[0.18em] mb-3 transition-opacity duration-300",
             collapsed ? "opacity-0 h-0" : "opacity-100",
             className
         )}>
@@ -747,7 +747,7 @@ export function ControlPanel({ count, totalLabel, children, className }: Control
 export function FormLabelBase({ label, required, className }: { label: string, required?: boolean, className?: string }) {
     return (
         <label className={cn("text-[12px] font-semibold text-[#374151] uppercase tracking-wider mb-2 block", className)}>
-            {label} {required && <span className="text-rose-500 font-bold ml-0.5">*</span>}
+            {label} {required && <span className="text-cyan-500 font-bold ml-0.5">*</span>}
         </label>
     )
 }
@@ -758,3 +758,4 @@ export function FormLabelBase({ label, required, className }: { label: string, r
 export const inputVariants = "h-12 sm:h-14 bg-white border border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-xl focus:bg-white focus:border-[#06b6d4]/40 focus:ring-[#06b6d4]/20 transition-all font-medium px-4 sm:px-5 text-sm sm:text-base selection:bg-[#06b6d4]/20"
 
 export const selectVariants = "h-12 sm:h-14 bg-white border border-border text-[#0f172a] rounded-xl focus:bg-white focus:border-[#06b6d4]/40 focus:ring-[#06b6d4]/20 transition-all font-medium px-4 sm:px-5 w-full appearance-none text-sm sm:text-base selection:bg-[#06b6d4]/20"
+

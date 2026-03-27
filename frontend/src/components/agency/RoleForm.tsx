@@ -121,7 +121,9 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
                     name="name"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">Name</FormLabel>
+                            <FormLabel className="text-[11px] font-bold text-slate-700 uppercase tracking-widest pl-1">
+                                Name <span className="text-cyan-500">*</span>
+                            </FormLabel>
                             <FormControl>
                                 <Input
                                     placeholder="Name"
@@ -161,7 +163,9 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
 
                 <div className="space-y-4">
                     <div className="flex flex-col gap-1">
-                        <FormLabel className="text-sm font-black text-slate-900 uppercase tracking-widest">Permissions</FormLabel>
+                        <FormLabel className="text-sm font-black text-slate-900 uppercase tracking-widest">
+                            Permissions <span className="text-cyan-500">*</span>
+                        </FormLabel>
                         <FormDescription className="text-[11px] font-bold text-slate-400">Select permissions for this role</FormDescription>
                     </div>
 
@@ -248,7 +252,7 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
                 </div>
 
                 <div className="flex justify-center">
-                    <Button type="submit" className="w-full py-6 text-lg font-bold rounded-2xl bg-slate-900" disabled={loading}>
+                    <Button type="submit" className="w-full py-6 text-lg font-bold rounded-2xl bg-white text-slate-900 border border-slate-200 hover:bg-slate-50" disabled={loading}>
                         {loading ? "Processing..." : initialData ? "Update Role" : "Create Role"}
                     </Button>
                 </div>
@@ -257,3 +261,4 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
         </Form>
     )
 }
+

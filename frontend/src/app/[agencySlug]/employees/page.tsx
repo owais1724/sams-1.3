@@ -262,6 +262,7 @@ export default function EmployeesPage() {
                 description={editingEmployee
                     ? "Modify established credentials and mission parameters."
                     : "Initialize identity sequence for new security personnel."}
+                maxWidth={640}
             >
                 <EmployeeForm
                     designations={designations}
@@ -277,16 +278,15 @@ export default function EmployeesPage() {
 
             {/* Employee Profile Dialog */}
             <Dialog open={profileDialog.open} onOpenChange={(v) => !v && setProfileDialog({ open: false, employee: null })}>
-                <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] p-0 overflow-hidden shadow-2xl bg-white focus:outline-none">
+                <DialogContent className="sm:max-w-[640px] border-none rounded-[40px] p-0 overflow-hidden shadow-2xl bg-white focus:outline-none">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Employee Profile - {profileDialog.employee?.fullName}</DialogTitle>
                         <DialogDescription>Full employee profile and management center.</DialogDescription>
                     </DialogHeader>
 
-                    <div className="bg-slate-900 p-5 sm:p-10 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 rotate-12" />
+                    <div className="bg-white p-5 sm:p-10 text-slate-900 relative overflow-hidden border-b border-slate-100">
                         <div className="relative flex items-center gap-4 sm:gap-6">
-                            <Avatar className="h-16 w-16 sm:h-24 sm:w-24 border-4 border-white/10 shadow-2xl rounded-[24px] sm:rounded-[32px] overflow-hidden shrink-0">
+                            <Avatar className="h-16 w-16 sm:h-24 sm:w-24 border-4 border-slate-100 shadow-2xl rounded-[24px] sm:rounded-[32px] overflow-hidden shrink-0">
                                 <AvatarFallback className="bg-primary text-white text-xl sm:text-3xl font-black uppercase">
                                     {profileDialog.employee?.fullName?.slice(0, 2)}
                                 </AvatarFallback>
@@ -294,7 +294,7 @@ export default function EmployeesPage() {
                             <div className="min-w-0">
                                 <div className="px-3 py-1 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] w-fit mb-3 border border-primary/20">Operational Profile</div>
                                 <h2 className="text-xl sm:text-3xl font-black tracking-tight leading-none truncate pr-4">{profileDialog.employee?.fullName}</h2>
-                                <p className="text-slate-400 font-black text-[10px] mt-2 uppercase tracking-[0.3em]">{profileDialog.employee?.employeeCode || 'DEEPLAYED_OPERATOR'}</p>
+                                <p className="text-slate-500 font-black text-[10px] mt-2 uppercase tracking-[0.3em]">{profileDialog.employee?.employeeCode || 'DEEPLAYED_OPERATOR'}</p>
                             </div>
                         </div>
                     </div>

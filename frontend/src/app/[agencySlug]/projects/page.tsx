@@ -169,10 +169,10 @@ export default function ProjectsPage() {
                                             <Users className="h-4 w-4 text-emerald-500" />
                                         </div>
                                         <div>
-                                            <div className="font-black text-white text-sm">
+                                            <div className="font-black text-slate-900 text-sm">
                                                 {project._count?.assignedEmployees || 0}
                                             </div>
-                                            <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                                                 {project._count?.assignedEmployees === 1 ? 'Guard' : 'Guards'}
                                             </p>
                                         </div>

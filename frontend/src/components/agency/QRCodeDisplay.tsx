@@ -149,7 +149,7 @@ export function QRCodeDisplay({ project }: QRCodeDisplayProps) {
                     <span className="text-xs font-bold">QR Code</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[640px]">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-black font-outfit uppercase tracking-tight">
                         Site QR Code

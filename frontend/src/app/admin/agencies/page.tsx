@@ -91,7 +91,7 @@ export default function AgenciesPage() {
                     onOpenChange={setOpen}
                     title="Entity Onboarding"
                     description="Deploying new security infrastructure instance"
-                    maxWidth={540}
+                    maxWidth={640}
                     trigger={
                         <Button className="h-12 md:h-14 w-full md:w-auto px-6 md:px-8 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-200 transition-all active:scale-[0.98] text-xs md:text-base">
                             <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5 stroke-[3]" />

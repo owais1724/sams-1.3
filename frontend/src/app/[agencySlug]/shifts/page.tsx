@@ -434,12 +434,12 @@ export default function ShiftsPage() {
                 <DialogTrigger asChild>
                   <CreateButton label="Create Shift" icon={<Plus className="h-4 w-4" />} />
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-                  <DialogHeader className="p-8 bg-white border-b border-slate-200">
+                <DialogContent className="sm:max-w-[640px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
+                  <DialogHeader className="px-8 pt-8 pb-4 bg-white border-b border-slate-200">
                     <DialogTitle className="text-3xl font-black tracking-tight leading-none uppercase italic text-slate-900">New Shift</DialogTitle>
                     <DialogDescription className="text-slate-500 font-bold text-[10px] mt-2 uppercase tracking-[0.2em]">Define shift name and timings</DialogDescription>
                   </DialogHeader>
-                  <form onSubmit={handleCreateShift} className="p-8 space-y-5">
+                  <form onSubmit={handleCreateShift} className="px-8 pb-8 pt-4 space-y-5">
                     <div className="space-y-0">
                       <FormLabelBase label="Shift Name" required />
                       <Input
@@ -487,11 +487,11 @@ export default function ShiftsPage() {
       </div>
 
       <Tabs defaultValue="assignments" className="space-y-8">
-        <TabsList className="bg-white rounded-xl p-1.5 h-auto border border-border">
-          <TabsTrigger value="assignments" className="rounded-lg font-medium text-[14px] data-[state=active]:bg-primary data-[state=active]:text-white px-4 py-2 text-slate-600">
+        <TabsList className="bg-white rounded-2xl p-2 h-auto border border-border">
+          <TabsTrigger value="assignments" className="rounded-xl font-semibold text-[16px] leading-none data-[state=active]:bg-primary data-[state=active]:text-white px-6 py-3 text-slate-600">
             Shift Assignments
           </TabsTrigger>
-          <TabsTrigger value="shifts" className="rounded-lg font-medium text-[14px] data-[state=active]:bg-primary data-[state=active]:text-white px-4 py-2 text-slate-600">
+          <TabsTrigger value="shifts" className="rounded-xl font-semibold text-[16px] leading-none data-[state=active]:bg-primary data-[state=active]:text-white px-6 py-3 text-slate-600">
             Shift Templates
           </TabsTrigger>
         </TabsList>
@@ -501,26 +501,26 @@ export default function ShiftsPage() {
           {/* Filters & Actions Bar */}
           <div className="flex flex-wrap items-center gap-4 px-4">
             <div className="flex items-center gap-2">
-              <FormLabelBase label="Date" className="text-white/40" />
+              <FormLabelBase label="Date" className="text-slate-500" />
               <Input
                 type="date"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
-                className="rounded-2xl bg-white/5 border-white/10 h-11 w-44 font-bold text-sm text-white"
+                className="rounded-2xl bg-white border-slate-200 h-11 w-44 font-bold text-sm text-slate-900"
               />
             </div>
             <div className="flex items-center gap-2">
-              <FormLabelBase label="Status" className="text-white/40" />
+              <FormLabelBase label="Status" className="text-slate-500" />
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="rounded-2xl bg-white/5 border-white/10 h-11 w-40 font-bold text-sm text-white">
+                <SelectTrigger className="rounded-2xl bg-white border-slate-200 h-11 w-40 font-bold text-sm text-slate-900">
                   <SelectValue placeholder="All" />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-white/10 p-2 bg-black text-white">
-                  <SelectItem value="ALL" className="py-3 font-bold rounded-xl focus:bg-white/5">All</SelectItem>
-                  <SelectItem value="SCHEDULED" className="py-3 font-bold rounded-xl focus:bg-white/5">Scheduled</SelectItem>
-                  <SelectItem value="COMPLETED" className="py-3 font-bold rounded-xl focus:bg-white/5">Completed</SelectItem>
-                  <SelectItem value="LATE" className="py-3 font-bold rounded-xl focus:bg-white/5">Late</SelectItem>
-                  <SelectItem value="MISSED" className="py-3 font-bold rounded-xl focus:bg-white/5">Missed</SelectItem>
+                <SelectContent className="rounded-2xl border-slate-200 p-2 bg-white text-slate-900">
+                  <SelectItem value="ALL" className="py-3 font-bold rounded-xl focus:bg-slate-50">All</SelectItem>
+                  <SelectItem value="SCHEDULED" className="py-3 font-bold rounded-xl focus:bg-slate-50">Scheduled</SelectItem>
+                  <SelectItem value="COMPLETED" className="py-3 font-bold rounded-xl focus:bg-slate-50">Completed</SelectItem>
+                  <SelectItem value="LATE" className="py-3 font-bold rounded-xl focus:bg-slate-50">Late</SelectItem>
+                  <SelectItem value="MISSED" className="py-3 font-bold rounded-xl focus:bg-slate-50">Missed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -541,13 +541,13 @@ export default function ShiftsPage() {
                       Assign Guard
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-                    <DialogHeader className="p-10 pr-16 pb-6 bg-white text-slate-900 relative overflow-hidden border-b border-slate-200">
+                  <DialogContent className="sm:max-w-[640px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
+                    <DialogHeader className="px-10 pr-16 pt-10 pb-4 bg-white text-slate-900 relative overflow-hidden border-b border-slate-200">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-50 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
                       <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase italic text-slate-900">Assign Guard</DialogTitle>
                       <DialogDescription className="text-slate-500 font-bold text-[10px] mt-2 uppercase tracking-[0.2em] z-10">Assign a security guard to a shift</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleAssignGuard} className="p-10 pt-6 space-y-6">
+                    <form onSubmit={handleAssignGuard} className="px-10 pb-10 pt-4 space-y-6">
                       <div className="space-y-0">
                         <FormLabelBase label="Select Shift" required />
                         <Select value={assignForm.shiftId} onValueChange={(v) => setAssignForm({ ...assignForm, shiftId: v })}>
@@ -798,12 +798,12 @@ export default function ShiftsPage() {
 
       {/* Edit Shift Dialog */}
       <Dialog open={editShiftDialogOpen} onOpenChange={(open) => { if (!open) { setEditShiftDialogOpen(false); setEditingShift(null) } }}>
-        <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-          <DialogHeader className="p-8 bg-white border-b border-slate-200">
+        <DialogContent className="sm:max-w-[640px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
+          <DialogHeader className="px-8 pt-8 pb-4 bg-white border-b border-slate-200">
             <DialogTitle className="text-3xl font-black tracking-tight leading-none uppercase italic text-slate-900">Edit Shift</DialogTitle>
             <DialogDescription className="text-slate-500 font-bold text-[10px] mt-2 uppercase tracking-[0.2em]">Update shift name, timings, or status</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEditShiftSubmit} className="p-8 space-y-5">
+          <form onSubmit={handleEditShiftSubmit} className="px-8 pb-8 pt-4 space-y-5">
             <div className="space-y-0">
               <FormLabelBase label="Shift Name" required />
               <Input

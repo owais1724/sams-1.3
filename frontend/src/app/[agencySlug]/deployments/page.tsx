@@ -106,6 +106,7 @@ export default function DeploymentsPage() {
     const [deleteId, setDeleteId] = useState<string | null>(null)
     const [deleting, setDeleting] = useState(false)
     const [editConfirmModal, setEditConfirmModal] = useState(false)
+    const [createConfirmModal, setCreateConfirmModal] = useState(false)
 
     // Form state
     const [form, setForm] = useState({
@@ -268,6 +269,11 @@ export default function DeploymentsPage() {
             }
         }
 
+        setShowCreate(false)
+        setCreateConfirmModal(true)
+    }
+
+    const handleCreateConfirm = async () => {
         setSaving(true)
         try {
             await api.post("/deployments", {
@@ -279,6 +285,7 @@ export default function DeploymentsPage() {
                 guardIds: form.guardIds,
             })
             toast.success("Deployment created successfully")
+            setCreateConfirmModal(false)
             setShowCreate(false)
             setForm({ clientId: "", shiftId: "", startDate: "", endDate: "", notes: "", guardIds: [] })
             setFormErrors({ clientId: "", shiftId: "", startDate: "", endDate: "" })
@@ -549,12 +556,12 @@ export default function DeploymentsPage() {
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black">Create Deployment</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleCreate} className="space-y-6 mt-4">
+                    <form onSubmit={handleCreate} className="space-y-6 mt-2">
                         <FormCard>
                             <FormHeader title="Deployment Details" color="blue" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Client Site <span className="text-red-500">*</span></Label>
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Client Site <span className="text-cyan-500">*</span></Label>
                                     <Select 
                                         value={form.clientId} 
                                         onValueChange={(v) => {
@@ -576,7 +583,7 @@ export default function DeploymentsPage() {
                                     {formErrors.clientId && <p className="text-xs text-red-500 font-semibold">{formErrors.clientId}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Shift <span className="text-red-500">*</span></Label>
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Shift <span className="text-cyan-500">*</span></Label>
                                     <Select 
                                         value={form.shiftId} 
                                         onValueChange={(v) => {
@@ -600,7 +607,7 @@ export default function DeploymentsPage() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Start Date <span className="text-red-500">*</span></Label>
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Start Date <span className="text-cyan-500">*</span></Label>
                                     <Input
                                         type="date"
                                         min={new Date().toISOString().split('T')[0]}
@@ -628,7 +635,7 @@ export default function DeploymentsPage() {
                                     {formErrors.startDate && <p className="text-xs text-red-500 font-semibold">{formErrors.startDate}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">End Date <span className="text-red-500">*</span></Label>
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">End Date <span className="text-cyan-500">*</span></Label>
                                     <Input
                                         type="date"
                                         min={form.startDate || new Date().toISOString().split('T')[0]}
@@ -712,7 +719,7 @@ export default function DeploymentsPage() {
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black">Edit Deployment</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleEditSubmit} className="space-y-6 mt-4">
+                    <form onSubmit={handleEditSubmit} className="space-y-6 mt-2">
                         <FormCard>
                             <FormHeader title="Deployment Details" color="blue" />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -852,6 +859,22 @@ export default function DeploymentsPage() {
                 cancelText="Cancel"
             />
 
+            {/* Create Confirmation Modal */}
+            <AlertModal
+                isOpen={createConfirmModal}
+                onClose={() => {
+                    setCreateConfirmModal(false)
+                    setShowCreate(true)
+                }}
+                onConfirm={handleCreateConfirm}
+                loading={saving}
+                title="Create Deployment"
+                description="Are you sure you want to create this deployment?"
+                variant="primary"
+                confirmText="Create"
+                cancelText="Cancel"
+            />
+
             {/* Edit Confirmation Modal */}
             <AlertModal
                 isOpen={editConfirmModal}
@@ -896,7 +919,7 @@ function AssignGuardsDialog({
                 <DialogHeader className="pr-12">
                     <DialogTitle className="text-2xl font-black text-slate-900">Manage Guards</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-6 mt-4">
+                <div className="space-y-6 mt-2">
                     {/* Currently assigned */}
                     <div>
                         <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3">
@@ -968,3 +991,4 @@ function AssignGuardsDialog({
         </Dialog>
     )
 }
+

@@ -126,11 +126,11 @@ export function AlertModal({
                         <Icon className={cn("h-10 w-10 stroke-[2.5]", activeVariant.color)} />
                     </div>
 
-                    <DialogHeader className="w-full">
-                        <DialogTitle className="text-2xl font-black text-[#0f172a] tracking-tight leading-tight mb-2">
+                    <DialogHeader className="w-full max-w-[320px] !space-y-0 gap-1 text-left mx-auto">
+                        <DialogTitle className="text-2xl font-black text-[#0f172a] tracking-tight leading-tight m-0">
                             {title}
                         </DialogTitle>
-                        <DialogDescription className="text-sm font-bold text-[#64748b] leading-relaxed max-w-[300px] mx-auto">
+                        <DialogDescription className="text-sm font-bold text-[#64748b] leading-tight !mt-0">
                             {description}
                         </DialogDescription>
                     </DialogHeader>

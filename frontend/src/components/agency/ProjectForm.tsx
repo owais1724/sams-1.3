@@ -144,23 +144,23 @@ export function ProjectForm({ clients, onSuccess, onRefreshClients, initialData,
                                                     Quick Register Partner
                                                 </GhostAction>
                                             </DialogTrigger>
-                                            <DialogContent className="sm:max-w-[500px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
-                                                <div className="p-10">
-                                                    <DialogHeader>
-                                                        <DialogTitle className="text-2xl font-black font-outfit uppercase tracking-tight">Add New Partner</DialogTitle>
-                                                        <DialogDescription className="font-bold text-slate-400 font-outfit text-xs uppercase tracking-widest mt-2">
-                                                            Register a new institutional identity.
-                                                        </DialogDescription>
-                                                    </DialogHeader>
-                                                    <div className="mt-10">
-                                                        <ClientForm
-                                                            onSuccess={() => {
-                                                                setIsClientDialogOpen(false)
-                                                                onRefreshClients()
-                                                                toast.success("Identity verified")
-                                                            }}
-                                                        />
-                                                    </div>
+                                            <DialogContent className="w-[calc(100vw-2rem)] sm:w-full sm:max-w-[640px] border border-border rounded-[32px] sm:rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white text-[#111827] max-h-[90vh] flex flex-col">
+                                                <DialogHeader className="px-6 sm:px-10 pt-6 sm:pt-10 pb-3 sm:pb-4 text-left bg-white">
+                                                    <DialogTitle className="text-2xl sm:text-3xl font-black font-outfit uppercase tracking-tight text-[#0f172a]">
+                                                        Add New Partner
+                                                    </DialogTitle>
+                                                    <DialogDescription className="font-bold text-[#94a3b8] font-outfit text-[10px] sm:text-xs uppercase tracking-widest mt-2">
+                                                        Register a new institutional identity.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="flex-1 overflow-y-auto px-6 sm:px-10 pb-6 sm:pb-10 pt-3 sm:pt-4 scrollbar-hide">
+                                                    <ClientForm
+                                                        onSuccess={() => {
+                                                            setIsClientDialogOpen(false)
+                                                            onRefreshClients()
+                                                            toast.success("Identity verified")
+                                                        }}
+                                                    />
                                                 </div>
                                             </DialogContent>
                                         </Dialog>

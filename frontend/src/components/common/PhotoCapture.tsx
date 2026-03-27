@@ -110,7 +110,7 @@ export function PhotoCapture({
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[600px] p-0">
+            <DialogContent className="sm:max-w-[640px] p-0">
                 <div className="p-6 pb-4">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black font-outfit uppercase tracking-tight flex items-center gap-3">
@@ -123,7 +123,7 @@ export function PhotoCapture({
                     </DialogHeader>
                 </div>
 
-                <div className="relative bg-slate-900">
+                <div className="relative bg-slate-50">
                     {!capturedPhoto ? (
                         <>
                             <video
@@ -136,10 +136,10 @@ export function PhotoCapture({
                             <canvas ref={canvasRef} className="hidden" />
                             
                             {error && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90">
+                                <div className="absolute inset-0 flex items-center justify-center bg-white/90">
                                     <div className="text-center p-6">
                                         <Camera className="h-12 w-12 text-rose-500 mx-auto mb-4" />
-                                        <p className="text-sm font-bold text-rose-400 max-w-xs">
+                                        <p className="text-sm font-bold text-rose-600 max-w-xs">
                                             {error}
                                         </p>
                                     </div>

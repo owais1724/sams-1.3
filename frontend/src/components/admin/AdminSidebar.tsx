@@ -38,8 +38,8 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
                         "flex-1 min-w-0 transition-all duration-300",
                         collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                     )}>
-                        <h1 className="text-sm font-bold text-[#0f172a] leading-tight truncate">SAMS GLOBAL</h1>
-                        <p className="text-[11px] text-[#64748b] truncate">Strategic Administration</p>
+                        <h1 className="text-base font-bold text-[#0f172a] leading-tight truncate">SAMS GLOBAL</h1>
+                        <p className="text-[12px] text-[#64748b] truncate">Strategic Administration</p>
                     </div>
                     {onItemClick && (
                         <button
@@ -112,8 +112,8 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
                             "flex-1 min-w-0 transition-all duration-500",
                             collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
                         )}>
-                            <p className="text-xs font-semibold text-[#0f172a] truncate leading-none">Super Admin</p>
-                            <p className="text-[11px] text-[#64748b] truncate mt-1">Administrator</p>
+                            <p className="text-[15px] font-semibold text-[#0f172a] truncate leading-none">Super Admin</p>
+                            <p className="text-[12px] text-[#64748b] truncate mt-1">Administrator</p>
                         </div>
                     </div>
 
@@ -127,7 +127,7 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
                             window.location.replace('/admin/login')
                         }}
                         collapsed={collapsed}
-                        className="h-9 text-[12px] font-black uppercase tracking-widest italic bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5"
+                        className="h-11 font-black uppercase tracking-widest italic bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5"
                     />
                 </div>
             </div>

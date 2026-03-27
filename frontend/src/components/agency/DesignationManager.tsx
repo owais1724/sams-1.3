@@ -62,13 +62,13 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
         <div className="grid gap-8 lg:grid-cols-3">
             <PermissionGuard permission="manage_roles">
                 <div className="lg:col-span-1">
-                    <div className="bg-slate-950 rounded-[32px] p-1 shadow-2xl overflow-hidden relative group">
-                        <div className="bg-slate-900 rounded-[30px] p-8 relative z-10 border border-white/5">
+                    <div className="rounded-[32px] p-1 shadow-2xl overflow-hidden relative group bg-slate-100/80">
+                        <div className="bg-white rounded-[30px] p-8 relative z-10 border border-slate-100">
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/20">
                                     <ShieldCheck className="h-5 w-5 text-primary" />
                                 </div>
-                                <h3 className="text-lg font-black text-white uppercase tracking-tight">Add Designation</h3>
+                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Add Designation</h3>
                             </div>
 
                             <form onSubmit={handleAdd} className="space-y-6">
@@ -76,7 +76,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                     <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Title</Label>
                                     <Input
                                         placeholder="e.g. SPECIAL OPERATIVE"
-                                        className="h-12 bg-white/5 border-white/10 text-white rounded-xl focus:bg-white/10 transition-all font-bold placeholder:text-slate-600"
+                                        className="h-12 bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:bg-white transition-all font-bold placeholder:text-slate-400"
                                         value={newName}
                                         onChange={(e) => setNewName(e.target.value)}
                                     />
@@ -85,7 +85,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                     <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Scope</Label>
                                     <Input
                                         placeholder="Identification of responsibilities..."
-                                        className="h-12 bg-white/5 border-white/10 text-white rounded-xl focus:bg-white/10 transition-all font-bold placeholder:text-slate-600"
+                                        className="h-12 bg-slate-50 border-slate-200 text-slate-900 rounded-xl focus:bg-white transition-all font-bold placeholder:text-slate-400"
                                         value={newDesc}
                                         onChange={(e) => setNewDesc(e.target.value)}
                                     />

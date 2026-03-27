@@ -113,7 +113,7 @@ export default function AdminDashboard() {
                         description={editingAgency
                             ? "Update agency infrastructure and operational status"
                             : "Deploying new security infrastructure instance"}
-                        maxWidth={540}
+                        maxWidth={640}
                         trigger={
                             <Button
                                 onClick={() => {

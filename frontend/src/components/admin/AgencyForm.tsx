@@ -147,7 +147,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
-                                    Agency Name <span className="text-[var(--primary)]">*</span>
+                                    Agency Name <span className="text-cyan-500">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <Input
@@ -166,11 +166,11 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
-                                    Agency Slug <span className="text-[var(--primary)]">*</span>
+                                    Agency Slug <span className="text-cyan-500">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <div className="relative group">
-                                        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--primary)] font-semibold text-lg group-focus-within:animate-pulse z-10">/</div>
+                                        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-cyan-500 font-semibold text-lg group-focus-within:animate-pulse z-10">/</div>
                                         <Input
                                             placeholder="agency-slug"
                                             className="h-14 pl-12 bg-slate-50 border-border text-[#0f172a] placeholder:text-[#94a3b8] rounded-2xl focus:border-[var(--primary)]/20 focus:ring-[var(--primary)]/20 transition-all font-mono font-medium lowercase"
@@ -192,7 +192,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
-                                    Root Admin Name <span className="text-[var(--primary)]">*</span>
+                                    Root Admin Name <span className="text-cyan-500">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <Input
@@ -211,7 +211,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
-                                    Secure Communication Email <span className="text-[var(--primary)]">*</span>
+                                    Secure Communication Email <span className="text-cyan-500">*</span>
                                 </FormLabel>
                                 <FormControl>
                                     <Input
@@ -241,7 +241,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                 </FormControl>
                                 {initialData?.users?.[0]?.phoneNumber && (
                                     <p className="text-[10px] font-medium text-[#64748b] pl-1 uppercase tracking-widest">
-                                        Existing: <span className="text-[var(--primary)]">{initialData.users[0].phoneNumber}</span>
+                                        Existing: <span className="text-cyan-500">{initialData.users[0].phoneNumber}</span>
                                     </p>
                                 )}
                                 <FormMessage className="text-rose-500 font-bold text-[10px] uppercase tracking-widest" />
@@ -254,7 +254,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                         render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
-                                    Master Authentication Key {!initialData && <span className="text-[var(--primary)]">*</span>}
+                                    Master Authentication Key {!initialData && <span className="text-cyan-500">*</span>}
                                 </FormLabel>
                                 <FormControl>
                                     <div className="relative group">
@@ -267,7 +267,7 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-[var(--primary)] transition-colors"
+                                            className="absolute right-5 top-1/2 -translate-y-1/2 text-[#94a3b8] hover:text-cyan-500 transition-colors"
                                         >
                                             {showPassword ? (
                                                 <EyeOff className="h-5 w-5" />
@@ -322,3 +322,4 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
         </>
     )
 }
+

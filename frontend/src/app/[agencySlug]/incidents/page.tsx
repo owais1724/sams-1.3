@@ -486,16 +486,16 @@ export default function IncidentsPage() {
 
             {/* ─── Report Incident Dialog ─── */}
             <Dialog open={showCreate} onOpenChange={setShowCreate}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="sm:max-w-[640px]">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black">Report Incident</DialogTitle>
                     </DialogHeader>
-                    <form onSubmit={handleCreate} className="space-y-6 mt-4">
+                    <form onSubmit={handleCreate} className="space-y-6 mt-2">
                         <FormCard>
                             <FormHeader title="Incident Details" color="rose" />
                             <div className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Title <span className="text-red-500">*</span></Label>
+                                    <Label className="text-xs font-black uppercase tracking-wider text-slate-500">Title <span className="text-cyan-500">*</span></Label>
                                     <Input
                                         value={form.title}
                                         onChange={e => {
@@ -565,7 +565,7 @@ export default function IncidentsPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-xs font-black uppercase tracking-wider text-slate-500">
-                                        Deployment Site <span className="text-red-500">*</span> {isGuard && activeDeployments.length === 1 ? "(auto-linked)" : ""}
+                                        Deployment Site <span className="text-cyan-500">*</span> {isGuard && activeDeployments.length === 1 ? "(auto-linked)" : ""}
                                     </Label>
                                     {isGuard && activeDeployments.length === 1 ? (
                                         // Guard with one active deployment — auto-linked on submit
@@ -615,13 +615,13 @@ export default function IncidentsPage() {
 
             {/* ─── Review / Status Change Dialog ─── */}
             <Dialog open={showReview} onOpenChange={setShowReview}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="sm:max-w-[640px]">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-black">
                             {reviewLabel[reviewTarget?.status || ""] || "Update Status"}
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4 mt-2">
+                    <div className="space-y-4 mt-1">
                         <div className="space-y-2">
                             <Label className="text-xs font-black uppercase tracking-wider text-slate-500">
                                 {reviewTarget?.status === "under_review" ? "Review Notes" :
@@ -659,12 +659,12 @@ export default function IncidentsPage() {
 
             {/* ─── Incident Detail Dialog ─── */}
             <Dialog open={showDetail} onOpenChange={setShowDetail}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="sm:max-w-[640px]">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-black">Incident Details</DialogTitle>
                     </DialogHeader>
                     {selectedIncident && (
-                        <div className="space-y-5 mt-2">
+                        <div className="space-y-5 mt-1">
                             <div>
                                 <h3 className="font-black text-lg text-slate-900">{selectedIncident.title}</h3>
                                 <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -793,3 +793,4 @@ export default function IncidentsPage() {
         </div>
     )
 }
+

@@ -127,7 +127,7 @@ export function QRScanner({
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px] p-0">
+            <DialogContent className="sm:max-w-[640px] p-0">
                 <div className="p-6 pb-4">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black font-outfit uppercase tracking-tight flex items-center gap-3">

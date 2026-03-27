@@ -150,7 +150,7 @@ export default function PayrollPage() {
           onOpenChange={setIsDialogOpen}
           title="Create Payroll"
           description="Calculate and process salary payments for the agency."
-          maxWidth={700}
+          maxWidth={640}
           trigger={<CreateButton label="Generate Payroll" icon={<Calculator className="h-4 w-4" />} />}
         >
           <div className="space-y-10">

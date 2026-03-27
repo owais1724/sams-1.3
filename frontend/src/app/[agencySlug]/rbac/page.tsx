@@ -101,7 +101,7 @@ export default function RBACPage() {
                     }}
                     title={selectedRole ? "Edit Role" : "Create New Role"}
                     description="Define permissions and access levels."
-                    maxWidth={700}
+                    maxWidth={640}
                     trigger={<CreateButton label="Add Role" icon={<Plus className="h-4 w-4" />} />}
                 >
                     <RoleForm

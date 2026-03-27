@@ -93,7 +93,7 @@ export function PhoneInput({
   return (
     <div className="space-y-2">
       <FormLabel className="text-[12px] font-semibold text-[#374151] uppercase tracking-wider pl-1">
-        {label} {required && <span className="text-[var(--primary)]">*</span>}
+        {label} {required && <span className="text-cyan-500">*</span>}
       </FormLabel>
       <div className="flex gap-2">
         <Select
@@ -158,3 +158,4 @@ export function validatePhoneNumber(phoneNumber: string, countryCode: string): s
 
   return null
 }
+

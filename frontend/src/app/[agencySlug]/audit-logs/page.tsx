@@ -88,19 +88,19 @@ export default function AuditLogsPage() {
                     </DialogHeader>
                     {selectedLog && (
                         <div className="relative">
-                            <div className="bg-slate-950 p-5 sm:p-10 text-white relative overflow-hidden">
+                            <div className="bg-white p-5 sm:p-10 text-slate-900 relative overflow-hidden border-b border-slate-100">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full -mr-32 -mt-32" />
                                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full -ml-24 -mb-24" />
 
                                 <div className="relative z-10">
                                     <div className="flex items-center gap-3 mb-4">
-                                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center border border-white/20 backdrop-blur-md", selectedLog.severity === 'CRITICAL' ? "bg-red-500/20 text-red-400" : "bg-cyan-500/20 text-cyan-400")}>
+                                        <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center border border-slate-200 backdrop-blur-md", selectedLog.severity === 'CRITICAL' ? "bg-red-50 text-red-500" : "bg-cyan-50 text-cyan-500")}>
                                             <Shield className="h-5 w-5" />
                                         </div>
-                                        <Badge variant="outline" className="text-white/40 border-white/10 font-bold tracking-widest text-[9px]">ENCRYPTED PROTOCOL</Badge>
+                                        <Badge variant="outline" className="text-slate-500 border-slate-200 font-bold tracking-widest text-[9px]">ENCRYPTED PROTOCOL</Badge>
                                     </div>
-                                    <h2 className="text-4xl font-black tracking-tighter mb-2 uppercase">Forensic <span className="text-cyan-400">Dossier</span></h2>
-                                    <p className="text-slate-400 font-medium text-sm">System integrity event verified and logged at secure node.</p>
+                                    <h2 className="text-4xl font-black tracking-tighter mb-2 uppercase text-slate-900">Forensic <span className="text-cyan-500">Dossier</span></h2>
+                                    <p className="text-slate-500 font-medium text-sm">System integrity event verified and logged at secure node.</p>
                                 </div>
                             </div>
 

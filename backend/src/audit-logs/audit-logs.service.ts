@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuditLogsService {
+  private readonly logger = new Logger(AuditLogsService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async create(
@@ -27,21 +29,28 @@ export class AuditLogsService {
       if (systemAgency) {
         finalAgencyId = systemAgency.id;
       } else {
-        console.warn('SYSTEM agency not found for platform audit log');
-        // Could create it here or fallback if schema allows null (needs restart)
-        // For now, let it fail or try to proceed if schema was updated but not client?
-        // But client validation will fail if field is required.
-        // We must provide a string.
+        this.logger.warn(
+          `Skipping audit log "${data.action}" because the SYSTEM agency was not found.`,
+        );
+        return null;
       }
     }
 
-    return this.prisma.auditLog.create({
-      data: {
-        ...data,
-        agencyId: finalAgencyId ?? null,
-        userId: userId || null,
-      },
-    });
+    try {
+      return await this.prisma.auditLog.create({
+        data: {
+          ...data,
+          agencyId: finalAgencyId,
+          userId: userId || null,
+        },
+      });
+    } catch (error: any) {
+      this.logger.error(
+        `Audit log write failed for action "${data.action}". Continuing without blocking the request.`,
+        error?.message ?? String(error),
+      );
+      return null;
+    }
   }
 
   async findAll(agencyId: string, take: number = 200, skip: number = 0) {
