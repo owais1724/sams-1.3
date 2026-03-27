@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { QrCode, Download, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -229,7 +229,9 @@ export function QRCodeDisplay({ project }: QRCodeDisplayProps) {
 function QRCodeCanvas({ value, size, level, className }: any) {
     const [qrDataUrl, setQrDataUrl] = useState("")
 
-    useState(() => {
+    useEffect(() => {
+        let isActive = true
+
         const generateQR = async () => {
             try {
                 const QRCode = (await import('qrcode')).default
@@ -242,13 +244,20 @@ function QRCodeCanvas({ value, size, level, className }: any) {
                         light: '#FFFFFF'
                     }
                 })
-                setQrDataUrl(url)
+                if (isActive) {
+                    setQrDataUrl(url)
+                }
             } catch (error) {
                 console.error('Failed to generate QR code:', error)
             }
         }
+
         generateQR()
-    })
+
+        return () => {
+            isActive = false
+        }
+    }, [level, size, value])
 
     if (!qrDataUrl) {
         return (
