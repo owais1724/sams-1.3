@@ -107,6 +107,12 @@ export default function DeploymentsPage() {
     const [deleting, setDeleting] = useState(false)
     const [editConfirmModal, setEditConfirmModal] = useState(false)
     const [createConfirmModal, setCreateConfirmModal] = useState(false)
+    const [statusConfirmModal, setStatusConfirmModal] = useState<{ open: boolean; id: string; status: string; clientName: string }>({
+        open: false,
+        id: "",
+        status: "",
+        clientName: "",
+    })
 
     // Form state
     const [form, setForm] = useState({
@@ -341,10 +347,16 @@ export default function DeploymentsPage() {
         }
     }
 
-    const handleStatusChange = async (id: string, status: string) => {
+    const handleStatusChange = async (id: string, status: string, clientName: string) => {
+        setStatusConfirmModal({ open: true, id, status, clientName })
+    }
+
+    const handleConfirmedStatusChange = async () => {
+        if (!statusConfirmModal.id || !statusConfirmModal.status) return
         try {
-            await api.patch(`/deployments/${id}/status`, { status })
-            toast.success(`Status updated to ${status}`)
+            await api.patch(`/deployments/${statusConfirmModal.id}/status`, { status: statusConfirmModal.status })
+            toast.success(`Status updated to ${statusConfirmModal.status}`)
+            setStatusConfirmModal({ open: false, id: "", status: "", clientName: "" })
             fetchData()
         } catch (err: any) {
             toast.error(err.message || "Failed to update status")
@@ -523,19 +535,19 @@ export default function DeploymentsPage() {
                                         )}
                                         {dep.status === "planned" && (
                                             <Button variant="ghost" size="sm" className="text-xs font-bold text-emerald-600 hover:bg-emerald-50"
-                                                onClick={() => handleStatusChange(dep.id, "active")}>
+                                                onClick={() => handleStatusChange(dep.id, "active", dep.client.name)}>
                                                 Activate
                                             </Button>
                                         )}
                                         {dep.status === "active" && (
                                             <Button variant="ghost" size="sm" className="text-xs font-bold text-blue-600 hover:bg-blue-50"
-                                                onClick={() => handleStatusChange(dep.id, "completed")}>
+                                                onClick={() => handleStatusChange(dep.id, "completed", dep.client.name)}>
                                                 Complete
                                             </Button>
                                         )}
                                         {["planned", "active"].includes(dep.status) && (
                                             <Button variant="ghost" size="sm" className="text-xs font-bold text-rose-600 hover:bg-rose-50"
-                                                onClick={() => handleStatusChange(dep.id, "cancelled")}>
+                                                onClick={() => handleStatusChange(dep.id, "cancelled", dep.client.name)}>
                                                 Cancel
                                             </Button>
                                         )}
@@ -856,6 +868,31 @@ export default function DeploymentsPage() {
                 description="Are you sure you want to delete this deployment? This action cannot be undone."
                 variant="danger"
                 confirmText="Delete"
+                cancelText="Cancel"
+            />
+
+            {/* Status Change Confirmation Modal */}
+            <AlertModal
+                isOpen={statusConfirmModal.open}
+                onClose={() => setStatusConfirmModal({ open: false, id: "", status: "", clientName: "" })}
+                onConfirm={handleConfirmedStatusChange}
+                loading={saving}
+                title={
+                    statusConfirmModal.status === "active"
+                        ? "Activate Deployment"
+                        : statusConfirmModal.status === "completed"
+                            ? "Complete Deployment"
+                            : "Cancel Deployment"
+                }
+                description={`Are you sure you want to mark "${statusConfirmModal.clientName}" as ${statusConfirmModal.status}?`}
+                variant={statusConfirmModal.status === "cancelled" ? "danger" : "primary"}
+                confirmText={
+                    statusConfirmModal.status === "active"
+                        ? "Activate"
+                        : statusConfirmModal.status === "completed"
+                            ? "Complete"
+                            : "Cancel Deployment"
+                }
                 cancelText="Cancel"
             />
 
