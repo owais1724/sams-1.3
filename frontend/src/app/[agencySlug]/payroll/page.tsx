@@ -149,11 +149,16 @@ export default function PayrollPage() {
       })
       toast.success(`Payroll marked as ${statusConfirmModal.status}.`)
       setStatusConfirmModal({ open: false, payroll: null, status: "" })
-      setSelectedPayroll((prev) =>
-        prev?.id === statusConfirmModal.payroll?.id
-          ? { ...prev, status: statusConfirmModal.status }
-          : prev
-      )
+      setSelectedPayroll((prev) => {
+        if (!prev || prev.id !== statusConfirmModal.payroll?.id) {
+          return prev
+        }
+
+        return {
+          ...prev,
+          status: statusConfirmModal.status,
+        }
+      })
       fetchData()
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to update payroll status.")
