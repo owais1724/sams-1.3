@@ -32,21 +32,11 @@ export default function RootLoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const { login, logout } = useAuthStore()
+  const { login, clearLocalAuth } = useAuthStore()
 
   useEffect(() => {
-    // Clear session on mount
-    const clearSession = async () => {
-      try {
-        await api.post("/auth/logout")
-      } catch (e) {
-        // Silently fail session clearing
-      } finally {
-        logout()
-      }
-    }
-    clearSession()
-  }, [logout])
+    clearLocalAuth()
+  }, [clearLocalAuth])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

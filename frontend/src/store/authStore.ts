@@ -1,5 +1,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import {
+    ACTIVE_USER_KEY_COOKIE,
+    AUTH_STORE_KEY,
+    clearCookie,
+    clearTabSessionStorage,
+    setActiveSessionUser,
+    setTabSessionUser,
+} from '@/lib/authSession';
 
 interface User {
     id: string;
@@ -17,6 +25,7 @@ interface AuthState {
     user: User | null;
     isAuthenticated: boolean;
     login: (user: User) => void;
+    clearLocalAuth: () => void;
     logout: () => void;
 }
 
@@ -31,28 +40,33 @@ export const useAuthStore = create<AuthState>()(
                 if (typeof document !== 'undefined' && user.role) {
                     document.cookie = `userRole=${user.role}; path=/; max-age=86400; SameSite=Lax`;
                 }
+                setActiveSessionUser(user);
+                setTabSessionUser(user);
+            },
+            clearLocalAuth: () => {
+                set({ user: null, isAuthenticated: false });
+                try {
+                    clearTabSessionStorage();
+                } catch { /* ignore */ }
             },
             logout: () => {
                 set({ user: null, isAuthenticated: false });
                 // Clear all auth cookies
                 if (typeof document !== 'undefined') {
-                    document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-                    document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-                    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-                    document.cookie = 'user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-                    document.cookie = 'sams-auth-v2=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                    clearCookie('userRole');
+                    clearCookie('access_token');
+                    clearCookie('token');
+                    clearCookie('user');
+                    clearCookie(AUTH_STORE_KEY);
                 }
                 try {
-                    if (typeof window !== 'undefined') {
-                        sessionStorage.removeItem('sams_portal_type');
-                        sessionStorage.removeItem('sams-auth-v2');
-                        localStorage.removeItem('sams-auth-v2');
-                    }
-                } catch (e) { /* ignore */ }
+                    clearCookie(ACTIVE_USER_KEY_COOKIE);
+                    clearTabSessionStorage();
+                } catch { /* ignore */ }
             },
         }),
         {
-            name: 'sams-auth-v2',
+            name: AUTH_STORE_KEY,
             storage: createJSONStorage(() => {
                 const dummyStorage = {
                     getItem: () => null,

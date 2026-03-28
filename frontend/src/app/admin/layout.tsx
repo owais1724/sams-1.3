@@ -1,7 +1,7 @@
 "use client"
 
 import { AdminSidebar } from "@/components/admin/AdminSidebar"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useAuthStore } from "@/store/authStore"
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
@@ -9,6 +9,13 @@ import { Menu, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { toast } from "sonner"
+import {
+    getActiveSessionUserKey,
+    getPortalLoginPath,
+    getTabSessionUserKey,
+    hasSessionConflict,
+    PORTAL_TYPE_KEY,
+} from "@/lib/authSession"
 
 export default function AdminLayout({
     children,
@@ -16,8 +23,7 @@ export default function AdminLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname()
-    const router = useRouter()
-    const { user, isAuthenticated, logout, login } = useAuthStore()
+    const { login, clearLocalAuth } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -36,17 +42,27 @@ export default function AdminLayout({
     }
 
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login')
+    const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem(PORTAL_TYPE_KEY) : null
+    const expectedUserKey = typeof window !== 'undefined' ? getTabSessionUserKey() : null
+    const activeUserKey = typeof window !== 'undefined' ? getActiveSessionUserKey() : null
+    const hasTabSessionMismatch = !isLoginPage && hasSessionConflict(expectedUserKey, activeUserKey)
 
     useEffect(() => {
         let isActive = true;
+
+        if (hasTabSessionMismatch) {
+            clearLocalAuth();
+            toast.error("Session changed in another tab. Please sign in again.");
+            window.location.href = getPortalLoginPath(pathname || "/", null, tabPortalType);
+            return;
+        }
 
         // ── Per-tab Session Isolation ──
         // sessionStorage is per-tab. If this tab doesn't have the 'admin' flag,
         // we block automatic cookie-based login to prevent session leakage across tabs
         // when a URL is copy-pasted.
-        const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
         if (!isLoginPage && tabPortalType !== 'admin') {
-            logout();
+            clearLocalAuth();
             window.location.href = '/admin/login';
             return;
         }
@@ -59,8 +75,7 @@ export default function AdminLayout({
                     // Explicitly clear session if role mismatch
                     toast.error("Unauthorized access. You have been logged out.");
                     isActive = false;
-                    await api.post('/auth/logout').catch(() => { });
-                    logout();
+                    clearLocalAuth();
                     window.location.href = '/admin/login';
                     return;
                 }
@@ -71,7 +86,7 @@ export default function AdminLayout({
             } catch (error) {
                 console.error("Session verification failed", error);
                 isActive = false;
-                logout();
+                clearLocalAuth();
                 if (!isLoginPage) {
                     window.location.href = '/admin/login';
                 }
@@ -97,9 +112,9 @@ export default function AdminLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [isLoginPage, router, logout, login]);
+    }, [clearLocalAuth, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
 
-    if (verifying) {
+    if (verifying || hasTabSessionMismatch) {
         return (
             <div className="h-screen w-screen flex items-center justify-center bg-[var(--background)] font-inter">
                 <div className="flex flex-col items-center gap-6">

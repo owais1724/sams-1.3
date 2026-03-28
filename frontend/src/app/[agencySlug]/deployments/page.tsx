@@ -174,8 +174,7 @@ export default function DeploymentsPage() {
     useEffect(() => {
         if (!isAdmin && !hasPermission('view_deployments')) {
             toast.error("RBAC Violation: Unauthorized access to Deployments portal. You have been isolated and logged out.");
-            api.post('/auth/logout').catch(() => {});
-            useAuthStore.getState().logout();
+            useAuthStore.getState().clearLocalAuth();
             window.location.href = `/${agencySlug}/staff-login`;
             return;
         }

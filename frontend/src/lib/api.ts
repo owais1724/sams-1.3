@@ -1,4 +1,10 @@
 import axios from 'axios';
+import {
+    getActiveSessionUserKey,
+    getPortalLoginPath,
+    getTabSessionUserKey,
+    hasSessionConflict,
+} from '@/lib/authSession';
 import { useAuthStore } from '@/store/authStore';
 
 /**
@@ -6,25 +12,63 @@ import { useAuthStore } from '@/store/authStore';
  *
  * Uses /api/* prefix which is reverse-proxied by Next.js to the backend.
  * This makes all requests appear same-domain to the browser, so HTTP-only
- * cookies work on ALL browsers including Safari iOS (no ITP blocking).
- *
- * NEXT_PUBLIC_API_URL must be set to "/api" in production.
- * In development, keep it as "http://localhost:3001" and the rewrites in
- * next.config.ts will handle the proxy if NEXT_PUBLIC_API_URL is not set.
+ * cookies work on all browsers including Safari iOS.
  */
 const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
-    withCredentials: true, // Always send cookies — now same-domain so mobile works
+    withCredentials: true,
 });
 
-// ── Response interceptor: handle 401 globally ─────────────────────────────────
+function redirectToLogin(portalType?: string | null) {
+    if (typeof window === 'undefined') return;
+
+    const path = window.location.pathname;
+    const agencySlug = path.split('/')[1];
+    const resolvedPortalType = portalType ?? sessionStorage.getItem('sams_portal_type');
+    const loginPath = getPortalLoginPath(path, agencySlug, resolvedPortalType);
+
+    if (path !== loginPath) {
+        window.location.href = loginPath;
+    }
+}
+
+api.interceptors.request.use((config) => {
+    if (typeof window === 'undefined') {
+        return config;
+    }
+
+    const url = config.url || '';
+    const bypassConflictCheck =
+        url.includes('/auth/login') ||
+        url.includes('/auth/logout');
+
+    if (!bypassConflictCheck) {
+        const expectedUserKey = getTabSessionUserKey();
+        const activeUserKey = getActiveSessionUserKey();
+        const portalType = sessionStorage.getItem('sams_portal_type');
+
+        if (hasSessionConflict(expectedUserKey, activeUserKey)) {
+            useAuthStore.getState().clearLocalAuth();
+            redirectToLogin(portalType);
+
+            const conflictError = new Error('Session changed in another tab. Please sign in again.') as any;
+            conflictError.code = 'ERR_SESSION_CONFLICT';
+            conflictError.status = 401;
+            conflictError.sessionConflict = true;
+
+            return Promise.reject(conflictError);
+        }
+    }
+
+    return config;
+});
+
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Skip canceled/aborted requests (React strict-mode unmount, AbortController)
         if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError') {
             return Promise.reject(error);
         }
@@ -32,20 +76,20 @@ api.interceptors.response.use(
         const status = error.response?.status;
         const url = error.config?.url || 'Unknown URL';
         const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
-
         const message =
             error.response?.data?.message ||
             error.message ||
-            "An unexpected error occurred";
+            'An unexpected error occurred';
 
-        // Auto-logout on 401 — but NOT for the login request itself
         if (status === 401) {
             const isLoginRequest = url.includes('/auth/login');
 
             if (!isLoginRequest) {
                 console.warn(`[API] 401 at ${method} ${url}. Session expired.`);
-
-                useAuthStore.getState().logout();
+                const portalType = typeof window !== 'undefined'
+                    ? sessionStorage.getItem('sams_portal_type')
+                    : null;
+                useAuthStore.getState().clearLocalAuth();
 
                 const isLoginPage = typeof window !== 'undefined' && (
                     window.location.pathname.includes('/login') ||
@@ -53,20 +97,7 @@ api.interceptors.response.use(
                 );
 
                 if (typeof window !== 'undefined' && !isLoginPage) {
-                    const path = window.location.pathname;
-                    const agencySlug = path.split('/')[1];
-
-                    if (path.includes('/staff')) {
-                        window.location.href = `/${agencySlug}/staff-login`;
-                    } else if (path.includes('/admin')) {
-                        window.location.href = '/admin/login';
-                    } else {
-                        if (agencySlug && agencySlug !== 'admin') {
-                            window.location.href = `/${agencySlug}/login`;
-                        } else {
-                            window.location.href = '/';
-                        }
-                    }
+                    redirectToLogin(portalType);
                 }
             }
         }

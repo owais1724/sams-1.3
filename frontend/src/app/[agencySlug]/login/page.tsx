@@ -22,7 +22,7 @@ import { loginWithRetry, waitForBackend } from "@/lib/apiWithRetry"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
-import { Lock, Mail, ChevronRight, Loader2, Building2, Activity, Eye, EyeOff } from "lucide-react"
+import { Lock, Mail, ChevronRight, Loader2, Building2, Eye, EyeOff } from "lucide-react"
 
 const formSchema = z.object({
     email: z.string().email("Please enter a valid administrative email"),
@@ -36,20 +36,11 @@ export default function AgencyAdminLogin() {
     const [showPassword, setShowPassword] = useState(false)
     const login = useAuthStore(state => state.login)
     const logout = useAuthStore(state => state.logout)
+    const clearLocalAuth = useAuthStore(state => state.clearLocalAuth)
 
     useEffect(() => {
-        // Clear local and backend session on mount
-        const clearSession = async () => {
-            try {
-                await api.post("/auth/logout")
-            } catch (e) {
-                // Ignore errors during preemptive logout
-            } finally {
-                logout()
-            }
-        }
-        clearSession()
-    }, [logout])
+        clearLocalAuth()
+    }, [clearLocalAuth])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -94,7 +85,7 @@ export default function AgencyAdminLogin() {
             login(user)
             sessionStorage.setItem('sams_portal_type', 'agency')
             toast.success("Identity verified. Welcome back.")
-            window.location.href = `/${agencySlug}/dashboard`
+            router.replace(`/${agencySlug}/dashboard`)
         } catch (error: any) {
             console.error('[Login Error]', error)
             

@@ -10,6 +10,13 @@ import { Menu, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { toast } from "sonner"
+import {
+    getActiveSessionUserKey,
+    getPortalLoginPath,
+    getTabSessionUserKey,
+    hasSessionConflict,
+    PORTAL_TYPE_KEY,
+} from "@/lib/authSession"
 
 type PortalType = "agency" | "staff"
 
@@ -84,7 +91,7 @@ export default function AgencyLayout({
     const pathname = usePathname()
     const { agencySlug } = useParams()
     const currentAgencySlug = (Array.isArray(agencySlug) ? agencySlug[0] : agencySlug) || ""
-    const { user, logout, login } = useAuthStore()
+    const { user, login, clearLocalAuth } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -103,22 +110,28 @@ export default function AgencyLayout({
     }
 
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login') || pathname?.includes('staff-login')
+    const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem(PORTAL_TYPE_KEY) : null
+    const expectedUserKey = typeof window !== 'undefined' ? getTabSessionUserKey() : null
+    const activeUserKey = typeof window !== 'undefined' ? getActiveSessionUserKey() : null
+    const hasTabSessionMismatch = !isLoginPage && hasSessionConflict(expectedUserKey, activeUserKey)
 
     useEffect(() => {
         let isActive = true;
+
+        if (hasTabSessionMismatch) {
+            clearLocalAuth();
+            toast.error("Session changed in another tab. Please sign in again.");
+            window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+            return;
+        }
 
         // ── Per-tab Session Isolation ──
         // sessionStorage is per-tab. If this tab doesn't have the 'agency' or 'staff' flag,
         // we block automatic cookie-based login to prevent session leakage across tabs
         // when a URL is copy-pasted.
-        const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
         if (!isLoginPage && tabPortalType !== 'agency' && tabPortalType !== 'staff') {
-            logout();
-            if (pathname?.includes('/staff')) {
-                window.location.href = `/${currentAgencySlug}/staff-login`;
-            } else {
-                window.location.href = `/${currentAgencySlug}/login`;
-            }
+            clearLocalAuth();
+            window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
             return;
         }
 
@@ -137,7 +150,6 @@ export default function AgencyLayout({
                 // ── RBAC Cross-Tab Session Isolation ──
                 // If a user logs into Staff portal on one tab (changing the global browser cookies),
                 // and tries to use the Agency Admin tab, we must block the cross-contamination.
-                const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem('sams_portal_type') : null;
                 const isAgencyAdminRole = ['Agency Admin', 'Supervisor'].includes(userData.role);
                 const isStaffRole = ['Guard', 'HR', 'Staff'].includes(userData.role);
                 
@@ -153,10 +165,9 @@ export default function AgencyLayout({
                     toast.error(isRoleMismatch ? "Session conflict detected. Please sign in again with appropriate credentials." : "Unauthorized access. You have been logged out.");
                     // Force hard redirect immediately and stop rendering
                     isActive = false;
-                    await api.post('/auth/logout').catch(() => { });
-                    logout();
+                    clearLocalAuth();
                     if (!isLoginPage) {
-                        window.location.href = tabPortalType === 'staff' ? `/${currentAgencySlug}/staff-login` : `/${currentAgencySlug}/login`;
+                        window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
                     }
                     return;
                 }
@@ -171,11 +182,8 @@ export default function AgencyLayout({
                 if (routePortalMismatch) {
                     toast.error("Session conflict detected for this portal. Please sign in again.");
                     isActive = false;
-                    await api.post('/auth/logout').catch(() => { });
-                    logout();
-                    window.location.href = tabPortalType === 'staff'
-                        ? `/${currentAgencySlug}/staff-login`
-                        : `/${currentAgencySlug}/login`;
+                    clearLocalAuth();
+                    window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
                     return;
                 }
 
@@ -194,13 +202,9 @@ export default function AgencyLayout({
             } catch (error) {
                 console.error("Agency session verification failed", error);
                 isActive = false;
-                logout();
+                clearLocalAuth();
                 if (!isLoginPage) {
-                    if (pathname?.includes('/staff')) {
-                        window.location.href = `/${currentAgencySlug}/staff-login`;
-                    } else {
-                        window.location.href = `/${currentAgencySlug}/login`;
-                    }
+                    window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
                 }
             } finally {
                 if (isActive) {
@@ -224,9 +228,9 @@ export default function AgencyLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [isLoginPage, logout, login, currentAgencySlug, pathname]);
+    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
 
-    if (verifying) {
+    if (verifying || hasTabSessionMismatch) {
         return (
             <div className="h-screen w-screen flex items-center justify-center bg-[var(--background)]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#06b6d4]"></div>

@@ -221,8 +221,7 @@ export default function ShiftsPage() {
     if (user) {
       if (!user?.role?.toLowerCase().includes('admin') && !hasPermission("view_shifts")) {
           toast.error("RBAC Violation: Unauthorized access to Shifts portal. You have been isolated and logged out.");
-          api.post('/auth/logout').catch(() => {});
-          useAuthStore.getState().logout();
+          useAuthStore.getState().clearLocalAuth();
           window.location.href = `/${agencySlug}/staff-login`;
           return;
       }

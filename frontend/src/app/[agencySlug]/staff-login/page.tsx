@@ -35,19 +35,11 @@ export default function StaffLogin() {
     const [showPassword, setShowPassword] = useState(false)
     const login = useAuthStore(state => state.login)
     const logout = useAuthStore(state => state.logout)
+    const clearLocalAuth = useAuthStore(state => state.clearLocalAuth)
 
     useEffect(() => {
-        const clearSession = async () => {
-            try {
-                await api.post("/auth/logout")
-            } catch (e) {
-                // Ignore clearing errors
-            } finally {
-                logout()
-            }
-        }
-        clearSession()
-    }, [logout])
+        clearLocalAuth()
+    }, [clearLocalAuth])
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
