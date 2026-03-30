@@ -10,6 +10,61 @@ const LATE_GRACE_MINUTES = 15;
 export class AttendanceService {
   constructor(private prisma: PrismaService) { }
 
+  private getDayBounds(referenceDate: Date) {
+    const startOfDay = new Date(referenceDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(referenceDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return { startOfDay, endOfDay };
+  }
+
+  private isOvernightShift(startTime?: string, endTime?: string) {
+    if (!startTime || !endTime) return false;
+
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
+    const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+    return endHours * 60 + endMinutes <= startHours * 60 + startMinutes;
+  }
+
+  private async findApplicableProjectShiftAssignment(
+    agencyId: string,
+    employeeId: string,
+    projectId: string,
+    referenceDate: Date,
+  ) {
+    const { startOfDay, endOfDay } = this.getDayBounds(referenceDate);
+    const previousDayStart = new Date(startOfDay);
+    previousDayStart.setDate(previousDayStart.getDate() - 1);
+
+    const assignments = await this.prisma.shiftAssignment.findMany({
+      where: {
+        employeeId,
+        projectId,
+        agencyId,
+        date: { gte: previousDayStart, lte: endOfDay },
+      },
+      include: { shift: true },
+      orderBy: { date: 'desc' },
+    });
+
+    return assignments.find((assignment) => {
+      const assignmentDate = new Date(assignment.date);
+      assignmentDate.setHours(0, 0, 0, 0);
+
+      if (assignmentDate.getTime() === startOfDay.getTime()) {
+        return true;
+      }
+
+      return (
+        assignmentDate.getTime() === previousDayStart.getTime() &&
+        this.isOvernightShift(assignment.shift?.startTime, assignment.shift?.endTime)
+      );
+    }) || null;
+  }
+
   /**
    * Validates check-in time against shift window.
    * Returns 'PRESENT' or 'LATE', or throws if outside the allowed window.
@@ -195,10 +250,8 @@ export class AttendanceService {
       throw new ForbiddenException('Deployment or project selection is required for check-in');
     }
 
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const now = new Date();
+    const { startOfDay, endOfDay } = this.getDayBounds(now);
 
     // ── PRIORITY 1: Deployment-based check-in (guards with active deployments) ──
     if (data.deploymentId) {
@@ -232,8 +285,7 @@ export class AttendanceService {
       }
 
       // Verify deployment date range includes today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const { startOfDay: today } = this.getDayBounds(now);
       const deploymentStart = new Date(deployment.startDate);
       deploymentStart.setHours(0, 0, 0, 0);
       const deploymentEnd = new Date(deployment.endDate);
@@ -241,14 +293,10 @@ export class AttendanceService {
 
       // For overnight shifts, allow check-in on both start and end dates
       // Check if shift crosses midnight
-      const isOvernightShift = deployment.shift?.startTime && deployment.shift?.endTime && 
-        (() => {
-          const [sh, sm] = deployment.shift.startTime.split(':').map(Number);
-          const [eh, em] = deployment.shift.endTime.split(':').map(Number);
-          const startMinutes = sh * 60 + sm;
-          const endMinutes = eh * 60 + em;
-          return endMinutes <= startMinutes;
-        })();
+      const isOvernightShift = this.isOvernightShift(
+        deployment.shift?.startTime,
+        deployment.shift?.endTime,
+      );
 
       if (isOvernightShift) {
         // For overnight shifts, allow check-in from start date to end date (inclusive)
@@ -391,6 +439,19 @@ export class AttendanceService {
       throw new ForbiddenException('You are not assigned to this project site');
     }
 
+    const shiftAssignment = await this.findApplicableProjectShiftAssignment(
+      agencyId,
+      user.employee.id,
+      data.projectId,
+      now,
+    );
+
+    if (!shiftAssignment) {
+      throw new ForbiddenException(
+        'No shift is scheduled for you at this project today. Attendance can only be marked on the assigned date.',
+      );
+    }
+
     // Check for duplicate check-in today
     const existingAttendance = await this.prisma.attendance.findFirst({
       where: {
@@ -406,19 +467,8 @@ export class AttendanceService {
       );
     }
 
-    // Validate shift timing if employee has a shift assignment
     let projectStatus = 'PRESENT';
-    const shiftAssignment = await this.prisma.shiftAssignment.findFirst({
-      where: {
-        employeeId: user.employee.id,
-        projectId: data.projectId,
-        agencyId,
-        date: { gte: startOfDay, lte: endOfDay },
-      },
-      include: { shift: true },
-    });
-
-    if (shiftAssignment?.shift?.startTime && shiftAssignment?.shift?.endTime) {
+    if (shiftAssignment.shift?.startTime && shiftAssignment.shift?.endTime) {
       projectStatus = this.validateShiftTiming(
         shiftAssignment.shift.startTime,
         shiftAssignment.shift.endTime,
