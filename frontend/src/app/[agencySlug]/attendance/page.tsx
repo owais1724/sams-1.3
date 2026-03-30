@@ -226,7 +226,7 @@ export default function AttendancePage() {
                                 <p className="text-slate-600 text-sm pr-10 leading-relaxed">
                                     {selectedSite && myStatus?.checkOut
                                         ? "Shift completed for this site. Select another site to mark attendance."
-                                        : (selectedSite && myStatus && !myStatus.checkOut ? "Active shift in progress." : (hasDeployments ? "Select your deployment to check in." : "Select your project site to check in."))}
+                                        : (selectedSite && myStatus && !myStatus.checkOut ? "Active shift in progress." : (hasDeployments ? "Select your deployment to check in." : "Select your project site if you are scheduled for today."))}
                                 </p>
                             </div>
 
