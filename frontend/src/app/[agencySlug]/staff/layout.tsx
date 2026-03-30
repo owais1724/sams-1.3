@@ -31,16 +31,17 @@ export default function StaffLayout({
                 const userData = response.data
                 
                 const userRoleName = userData.role?.toLowerCase() || ""
-                const agencyAdminRoles = ['agency admin', 'supervisor']
-                const staffRoles = ['guard', 'hr', 'staff']
+                const blockedRoles = ['agency admin', 'super admin']
+                const staffRoles = ['supervisor', 'guard', 'hr', 'staff']
                 
-                // Staff layout ONLY allows staff roles.
-                // Agency Admins / Supervisors are BLOCKED from this path.
-                const isAgencyAdmin = agencyAdminRoles.includes(userRoleName)
+                // Staff layout allows all staff roles (Supervisor, Guard, HR, Staff)
+                // Only Agency Admin and Super Admin are blocked
+                const isBlockedRole = blockedRoles.includes(userRoleName)
                 const isCorrectSlug = userData.agencySlug === currentAgencySlug
+                const isStaffRole = staffRoles.includes(userRoleName)
 
-                if (isAgencyAdmin || !isCorrectSlug || !staffRoles.includes(userRoleName)) {
-                    console.warn(`[StaffLayout] Restricted role ${userRoleName} blocked from Staff portal.`)
+                if (isBlockedRole || !isCorrectSlug || !isStaffRole) {
+                    console.warn(`[StaffLayout] Unauthorized role ${userRoleName} blocked from Staff portal.`)
                     toast.error("Unauthorized access to Staff portal. You have been logged out.")
                     clearLocalAuth()
                     window.location.href = `/${currentAgencySlug}/login`
