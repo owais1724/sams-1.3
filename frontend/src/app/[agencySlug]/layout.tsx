@@ -74,7 +74,9 @@ function getSafeRouteForUser(userData: any, agencySlug: string) {
     const roleName = userData?.role?.toLowerCase?.() || ""
     const permissions: string[] = userData?.permissions || []
 
-    if (["guard", "hr", "staff", "supervisor"].some(k => roleName.includes(k))) {
+    const isSuperAdmin = ["super admin"].some(k => roleName.includes(k));
+    const isAgencyAdmin = ["agency admin"].some(k => roleName.includes(k)) && !userData?.employeeId;
+    if (userData?.employeeId || (!isSuperAdmin && !isAgencyAdmin)) {
         return permissions.includes("view_dashboard")
             ? `/${agencySlug}/staff/dashboard`
             : `/${agencySlug}/my-schedule`
@@ -154,9 +156,10 @@ export default function AgencyLayout({
                 const userRoleName = userData.role?.toLowerCase() || "";
                 const superAdminRoles = ['super admin'];
                 const agencyAdminRoles = ['agency admin'];
-                const staffRoles = ['supervisor', 'guard', 'hr', 'staff'];
-                
-                const hasCorrectRole = [...agencyAdminRoles, ...staffRoles].some(k => userRoleName.includes(k));
+                const isSuperAdminUser = superAdminRoles.some(k => userRoleName.includes(k));
+                const isAgencyAdminUser = agencyAdminRoles.some(k => userRoleName.includes(k)) && !userData.employeeId;
+                const isStaffUser = Boolean(userData.employeeId) || (!isSuperAdminUser && !isAgencyAdminUser);
+                const hasCorrectRole = isAgencyAdminUser || isStaffUser;
                 const routeRule = getRouteRule(pathname, currentAgencySlug);
 
                 // ── RBAC Cross-Portal Access Isolation (Strict Enforcement) ──
@@ -166,19 +169,19 @@ export default function AgencyLayout({
 
                 if (isStaffPath) {
                     // This is a staff-specific path (like /my-schedule). BLOCK AGENCY ADMINS.
-                    if (agencyAdminRoles.some(k => userRoleName.includes(k))) {
+                    if (isAgencyAdminUser) {
                         isPortalMismatch = true;
                         console.warn(`[AgencyLayout] Admin role ${userRoleName} blocked from Staff path.`);
                     }
                 } else {
                     // This is an Agency Admin portal path (like /attendance). BLOCK STAFF ROLES.
-                    if (staffRoles.some(k => userRoleName.includes(k))) {
+                    if (isStaffUser) {
                         isPortalMismatch = true;
                         console.warn(`[AgencyLayout] Staff role ${userRoleName} blocked from Agency Admin layout.`);
                     }
                 }
                 
-                if (superAdminRoles.some(k => userRoleName.includes(k)) || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || isPortalMismatch || hasStoredUserMismatch) {
+                if (isSuperAdminUser || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || isPortalMismatch || hasStoredUserMismatch) {
                     console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, Mismatch: ${isPortalMismatch}`);
                     toast.error(
                         isPortalMismatch 
@@ -324,5 +327,9 @@ export default function AgencyLayout({
         </div>
     )
 }
+
+
+
+
 
 

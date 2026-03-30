@@ -78,7 +78,7 @@ export async function middleware(request: NextRequest) {
                              !pathname.endsWith('/register')
 
     // 1. Block Staff from Agency Admin Portal
-    if (isAgencyAdminPath && STAFF_ROLES.some(k => normalizedRole.includes(k))) {
+    if (isAgencyAdminPath && (!AGENCY_ADMIN_ROLES.some(k => normalizedRole.includes(k)) && !SUPER_ADMIN_ROLES.some(k => normalizedRole.includes(k)))) {
       console.warn(`[Middleware] Staff account ${normalizedRole} blocked from Agency Admin Path: ${pathname}`)
       const response = NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
       response.cookies.delete('access_token');
@@ -115,4 +115,5 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)',
   ],
 }
+
 

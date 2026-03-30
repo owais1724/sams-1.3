@@ -32,13 +32,13 @@ export default function StaffLayout({
                 
                 const userRoleName = userData.role?.toLowerCase() || ""
                 const blockedRoles = ['agency admin', 'super admin']
-                const validStaffKeywords = ['supervisor', 'guard', 'hr', 'staff']
+                
                 
                 // Staff layout allows all staff roles (Supervisor, Guard, HR, Staff)
                 // Only Agency Admin and Super Admin are blocked
                 const isBlockedRole = blockedRoles.some(blocked => userRoleName.includes(blocked))
                 const isCorrectSlug = userData.agencySlug === currentAgencySlug
-                const isStaffRole = validStaffKeywords.some(keyword => userRoleName.includes(keyword))
+                const isStaffRole = Boolean(userData.employeeId) || !isBlockedRole
 
                 if (isBlockedRole || !isCorrectSlug || !isStaffRole) {
                     console.warn(`[StaffLayout] Unauthorized role ${userRoleName} blocked from Staff portal.`)
@@ -70,3 +70,4 @@ export default function StaffLayout({
 
     return <>{children}</>
 }
+

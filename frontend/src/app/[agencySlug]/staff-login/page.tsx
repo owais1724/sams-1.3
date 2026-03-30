@@ -55,7 +55,7 @@ export default function StaffLogin() {
             const { user } = response.data
 
             const userRoleLower = user.role?.toLowerCase() || '';
-            const isAdminRole = ['agency admin', 'super admin', 'supervisor', 'admin'].includes(userRoleLower);
+            const isAdminRole = ['agency admin', 'super admin'].some(role => userRoleLower.includes(role));
 
             if (isAdminRole) {
                 toast.error("Invalid credentials for staff portal")
