@@ -54,8 +54,11 @@ export default function StaffLogin() {
             const response = await api.post("/auth/login", values)
             const { user } = response.data
 
-            if (user.role === 'Agency Admin' || user.role === 'Super Admin') {
-                toast.error("Invalid credentials")
+            const userRoleLower = user.role?.toLowerCase() || '';
+            const isAdminRole = ['agency admin', 'super admin', 'supervisor', 'admin'].includes(userRoleLower);
+
+            if (isAdminRole) {
+                toast.error("Invalid credentials for staff portal")
                 await api.post("/auth/logout")
                 logout()
                 setLoading(false)

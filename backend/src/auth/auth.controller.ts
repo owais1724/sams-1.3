@@ -53,7 +53,7 @@ export class AuthController {
     res.cookie('access_token', access_token, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'lax',   // 'lax' works now — Next.js proxy makes it same-domain
+      sameSite: isProd ? 'none' : 'lax', // 'none' is required for cross-domain Railway subdomains
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: '/',
     });
