@@ -74,28 +74,27 @@ export default function AgencyAdminLogin() {
                 return
             }
 
-            if (user.role !== 'Agency Admin') {
-                console.log('[Agency Login] Role check failed:', {
+if (user.employeeId) {
+                console.log('[Agency Login] Role check failed - User has employeeId:', {
                     userRole: user.role,
-                    expected: 'Agency Admin'
+                    employeeId: user.employeeId
                 })
-                
-                // Provide helpful guidance for different roles
-                if (user.role === 'Supervisor' || user.role === 'Guard' || user.role === 'HR' || user.role === 'Staff') {
-                    toast.error("Staff and employees should use the staff portal.", {
-                        description: `Redirecting to staff login...`,
-                        duration: 3000
-                    })
-                    await api.post("/auth/logout")
-                    logout()
-                    setLoading(false)
-                    // Redirect to staff login
-                    setTimeout(() => {
-                        window.location.href = `/${agencySlug}/staff-login`
-                    }, 1500)
-                    return
-                }
-                
+
+                toast.error("Staff and employees should use the staff portal.", {
+                    description: `Redirecting to staff login...`,
+                    duration: 3000
+                })
+                await api.post("/auth/logout")
+                logout()
+                setLoading(false)
+                // Redirect to staff login
+                setTimeout(() => {
+                    window.location.href = `/${agencySlug}/staff-login`     
+                }, 1500)
+                return
+            }
+
+            if (user.role?.toLowerCase() === 'super admin') {
                 toast.error("This portal is for Agency Admin only.")
                 await api.post("/auth/logout")
                 logout()

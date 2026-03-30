@@ -61,9 +61,10 @@ function getRouteRule(pathname: string | null | undefined, agencySlug: string) {
 function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
     if (!requiredPermissions.length) return true
 
-    const roleName = userData?.role?.toLowerCase?.() || ""
-    const isPrivilegedUser = ["agency admin", "super admin"].some(role => roleName.includes(role))
-    if (isPrivilegedUser) return true
+    const isSuperAdmin = userData?.role?.toLowerCase()?.includes('super admin');
+    const isAgencyAdmin = !userData?.employeeId && !isSuperAdmin;
+    
+    if (isAgencyAdmin || isSuperAdmin) return true
 
     return requiredPermissions.some((permission) =>
         userData?.permissions?.includes(permission)
@@ -71,12 +72,10 @@ function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
 }
 
 function getSafeRouteForUser(userData: any, agencySlug: string) {
-    const roleName = userData?.role?.toLowerCase?.() || ""
     const permissions: string[] = userData?.permissions || []
 
-    const isSuperAdmin = ["super admin"].some(k => roleName.includes(k));
-    const isAgencyAdmin = ["agency admin"].some(k => roleName.includes(k)) && !userData?.employeeId;
-    if (userData?.employeeId || (!isSuperAdmin && !isAgencyAdmin)) {
+    const isStaffUser = Boolean(userData?.employeeId);
+    if (isStaffUser) {
         return permissions.includes("view_dashboard")
             ? `/${agencySlug}/staff/dashboard`
             : `/${agencySlug}/my-schedule`
@@ -157,8 +156,8 @@ export default function AgencyLayout({
                 const superAdminRoles = ['super admin'];
                 const agencyAdminRoles = ['agency admin'];
                 const isSuperAdminUser = superAdminRoles.some(k => userRoleName.includes(k));
-                const isAgencyAdminUser = agencyAdminRoles.some(k => userRoleName.includes(k)) && !userData.employeeId;
-                const isStaffUser = Boolean(userData.employeeId) || (!isSuperAdminUser && !isAgencyAdminUser);
+                const isStaffUser = Boolean(userData.employeeId);
+                const isAgencyAdminUser = !isSuperAdminUser && !isStaffUser;
                 const hasCorrectRole = isAgencyAdminUser || isStaffUser;
                 const routeRule = getRouteRule(pathname, currentAgencySlug);
 
