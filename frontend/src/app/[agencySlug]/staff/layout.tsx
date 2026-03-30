@@ -31,7 +31,7 @@ export default function StaffLayout({
                 const userData = response.data
                 
                 const userRoleName = userData.role?.toLowerCase() || ""
-
+                const isCorrectSlug = userData.agencySlug === currentAgencySlug
                 const isStaffRole = Boolean(userData.employeeId)
 
                 if (!isCorrectSlug || !isStaffRole) {
