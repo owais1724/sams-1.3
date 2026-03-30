@@ -54,8 +54,18 @@ export default function StaffLogin() {
             const response = await api.post("/auth/login", values)
             const { user } = response.data
 
-            // Only allow users with employeeId (staff/employees) to access staff portal
-            if (!user.employeeId) {
+            console.log('[Staff Login] Login response:', { 
+                email: user.email, 
+                employeeId: user.employeeId, 
+                role: user.role 
+            })
+
+            // Allow users with employeeId (employees) OR users without admin roles
+            const isAdminRole = user.role?.toLowerCase()?.includes('admin');
+            const isStaffUser = user.employeeId || !isAdminRole;
+
+            if (!isStaffUser) {
+                console.error('[Staff Login] User rejected:', { employeeId: user.employeeId, role: user.role })
                 toast.error("Invalid credentials for staff portal")
                 await api.post("/auth/logout")
                 logout()
