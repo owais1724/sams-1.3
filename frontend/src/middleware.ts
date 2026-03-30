@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
 
   // ── SUPER ADMIN PORTAL PROTECTION ──
   if (pathname.startsWith('/admin')) {
-    if (!SUPER_ADMIN_ROLES.includes(normalizedRole)) {
+    if (!SUPER_ADMIN_ROLES.some(k => normalizedRole.includes(k))) {
       const response = NextResponse.redirect(new URL('/login', request.url))
       response.cookies.delete('access_token');
       response.cookies.delete('token');
@@ -78,7 +78,7 @@ export async function middleware(request: NextRequest) {
                              !pathname.endsWith('/register')
 
     // 1. Block Staff from Agency Admin Portal
-    if (isAgencyAdminPath && STAFF_ROLES.includes(normalizedRole)) {
+    if (isAgencyAdminPath && STAFF_ROLES.some(k => normalizedRole.includes(k))) {
       console.warn(`[Middleware] Staff account ${normalizedRole} blocked from Agency Admin Path: ${pathname}`)
       const response = NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
       response.cookies.delete('access_token');
@@ -88,7 +88,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // 2. Block Agency Admins from Staff Portal
-    if (isStaffPath && AGENCY_ADMIN_ROLES.includes(normalizedRole)) {
+    if (isStaffPath && AGENCY_ADMIN_ROLES.some(k => normalizedRole.includes(k))) {
       console.warn(`[Middleware] Agency Admin ${normalizedRole} blocked from Staff Path: ${pathname}`)
       const response = NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
       response.cookies.delete('access_token');
@@ -98,7 +98,7 @@ export async function middleware(request: NextRequest) {
     }
     
     // 3. Block Super Admins from all Agency/Staff portals (they must use /admin)
-    if (SUPER_ADMIN_ROLES.includes(normalizedRole)) {
+    if (SUPER_ADMIN_ROLES.some(k => normalizedRole.includes(k))) {
       const response = NextResponse.redirect(new URL('/admin/login', request.url))
       response.cookies.delete('access_token');
       response.cookies.delete('token');
@@ -115,3 +115,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\..*|api).*)',
   ],
 }
+

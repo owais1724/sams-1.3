@@ -47,7 +47,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
     const { user, logout } = useAuthStore()
 
     const role = user?.role?.toLowerCase() || ""
-    const isStaff = ["guard", "hr", "staff", "supervisor"].includes(role)
+    const isStaff = ["guard", "hr", "staff", "supervisor"].some((k) => role.includes(k))
     const isAdmin = role.includes("admin")
 
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
