@@ -14,11 +14,21 @@ type SessionUser = {
 export function buildSessionUserKey(user: SessionUser | null | undefined) {
   if (!user?.id) return null;
 
+  const normalize = (v: string | null | undefined) => {
+    const s = (v ?? '').toString()
+    return s.trim().toLowerCase().replace(/\s+/g, '_')
+  }
+
+  const roleKey = user.role ? normalize(user.role) : 'no-role'
+  const agencyKey = user.agencySlug || user.agencyId || 'global'
+  const agencyNormKey = normalize(agencyKey)
+  const employeeKey = user.employeeId ? user.employeeId.toString() : 'no-employee'
+
   return [
     user.id,
-    user.agencySlug || user.agencyId || "global",
-    user.employeeId || "no-employee",
-    user.role || "no-role",
+    agencyNormKey,
+    employeeKey,
+    roleKey,
   ].join(":");
 }
 

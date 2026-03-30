@@ -156,38 +156,27 @@ export default function AgencyLayout({
                 const superAdminRoles = ['super admin'];
                 const agencyAdminRoles = ['agency admin'];
                 const isSuperAdminUser = superAdminRoles.some(k => userRoleName.includes(k));
-                const isStaffUser = Boolean(userData.employeeId);
+                const isAdminLikeRole = userRoleName.includes('admin');
+                // Treat a user as staff if they are linked to an employee record OR their role is not admin-like.
+                const isStaffUser =
+                    Boolean(userData.employeeId) ||
+                    (!isSuperAdminUser && !isAdminLikeRole);
                 const isAgencyAdminUser = !isSuperAdminUser && !isStaffUser;
                 const hasCorrectRole = isAgencyAdminUser || isStaffUser;
                 const routeRule = getRouteRule(pathname, currentAgencySlug);
 
-                // ── RBAC Cross-Portal Access Isolation (Strict Enforcement) ──
-                // Staff portal is under /staff/ or /my-schedule. Everything else is Agency Admin.
-                const isStaffPath = pathname?.includes('/staff/') || pathname?.includes('/my-schedule');
-                let isPortalMismatch = false;
-
-                if (isStaffPath) {
-                    // This is a staff-specific path (like /my-schedule). BLOCK AGENCY ADMINS.
-                    if (isAgencyAdminUser) {
-                        isPortalMismatch = true;
-                        console.warn(`[AgencyLayout] Admin role ${userRoleName} blocked from Staff path.`);
-                    }
-                } else {
-                    // This is an Agency Admin portal path (like /attendance). BLOCK STAFF ROLES.
-                    if (isStaffUser) {
-                        isPortalMismatch = true;
-                        console.warn(`[AgencyLayout] Staff role ${userRoleName} blocked from Agency Admin layout.`);
-                    }
-                }
+                // IMPORTANT: Do not log users out based on URL prefix here.
+                // Middleware only checks session existence; portal permission decisions belong to route rules + nested layouts.
+                const isPortalMismatch = false;
                 
-                if (isSuperAdminUser || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || isPortalMismatch || hasStoredUserMismatch) {
-                    console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, Mismatch: ${isPortalMismatch}`);
+                if (isSuperAdminUser || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || hasStoredUserMismatch) {
+                    console.warn(
+                        `Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, StoredMismatch: ${hasStoredUserMismatch}`
+                    );
                     toast.error(
-                        isPortalMismatch 
-                            ? "Unauthorized portal access. You have been logged out."
-                            : hasStoredUserMismatch
-                                ? "Session conflict detected. Please sign in again."
-                                : "Unauthorized access. You have been logged out."
+                        hasStoredUserMismatch
+                            ? "Session conflict detected. Please sign in again."
+                            : "Unauthorized access. You have been logged out."
                     );
                     // Force hard redirect immediately and stop rendering
                     isActive = false;

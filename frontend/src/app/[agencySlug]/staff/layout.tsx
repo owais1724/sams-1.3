@@ -31,7 +31,8 @@ export default function StaffLayout({
                 const userData = response.data
                 
                 const userRoleName = userData.role?.toLowerCase() || ""
-                const isCorrectSlug = userData.agencySlug === currentAgencySlug
+                const normalizeSlug = (v: unknown) => (v ?? "").toString().trim().toLowerCase()
+                const isCorrectSlug = normalizeSlug(userData.agencySlug) === normalizeSlug(currentAgencySlug)
                 // Allow access if: has employeeId OR does not have admin role
                 const isBlockedRole = userRoleName.includes('admin') || userRoleName.includes('super admin')
                 const isStaffRole = userData.employeeId || !isBlockedRole
