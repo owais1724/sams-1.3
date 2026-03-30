@@ -194,6 +194,14 @@ export default function AgencyLayout({
                 const routePermissionDenied =
                     Boolean(routeRule) && !hasRoutePermission(userData, routeRule?.anyPermissions);
 
+                // If there's a portal mismatch but user has permission, redirect to correct portal instead of logging out
+                if (routePortalMismatch && !routePermissionDenied) {
+                    const correctPath = getSafeRouteForUser(userData, currentAgencySlug);
+                    toast.info("Redirecting to your portal...");
+                    window.location.href = correctPath;
+                    return;
+                }
+
                 if (routePortalMismatch) {
                     toast.error("Session conflict detected for this portal. Please sign in again.");
                     isActive = false;
