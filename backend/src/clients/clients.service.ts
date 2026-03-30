@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
@@ -66,23 +66,20 @@ export class ClientsService {
   async remove(id: string, agencyId: string) {
     const exists = await this.prisma.client.findUnique({
       where: { id },
-      include: { _count: { select: { projects: true } } }
+      include: { _count: { select: { projects: true, deployments: true } } }
     });
 
     if (!exists) throw new NotFoundException('Client not found');
     if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this client is forbidden');
     const client = exists;
-    if (client._count.projects > 0) {
-      throw new ConflictException('Cannot delete client with active projects. Please deactivate or move projects first.');
-    }
 
     await this.prisma.client.delete({
-      where: { id, agencyId },
+      where: { id },
     });
 
     await this.auditLogsService.create(agencyId, {
       action: 'TERMINATE_CLIENT',
-      details: `Client "${client.name}" relationship terminated and records archived.`,
+      details: `Client "${client.name}" deleted with ${client._count.projects} linked projects and ${client._count.deployments} linked deployments.`,
       entity: 'Client',
       entityId: id,
       severity: 'WARNING'

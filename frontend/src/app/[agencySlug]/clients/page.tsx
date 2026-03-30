@@ -159,7 +159,7 @@ export default function ClientsPage() {
                 loading={isDeleting}
                 title="DELETE CLIENT"
                 variant="danger"
-                description={`Are you sure you want to delete ${deleteModal.name}? This action will permanently remove the client and all associated projects.`}
+                description={`Are you sure you want to delete ${deleteModal.name}? This action will permanently remove the client and all associated projects and deployments.`}
                 confirmText="Delete Client"
             />
         </div >
