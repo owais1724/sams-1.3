@@ -62,7 +62,7 @@ function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
     if (!requiredPermissions.length) return true
 
     const roleName = userData?.role?.toLowerCase?.() || ""
-    const isPrivilegedUser = ["agency admin", "super admin"].includes(roleName)
+    const isPrivilegedUser = ["agency admin", "super admin"].some(role => roleName.includes(role))
     if (isPrivilegedUser) return true
 
     return requiredPermissions.some((permission) =>
@@ -324,4 +324,5 @@ export default function AgencyLayout({
         </div>
     )
 }
+
 
