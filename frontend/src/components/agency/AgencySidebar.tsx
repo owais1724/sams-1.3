@@ -171,7 +171,12 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
                         isActive={pathname === item.href}
                         onClick={onItemClick}
                         collapsed={collapsed}
-                        className="py-2 text-[#3b4a63] hover:text-[#0f172a] hover:bg-[#dbeafe]"
+                        className={cn(
+                            "py-2",
+                            pathname === item.href
+                                ? "text-white hover:text-white hover:bg-[#06b6d4]"
+                                : "text-[#3b4a63] hover:text-[#0e7490] hover:bg-[#ecfeff]"
+                        )}
                     />
                 ))}
             </div>
@@ -191,7 +196,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
                         window.location.replace(isStaff ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`)
                     }}
                     collapsed={collapsed}
-                    className="h-11 bg-[#e0eafc] hover:bg-red-500 text-[#3bb18c] hover:text-white border border-[#e5e7eb] font-bold uppercase tracking-widest"
+                    className="h-11 bg-[#ecfeff] hover:bg-[#06b6d4] text-[#0e7490] hover:text-white border border-[#bae6fd] font-bold uppercase tracking-widest"
                 />
             </div>
         </aside>

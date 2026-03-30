@@ -24,7 +24,7 @@ export default function AdminLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname()
-    const { user, login, clearLocalAuth } = useAuthStore()
+    const { login, clearLocalAuth } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -72,7 +72,8 @@ export default function AdminLayout({
             setVerifying(true);
             try {
                 const response = await api.get('/auth/me');
-                const currentTabUserKey = buildSessionUserKey(user);
+                const currentStoredUser = useAuthStore.getState().user;
+                const currentTabUserKey = buildSessionUserKey(currentStoredUser);
                 const responseUserKey = buildSessionUserKey(response.data);
                 const hasStoredUserMismatch = Boolean(
                     currentTabUserKey &&
@@ -129,7 +130,7 @@ export default function AdminLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [clearLocalAuth, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType, user]);
+    }, [clearLocalAuth, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
 
     if (verifying || hasTabSessionMismatch) {
         return (

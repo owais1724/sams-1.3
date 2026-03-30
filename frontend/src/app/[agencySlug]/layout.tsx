@@ -31,18 +31,18 @@ const routeAccessRules: RouteAccessRule[] = [
     { pattern: /^\/staff\/dashboard$/, portal: "staff", anyPermissions: ["view_dashboard"] },
     { pattern: /^\/my-schedule$/, portal: "staff" },
     { pattern: /^\/dashboard$/, portal: "agency", anyPermissions: ["view_dashboard"] },
-    { pattern: /^\/clients$/, anyPermissions: ["view_clients"] },
-    { pattern: /^\/projects$/, anyPermissions: ["view_projects"] },
-    { pattern: /^\/employees$/, anyPermissions: ["view_employee"] },
-    { pattern: /^\/rbac$/, anyPermissions: ["manage_roles"] },
-    { pattern: /^\/attendance$/, anyPermissions: ["view_attendance", "record_attendance", "mark_attendance"] },
-    { pattern: /^\/shifts$/, anyPermissions: ["view_shifts", "manage_shifts"] },
-    { pattern: /^\/deployments$/, anyPermissions: ["view_deployments", "manage_deployments"] },
-    { pattern: /^\/incidents$/, anyPermissions: ["view_incidents", "report_incident", "manage_incidents"] },
-    { pattern: /^\/leaves$/, anyPermissions: ["view_leaves", "apply_leave", "approve_leave"] },
-    { pattern: /^\/payroll$/, anyPermissions: ["view_payroll", "manage_payroll"] },
-    { pattern: /^\/platform-agencies$/, anyPermissions: ["view_agencies", "create_agency", "edit_agency", "delete_agency"] },
-    { pattern: /^\/audit-logs$/, anyPermissions: ["view_reports"] },
+    { pattern: /^\/clients$/, portal: "agency", anyPermissions: ["view_clients"] },
+    { pattern: /^\/projects$/, portal: "agency", anyPermissions: ["view_projects"] },
+    { pattern: /^\/employees$/, portal: "agency", anyPermissions: ["view_employee"] },
+    { pattern: /^\/rbac$/, portal: "agency", anyPermissions: ["manage_roles"] },
+    { pattern: /^\/attendance$/, portal: "agency", anyPermissions: ["view_attendance", "record_attendance", "mark_attendance"] },
+    { pattern: /^\/shifts$/, portal: "agency", anyPermissions: ["view_shifts", "manage_shifts"] },
+    { pattern: /^\/deployments$/, portal: "agency", anyPermissions: ["view_deployments", "manage_deployments"] },
+    { pattern: /^\/incidents$/, portal: "agency", anyPermissions: ["view_incidents", "report_incident", "manage_incidents"] },
+    { pattern: /^\/leaves$/, portal: "agency", anyPermissions: ["view_leaves", "apply_leave", "approve_leave"] },
+    { pattern: /^\/payroll$/, portal: "agency", anyPermissions: ["view_payroll", "manage_payroll"] },
+    { pattern: /^\/platform-agencies$/, portal: "agency", anyPermissions: ["view_agencies", "create_agency", "edit_agency", "delete_agency"] },
+    { pattern: /^\/audit-logs$/, portal: "agency", anyPermissions: ["view_reports"] },
 ]
 
 function normalizeAgencyPath(pathname: string | null | undefined, agencySlug: string) {
@@ -141,7 +141,8 @@ export default function AgencyLayout({
             try {
                 const response = await api.get('/auth/me');
                 const userData = response.data;
-                const currentTabUserKey = buildSessionUserKey(user);
+                const currentStoredUser = useAuthStore.getState().user;
+                const currentTabUserKey = buildSessionUserKey(currentStoredUser);
                 const responseUserKey = buildSessionUserKey(userData);
                 const hasStoredUserMismatch = Boolean(
                     currentTabUserKey &&
@@ -240,7 +241,7 @@ export default function AgencyLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType, user]);
+    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
 
     if (verifying || hasTabSessionMismatch) {
         return (
