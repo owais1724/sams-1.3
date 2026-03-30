@@ -516,7 +516,6 @@ export default function LeavesPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
     
     {/* Approve Confirmation Modal */}
     <AlertModal
@@ -544,6 +543,6 @@ export default function LeavesPage() {
       description="Are you sure you want to reject this leave request? This action cannot be undone."
       variant="warning"
     />
-  </div>
+    </div>
   )
 }
