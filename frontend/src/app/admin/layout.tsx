@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { toast } from "sonner"
 import {
+    buildSessionUserKey,
     getActiveSessionUserKey,
     getPortalLoginPath,
     getTabSessionUserKey,
@@ -23,7 +24,7 @@ export default function AdminLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname()
-    const { login, clearLocalAuth } = useAuthStore()
+    const { user, login, clearLocalAuth } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -71,6 +72,22 @@ export default function AdminLayout({
             setVerifying(true);
             try {
                 const response = await api.get('/auth/me');
+                const currentTabUserKey = buildSessionUserKey(user);
+                const responseUserKey = buildSessionUserKey(response.data);
+                const hasStoredUserMismatch = Boolean(
+                    currentTabUserKey &&
+                    responseUserKey &&
+                    currentTabUserKey !== responseUserKey
+                );
+
+                if (hasStoredUserMismatch) {
+                    toast.error("Session conflict detected. Please sign in again with appropriate credentials.");
+                    isActive = false;
+                    clearLocalAuth();
+                    window.location.href = '/admin/login';
+                    return;
+                }
+
                 if (response.data.role !== 'Super Admin') {
                     // Explicitly clear session if role mismatch
                     toast.error("Unauthorized access. You have been logged out.");
@@ -112,7 +129,7 @@ export default function AdminLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [clearLocalAuth, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
+    }, [clearLocalAuth, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType, user]);
 
     if (verifying || hasTabSessionMismatch) {
         return (

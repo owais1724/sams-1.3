@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { toast } from "sonner"
 import {
+    buildSessionUserKey,
     getActiveSessionUserKey,
     getPortalLoginPath,
     getTabSessionUserKey,
@@ -140,6 +141,13 @@ export default function AgencyLayout({
             try {
                 const response = await api.get('/auth/me');
                 const userData = response.data;
+                const currentTabUserKey = buildSessionUserKey(user);
+                const responseUserKey = buildSessionUserKey(userData);
+                const hasStoredUserMismatch = Boolean(
+                    currentTabUserKey &&
+                    responseUserKey &&
+                    currentTabUserKey !== responseUserKey
+                );
 
                 // Strict boundary check: User must belong to this specific agency.
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
@@ -160,9 +168,13 @@ export default function AgencyLayout({
                     isRoleMismatch = true; // Tab intended for Staff, but cookies are Admin
                 }
                 
-                if (userData.role === 'Super Admin' || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || isRoleMismatch) {
+                if (userData.role === 'Super Admin' || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || isRoleMismatch || hasStoredUserMismatch) {
                     console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, Mismatch: ${isRoleMismatch}`);
-                    toast.error(isRoleMismatch ? "Session conflict detected. Please sign in again with appropriate credentials." : "Unauthorized access. You have been logged out.");
+                    toast.error(
+                        isRoleMismatch || hasStoredUserMismatch
+                            ? "Session conflict detected. Please sign in again with appropriate credentials."
+                            : "Unauthorized access. You have been logged out."
+                    );
                     // Force hard redirect immediately and stop rendering
                     isActive = false;
                     clearLocalAuth();
@@ -228,7 +240,7 @@ export default function AgencyLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
+    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType, user]);
 
     if (verifying || hasTabSessionMismatch) {
         return (
