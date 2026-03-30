@@ -103,6 +103,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             href: `/${agencySlug}/attendance`,
             icon: Clock,
             permissions: ["view_attendance", "record_attendance", "mark_attendance"],
+            agencyOnly: true, // Staff can't access agency attendance page
         },
         {
             name: "Shifts",
@@ -123,6 +124,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             href: `/${agencySlug}/incidents`,
             icon: AlertTriangle,
             permissions: ["view_incidents", "report_incident", "manage_incidents"],
+            agencyOnly: true, // Staff can't access agency incidents page
         },
         {
             name: "Payroll",
@@ -136,6 +138,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             href: `/${agencySlug}/leaves`,
             icon: CalendarDays,
             permissions: ["view_leaves", "apply_leave", "approve_leave"],
+            agencyOnly: true, // Staff can't access agency leaves page
         },
         {
             name: "My Schedule",
