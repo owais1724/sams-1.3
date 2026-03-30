@@ -30,19 +30,19 @@ type RouteAccessRule = {
 const routeAccessRules: RouteAccessRule[] = [
     { pattern: /^\/staff\/dashboard$/, portal: "staff", anyPermissions: ["view_dashboard"] },
     { pattern: /^\/my-schedule$/, portal: "staff" },
-    { pattern: /^\/dashboard$/, portal: "agency", anyPermissions: ["view_dashboard"] },
-    { pattern: /^\/clients$/, portal: "agency", anyPermissions: ["view_clients"] },
-    { pattern: /^\/projects$/, portal: "agency", anyPermissions: ["view_projects"] },
-    { pattern: /^\/employees$/, portal: "agency", anyPermissions: ["view_employee"] },
-    { pattern: /^\/rbac$/, portal: "agency", anyPermissions: ["manage_roles"] },
-    { pattern: /^\/attendance$/, portal: "agency", anyPermissions: ["view_attendance", "record_attendance", "mark_attendance"] },
-    { pattern: /^\/shifts$/, portal: "agency", anyPermissions: ["view_shifts", "manage_shifts"] },
-    { pattern: /^\/deployments$/, portal: "agency", anyPermissions: ["view_deployments", "manage_deployments"] },
-    { pattern: /^\/incidents$/, portal: "agency", anyPermissions: ["view_incidents", "report_incident", "manage_incidents"] },
-    { pattern: /^\/leaves$/, portal: "agency", anyPermissions: ["view_leaves", "apply_leave", "approve_leave"] },
-    { pattern: /^\/payroll$/, portal: "agency", anyPermissions: ["view_payroll", "manage_payroll"] },
-    { pattern: /^\/platform-agencies$/, portal: "agency", anyPermissions: ["view_agencies", "create_agency", "edit_agency", "delete_agency"] },
-    { pattern: /^\/audit-logs$/, portal: "agency", anyPermissions: ["view_reports"] },
+    { pattern: /^\/dashboard$/, anyPermissions: ["view_dashboard"] },
+    { pattern: /^\/clients$/, anyPermissions: ["view_clients"] },
+    { pattern: /^\/projects$/, anyPermissions: ["view_projects"] },
+    { pattern: /^\/employees$/, anyPermissions: ["view_employee"] },
+    { pattern: /^\/rbac$/, anyPermissions: ["manage_roles"] },
+    { pattern: /^\/attendance$/, anyPermissions: ["view_attendance", "record_attendance", "mark_attendance"] },
+    { pattern: /^\/shifts$/, anyPermissions: ["view_shifts", "manage_shifts"] },
+    { pattern: /^\/deployments$/, anyPermissions: ["view_deployments", "manage_deployments"] },
+    { pattern: /^\/incidents$/, anyPermissions: ["view_incidents", "report_incident", "manage_incidents"] },
+    { pattern: /^\/leaves$/, anyPermissions: ["view_leaves", "apply_leave", "approve_leave"] },
+    { pattern: /^\/payroll$/, anyPermissions: ["view_payroll", "manage_payroll"] },
+    { pattern: /^\/platform-agencies$/, anyPermissions: ["view_agencies", "create_agency", "edit_agency", "delete_agency"] },
+    { pattern: /^\/audit-logs$/, anyPermissions: ["view_reports"] },
 ]
 
 function normalizeAgencyPath(pathname: string | null | undefined, agencySlug: string) {
@@ -62,8 +62,7 @@ function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
     if (!requiredPermissions.length) return true
 
     const roleName = userData?.role?.toLowerCase?.() || ""
-    const isPrivilegedUser = ["agency admin", "super admin", "supervisor"].includes(roleName)
-
+    const isPrivilegedUser = ["agency admin", "super admin"].includes(roleName)
     if (isPrivilegedUser) return true
 
     return requiredPermissions.some((permission) =>
@@ -75,7 +74,7 @@ function getSafeRouteForUser(userData: any, agencySlug: string) {
     const roleName = userData?.role?.toLowerCase?.() || ""
     const permissions: string[] = userData?.permissions || []
 
-    if (["guard", "hr", "staff"].includes(roleName)) {
+    if (["guard", "hr", "staff", "supervisor"].includes(roleName)) {
         return permissions.includes("view_dashboard")
             ? `/${agencySlug}/staff/dashboard`
             : `/${agencySlug}/my-schedule`
@@ -152,15 +151,16 @@ export default function AgencyLayout({
 
                 // Strict boundary check: User must belong to this specific agency.
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
-                const allowedRoles = ['Agency Admin', 'Supervisor', 'Guard', 'HR', 'Staff'];
-                const hasCorrectRole = allowedRoles.includes(userData.role);
+                const userRoleName = userData.role?.toLowerCase() || "";
+                const allowedRoles = ['agency admin', 'supervisor', 'guard', 'hr', 'staff'];
+                const hasCorrectRole = allowedRoles.includes(userRoleName);
                 const routeRule = getRouteRule(pathname, currentAgencySlug);
 
                 // ── RBAC Cross-Tab Session Isolation ──
                 // If a user logs into Staff portal on one tab (changing the global browser cookies),
                 // and tries to use the Agency Admin tab, we must block the cross-contamination.
-                const isAgencyAdminRole = ['Agency Admin', 'Supervisor'].includes(userData.role);
-                const isStaffRole = ['Guard', 'HR', 'Staff'].includes(userData.role);
+                const isAgencyAdminRole = userRoleName === 'agency admin';
+                const isStaffRole = ['supervisor', 'guard', 'hr', 'staff'].includes(userRoleName);
                 
                 let isRoleMismatch = false;
                 if (tabPortalType === 'agency' && !isAgencyAdminRole) {

@@ -75,15 +75,19 @@ export default function StaffLogin() {
                 return
             }
 
-            if (user.role === 'Agency Admin' || user.role === 'Super Admin') {
-                toast.error("Administrative profiles must use the main portal.")
+            // Block only Agency Admin and Super Admin from staff portal
+            const blockedRoles = ['Agency Admin', 'Super Admin'];
+            if (blockedRoles.includes(user.role)) {
+                toast.error("Administrative profiles must use the agency admin portal.")
                 await api.post("/auth/logout")
                 logout()
                 return
             }
 
-            if (!user.employeeId && user.role === 'No Role') {
-                toast.error("Account not verified for operational access.")
+            // Allow all other roles (Supervisor, Guard, HR, Staff, or any custom designation-based role)
+            // Require that they have an employeeId (meaning they're linked to an employee record)
+            if (!user.employeeId) {
+                toast.error("Account not verified for operational access. Please contact your administrator.")
                 await api.post("/auth/logout")
                 logout()
                 return

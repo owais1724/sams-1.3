@@ -75,13 +75,35 @@ export default function AgencyAdminLogin() {
             }
 
             if (user.role !== 'Agency Admin') {
-                toast.error("Invalid credentials")
+                console.log('[Agency Login] Role check failed:', {
+                    userRole: user.role,
+                    expected: 'Agency Admin'
+                })
+                
+                // Provide helpful guidance for different roles
+                if (user.role === 'Supervisor' || user.role === 'Guard' || user.role === 'HR' || user.role === 'Staff') {
+                    toast.error("Staff and employees should use the staff portal.", {
+                        description: `Redirecting to staff login...`,
+                        duration: 3000
+                    })
+                    await api.post("/auth/logout")
+                    logout()
+                    setLoading(false)
+                    // Redirect to staff login
+                    setTimeout(() => {
+                        window.location.href = `/${agencySlug}/staff-login`
+                    }, 1500)
+                    return
+                }
+                
+                toast.error("This portal is for Agency Admin only.")
                 await api.post("/auth/logout")
                 logout()
                 setLoading(false)
                 return
             }
 
+            console.log('[Agency Login] Role check passed:', user.role)
             login(user)
             sessionStorage.setItem('sams_portal_type', 'agency')
             toast.success("Identity verified. Welcome back.")

@@ -26,7 +26,7 @@ export class ClientsController {
   }
 
   @Get()
-  @Permissions('view_clients')
+  @Permissions('view_clients', 'edit_project', 'create_project')
   async findAll(@Request() req) {
     return this.clientsService.findAll(req.user.agencyId);
   }

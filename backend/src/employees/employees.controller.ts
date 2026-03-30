@@ -28,7 +28,7 @@ export class EmployeesController {
   ) { }
 
   @Get()
-  @Permissions('view_employee')
+  @Permissions('view_employee', 'edit_project', 'create_project')
   findAll(@Request() req, @Query('agencyId') agencyId?: string) {
     const targetAgencyId = req.user.agencyId || agencyId;
     return this.employeesService.findAll(targetAgencyId);

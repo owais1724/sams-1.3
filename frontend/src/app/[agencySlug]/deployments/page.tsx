@@ -346,7 +346,11 @@ export default function DeploymentsPage() {
         }
     }
 
-    const handleStatusChange = async (id: string, status: string, clientName: string) => {
+    const closeStatusConfirmModal = () => {
+        setStatusConfirmModal({ open: false, id: "", status: "", clientName: "" })
+    }
+
+    const handleStatusChange = (id: string, status: string, clientName: string) => {
         setStatusConfirmModal({ open: true, id, status, clientName })
     }
 
@@ -355,7 +359,7 @@ export default function DeploymentsPage() {
         try {
             await api.patch(`/deployments/${statusConfirmModal.id}/status`, { status: statusConfirmModal.status })
             toast.success(`Status updated to ${statusConfirmModal.status}`)
-            setStatusConfirmModal({ open: false, id: "", status: "", clientName: "" })
+            closeStatusConfirmModal()
             fetchData()
         } catch (err: any) {
             toast.error(err.message || "Failed to update status")
@@ -533,19 +537,19 @@ export default function DeploymentsPage() {
                                             <RowEditButton onClick={() => openEdit(dep)} />
                                         )}
                                         {dep.status === "planned" && (
-                                            <Button variant="ghost" size="sm" className="text-xs font-bold text-emerald-600 hover:bg-emerald-50"
+                                            <Button type="button" variant="ghost" size="sm" className="text-xs font-bold text-emerald-600 hover:bg-emerald-50"
                                                 onClick={() => handleStatusChange(dep.id, "active", dep.client.name)}>
                                                 Activate
                                             </Button>
                                         )}
                                         {dep.status === "active" && (
-                                            <Button variant="ghost" size="sm" className="text-xs font-bold text-blue-600 hover:bg-blue-50"
+                                            <Button type="button" variant="ghost" size="sm" className="text-xs font-bold text-blue-600 hover:bg-blue-50"
                                                 onClick={() => handleStatusChange(dep.id, "completed", dep.client.name)}>
                                                 Complete
                                             </Button>
                                         )}
                                         {["planned", "active"].includes(dep.status) && (
-                                            <Button variant="ghost" size="sm" className="text-xs font-bold text-rose-600 hover:bg-rose-50"
+                                            <Button type="button" variant="ghost" size="sm" className="text-xs font-bold text-rose-600 hover:bg-rose-50"
                                                 onClick={() => handleStatusChange(dep.id, "cancelled", dep.client.name)}>
                                                 Cancel
                                             </Button>
@@ -873,7 +877,7 @@ export default function DeploymentsPage() {
             {/* Status Change Confirmation Modal */}
             <AlertModal
                 isOpen={statusConfirmModal.open}
-                onClose={() => setStatusConfirmModal({ open: false, id: "", status: "", clientName: "" })}
+                onClose={closeStatusConfirmModal}
                 onConfirm={handleConfirmedStatusChange}
                 loading={saving}
                 title={

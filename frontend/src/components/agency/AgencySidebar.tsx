@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useParams, usePathname } from "next/navigation"
 import {
     AlertTriangle,
@@ -23,6 +24,7 @@ import api from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/store/authStore"
 import { SidebarItem, SidebarLogout } from "@/components/ui/design-system"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 interface AgencySidebarProps {
     onItemClick?: () => void
@@ -45,8 +47,21 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
     const { user, logout } = useAuthStore()
 
     const role = user?.role?.toLowerCase() || ""
-    const isStaff = ["guard", "hr", "staff"].includes(role)
+    const isStaff = ["guard", "hr", "staff", "supervisor"].includes(role)
     const isAdmin = role.includes("admin")
+
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+    const [loggingOut, setLoggingOut] = useState(false)
+
+    const handleLogout = async () => {
+        setLoggingOut(true)
+        try {
+            if (onItemClick) onItemClick()
+            await api.post("/auth/logout")
+        } catch (e) {}
+        logout()
+        window.location.replace(isStaff ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`)
+    }
 
     const allItems: SidebarNavItem[] = [
         {
@@ -60,42 +75,48 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             href: `/${agencySlug}/clients`,
             icon: Building,
             permissions: ["view_clients", "create_client"],
+            agencyOnly: true,
         },
         {
             name: "Projects",
             href: `/${agencySlug}/projects`,
             icon: Briefcase,
             permissions: ["view_projects", "create_project"],
+            agencyOnly: true,
         },
         {
             name: "Employees",
             href: `/${agencySlug}/employees`,
             icon: Users,
             permissions: ["view_employee", "create_employee"],
+            agencyOnly: true,
         },
         {
             name: "Access Control",
             href: `/${agencySlug}/rbac`,
             icon: Key,
             permissions: ["manage_roles"],
+            agencyOnly: true,
         },
         {
             name: "Attendance",
             href: `/${agencySlug}/attendance`,
             icon: Clock,
-            permissions: ["view_attendance", "mark_attendance"],
+            permissions: ["view_attendance", "record_attendance", "mark_attendance"],
         },
         {
             name: "Shifts",
             href: `/${agencySlug}/shifts`,
             icon: Shield,
             permissions: ["view_shifts", "manage_shifts"],
+            agencyOnly: true,
         },
         {
             name: "Deployments",
             href: `/${agencySlug}/deployments`,
             icon: MapPin,
             permissions: ["view_deployments", "manage_deployments"],
+            agencyOnly: true,
         },
         {
             name: "Incidents",
@@ -108,6 +129,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             href: `/${agencySlug}/payroll`,
             icon: Wallet,
             permissions: ["view_payroll", "manage_payroll"],
+            agencyOnly: true,
         },
         {
             name: "Leaves",
@@ -124,11 +146,22 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
     ]
 
     const sidebarItems = allItems.filter((item) => {
+        // Staff-only items are hidden from non-staff
         if (item.staffOnly && !isStaff) return false
-        if (item.agencyOnly && isStaff) return false
+
+        // Admin sees everything
         if (isAdmin) return true
-        if (!item.permissions || item.permissions.length === 0) return true
-        return item.permissions.some((perm) => user?.permissions?.includes(perm))
+
+        // For all other items, if there are specific permissions required, check them.
+        // This makes the sidebar dynamic for both Agency Admin and Staff based on their permissions.
+        if (item.permissions && item.permissions.length > 0) {
+            return item.permissions.some((perm) => user?.permissions?.includes(perm))
+        }
+
+        // If no permissions are specified, show it (except maybe for agencyOnly/staffOnly conflicts)
+        if (item.agencyOnly && isStaff) return false
+        
+        return true
     })
 
     return (
@@ -189,16 +222,23 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
                     </div>
                 )}
                 <SidebarLogout
-                    onClick={async () => {
-                        if (onItemClick) onItemClick()
-                        await api.post("/auth/logout")
-                        logout()
-                        window.location.replace(isStaff ? `/${agencySlug}/staff-login` : `/${agencySlug}/login`)
-                    }}
+                    onClick={() => setShowLogoutConfirm(true)}
                     collapsed={collapsed}
                     className="h-11 bg-[#ecfeff] hover:bg-[#06b6d4] text-[#0e7490] hover:text-white border border-[#bae6fd] font-bold uppercase tracking-widest"
                 />
             </div>
+
+            <AlertModal
+                isOpen={showLogoutConfirm}
+                onClose={() => setShowLogoutConfirm(false)}
+                onConfirm={handleLogout}
+                loading={loggingOut}
+                title="Sign Out?"
+                description="Are you sure you want to sign out? Any unsaved changes will be lost."
+                variant="primary"
+                confirmText="Sign Out"
+                cancelText="Stay"
+            />
         </aside>
     )
 }

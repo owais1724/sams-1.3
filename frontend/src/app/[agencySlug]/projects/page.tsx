@@ -42,14 +42,15 @@ export default function ProjectsPage() {
     })
     const [isDeleting, setIsDeleting] = useState(false)
 
-    const canViewClients = authUser?.role === 'Super Admin' || authUser?.role?.toLowerCase().includes('admin') || authUser?.permissions?.includes('view_clients')
+    const canViewClients = authUser?.role === 'Super Admin' || authUser?.role?.toLowerCase().includes('admin') || authUser?.permissions?.includes('view_clients') || authUser?.permissions?.includes('edit_project') || authUser?.permissions?.includes('create_project')
+    const canViewEmployees = authUser?.role === 'Super Admin' || authUser?.role?.toLowerCase().includes('admin') || authUser?.permissions?.includes('view_employee') || authUser?.permissions?.includes('edit_project') || authUser?.permissions?.includes('create_project')
 
     const fetchData = async () => {
         try {
             const [projectsRes, clientsRes, employeesRes] = await Promise.allSettled([
                 api.get("/projects"),
                 canViewClients ? api.get("/clients") : Promise.resolve({ data: [] }),
-                api.get("/employees")
+                canViewEmployees ? api.get("/employees") : Promise.resolve({ data: [] })
             ])
 
             if (projectsRes.status === 'fulfilled') setProjects(projectsRes.value.data)

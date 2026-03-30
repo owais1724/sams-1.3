@@ -137,6 +137,7 @@ export function AlertModal({
 
                     <DialogFooter className="w-full flex-col sm:flex-row gap-3 mt-8">
                         <Button
+                            type="button"
                             variant="outline"
                             onClick={onClose}
                             disabled={loading}
@@ -145,6 +146,7 @@ export function AlertModal({
                             {cancelText}
                         </Button>
                         <Button
+                            type="button"
                             onClick={onConfirm}
                             disabled={loading}
                             className={cn(

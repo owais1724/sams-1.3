@@ -20,7 +20,7 @@ export default function MySchedulePage() {
         // RBAC: Only allow Guard, HR, and Staff to access this page
         // Case-insensitive role check
         const userRole = user?.role?.toLowerCase() || '';
-        const staffOnlyRoles = ['guard', 'hr', 'staff'];
+        const staffOnlyRoles = ['guard', 'hr', 'staff', 'supervisor'];
         
         if (user && !staffOnlyRoles.includes(userRole)) {
             console.warn(`[My Schedule] Access denied for role: ${user.role}`)

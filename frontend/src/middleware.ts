@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Normalize role names for comparison
-const normalizeRole = (role: string) => role.toUpperCase().replace(/\s+/g, '_');
+const normalizeRole = (role: string) => role.trim().toUpperCase().replace(/\s+/g, '_');
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -62,8 +62,8 @@ export async function middleware(request: NextRequest) {
   const isStaffRoute = (pathname.match(/^\/[^\/]+\/staff\//) && !pathname.includes('/staff-login')) || 
                        pathname.match(/^\/[^\/]+\/my-schedule/)
   if (isStaffRoute) {
-    const STAFF_ONLY_ROLES = ['GUARD', 'HR', 'STAFF']
-    if (!STAFF_ONLY_ROLES.includes(normalizedRole)) {
+    const ADMIN_ROLES = ['AGENCY_ADMIN', 'SUPER_ADMIN']
+    if (ADMIN_ROLES.includes(normalizedRole)) {
       return NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
     }
   }
