@@ -49,31 +49,62 @@ export async function middleware(request: NextRequest) {
   }
 
   const normalizedRole = normalizeRole(userRole);
+  
+  // Role groups for portal categorization
+  const SUPER_ADMIN_ROLES = ['SUPER_ADMIN']
+  const AGENCY_ADMIN_ROLES = ['AGENCY_ADMIN', 'SUPERVISOR']
+  const STAFF_ROLES = ['GUARD', 'HR', 'STAFF']
 
-  // Super Admin Portal protection
+  // ── SUPER ADMIN PORTAL PROTECTION ──
   if (pathname.startsWith('/admin')) {
-    if (normalizedRole !== 'SUPER_ADMIN') {
-      const redirectUrl = agencySlug ? `/${agencySlug}/login` : '/'
-      return NextResponse.redirect(new URL(redirectUrl, request.url))
+    if (!SUPER_ADMIN_ROLES.includes(normalizedRole)) {
+      const response = NextResponse.redirect(new URL('/login', request.url))
+      response.cookies.delete('access_token');
+      response.cookies.delete('token');
+      response.cookies.delete('userRole');
+      return response;
     }
   }
 
-  // Staff Portal protection
-  const isStaffRoute = (pathname.match(/^\/[^\/]+\/staff\//) && !pathname.includes('/staff-login')) || 
-                       pathname.match(/^\/[^\/]+\/my-schedule/)
-  if (isStaffRoute) {
-    const ADMIN_ROLES = ['AGENCY_ADMIN', 'SUPER_ADMIN']
-    if (ADMIN_ROLES.includes(normalizedRole)) {
-      return NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
-    }
-  }
+  // ── AGENCY ADMIN vs STAFF PORTAL PROTECTION ──
+  if (agencySlug) {
+    // Staff paths are any URL containing /staff/ or /my-schedule
+    const isStaffPath = pathname.includes('/staff/') || pathname.includes('/my-schedule')
+    // Agency Admin paths are standard /{agencySlug}/... paths that are NOT staff paths 
+    // and NOT login/registration pages
+    const isAgencyAdminPath = !isStaffPath && 
+                             !pathname.endsWith('/login') && 
+                             !pathname.endsWith('/staff-login') &&
+                             !pathname.endsWith('/register')
 
-  // Agency Portal protection (Blocks staff from accessing some purely administrative routes)
-  // HOWEVER we must allow them to access components that rely on permission checks like /attendance, /projects
-  // So we will NOT aggressively log them out if they have the wrong role. The layouts/pages will handle RBAC.
-  // We only block purely Super Admin from entering agency.
-  if (normalizedRole === 'SUPER_ADMIN' && agencySlug) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+    // 1. Block Staff from Agency Admin Portal
+    if (isAgencyAdminPath && STAFF_ROLES.includes(normalizedRole)) {
+      console.warn(`[Middleware] Staff account ${normalizedRole} blocked from Agency Admin Path: ${pathname}`)
+      const response = NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
+      response.cookies.delete('access_token');
+      response.cookies.delete('token');
+      response.cookies.delete('userRole');
+      return response;
+    }
+
+    // 2. Block Agency Admins from Staff Portal
+    if (isStaffPath && AGENCY_ADMIN_ROLES.includes(normalizedRole)) {
+      console.warn(`[Middleware] Agency Admin ${normalizedRole} blocked from Staff Path: ${pathname}`)
+      const response = NextResponse.redirect(new URL(`/${agencySlug}/login`, request.url))
+      response.cookies.delete('access_token');
+      response.cookies.delete('token');
+      response.cookies.delete('userRole');
+      return response;
+    }
+    
+    // 3. Block Super Admins from all Agency/Staff portals (they must use /admin)
+    if (SUPER_ADMIN_ROLES.includes(normalizedRole)) {
+      const response = NextResponse.redirect(new URL('/admin/login', request.url))
+      response.cookies.delete('access_token');
+      response.cookies.delete('token');
+      response.cookies.delete('userRole');
+      return response;
+    }
   }
 
   return NextResponse.next()

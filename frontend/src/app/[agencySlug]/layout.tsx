@@ -152,29 +152,40 @@ export default function AgencyLayout({
                 // Strict boundary check: User must belong to this specific agency.
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
                 const userRoleName = userData.role?.toLowerCase() || "";
-                const allowedRoles = ['agency admin', 'supervisor', 'guard', 'hr', 'staff'];
-                const hasCorrectRole = allowedRoles.includes(userRoleName);
+                const superAdminRoles = ['super admin'];
+                const agencyAdminRoles = ['agency admin', 'supervisor'];
+                const staffRoles = ['guard', 'hr', 'staff'];
+                
+                const hasCorrectRole = [...agencyAdminRoles, ...staffRoles].includes(userRoleName);
                 const routeRule = getRouteRule(pathname, currentAgencySlug);
 
-                // ── RBAC Cross-Tab Session Isolation ──
-                // If a user logs into Staff portal on one tab (changing the global browser cookies),
-                // and tries to use the Agency Admin tab, we must block the cross-contamination.
-                const isAgencyAdminRole = userRoleName === 'agency admin';
-                const isStaffRole = ['supervisor', 'guard', 'hr', 'staff'].includes(userRoleName);
-                
-                let isRoleMismatch = false;
-                if (tabPortalType === 'agency' && !isAgencyAdminRole) {
-                    isRoleMismatch = true; // Tab intended for Admin, but cookies are Staff
-                } else if (tabPortalType === 'staff' && !isStaffRole) {
-                    isRoleMismatch = true; // Tab intended for Staff, but cookies are Admin
+                // ── RBAC Cross-Portal Access Isolation (Strict Enforcement) ──
+                // Staff portal is under /staff/ or /my-schedule. Everything else is Agency Admin.
+                const isStaffPath = pathname?.includes('/staff/') || pathname?.includes('/my-schedule');
+                let isPortalMismatch = false;
+
+                if (isStaffPath) {
+                    // This is a staff-specific path (like /my-schedule). BLOCK AGENCY ADMINS.
+                    if (agencyAdminRoles.includes(userRoleName)) {
+                        isPortalMismatch = true;
+                        console.warn(`[AgencyLayout] Admin role ${userRoleName} blocked from Staff path.`);
+                    }
+                } else {
+                    // This is an Agency Admin portal path (like /attendance). BLOCK STAFF ROLES.
+                    if (staffRoles.includes(userRoleName)) {
+                        isPortalMismatch = true;
+                        console.warn(`[AgencyLayout] Staff role ${userRoleName} blocked from Agency Admin layout.`);
+                    }
                 }
                 
-                if (userData.role === 'Super Admin' || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || isRoleMismatch || hasStoredUserMismatch) {
-                    console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, Mismatch: ${isRoleMismatch}`);
+                if (superAdminRoles.includes(userRoleName) || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || isPortalMismatch || hasStoredUserMismatch) {
+                    console.warn(`Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, Mismatch: ${isPortalMismatch}`);
                     toast.error(
-                        isRoleMismatch || hasStoredUserMismatch
-                            ? "Session conflict detected. Please sign in again with appropriate credentials."
-                            : "Unauthorized access. You have been logged out."
+                        isPortalMismatch 
+                            ? "Unauthorized portal access. You have been logged out."
+                            : hasStoredUserMismatch
+                                ? "Session conflict detected. Please sign in again."
+                                : "Unauthorized access. You have been logged out."
                     );
                     // Force hard redirect immediately and stop rendering
                     isActive = false;
