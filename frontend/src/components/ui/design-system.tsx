@@ -528,6 +528,7 @@ interface RowButtonProps {
 export function RowEditButton({ onClick, disabled, label = "Edit", className }: RowButtonProps) {
     return (
         <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={onClick}
@@ -546,6 +547,7 @@ export function RowEditButton({ onClick, disabled, label = "Edit", className }: 
 export function RowDeleteButton({ onClick, disabled, label = "Delete", className }: RowButtonProps) {
     return (
         <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={onClick}
@@ -564,6 +566,7 @@ export function RowDeleteButton({ onClick, disabled, label = "Delete", className
 export function RowViewButton({ onClick, disabled, label = "View", className }: RowButtonProps) {
     return (
         <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={onClick}

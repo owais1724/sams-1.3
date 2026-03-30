@@ -24,6 +24,7 @@ import { TableCell, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import { useDeleteConfirm } from "@/hooks/useDeleteConfirm"
 
 export default function RBACPage() {
     const { user } = useAuthStore()
@@ -33,12 +34,6 @@ export default function RBACPage() {
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
     const [selectedRole, setSelectedRole] = useState<any>(null)
-    const [deleteModal, setDeleteModal] = useState<{ open: boolean, id: string, name: string }>({
-        open: false,
-        id: "",
-        name: ""
-    })
-    const [isDeleting, setIsDeleting] = useState(false)
 
     const fetchData = async () => {
         if (!user) return
@@ -65,20 +60,12 @@ export default function RBACPage() {
         }
     }
 
-    const handleDelete = async () => {
-        if (!deleteModal.id) return
-        setIsDeleting(true)
-        try {
-            await api.delete(`/roles/${deleteModal.id}`)
-            toast.success("Role deleted")
-            setDeleteModal({ open: false, id: "", name: "" })
-            fetchData()
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to delete role")
-        } finally {
-            setIsDeleting(false)
-        }
-    }
+    const { deleteModal, openDelete, closeDelete, handleDelete, isDeleting } = useDeleteConfirm({
+        endpoint: "/roles",
+        onSuccess: fetchData,
+        successMessage: "Role deleted",
+        errorMessage: "Failed to delete role",
+    })
 
     useEffect(() => {
         if (user) fetchData()
@@ -229,7 +216,7 @@ export default function RBACPage() {
                                                 setSelectedRole(role)
                                                 setOpen(true)
                                             }} />
-                                            <RowDeleteButton onClick={() => setDeleteModal({ open: true, id: role.id, name: role.name })} />
+                                            <RowDeleteButton onClick={() => openDelete(role.id, role.name)} />
                                         </div>
                                     ) : (
                                         <div className="px-4 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-black text-slate-300 uppercase tracking-widest w-fit ml-auto">PROTECTED</div>
@@ -243,7 +230,7 @@ export default function RBACPage() {
 
             <AlertModal
                 isOpen={deleteModal.open}
-                onClose={() => setDeleteModal({ ...deleteModal, open: false })}
+                onClose={closeDelete}
                 onConfirm={handleDelete}
                 loading={isDeleting}
                 title="DELETE ROLE"
