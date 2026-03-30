@@ -17,6 +17,7 @@ import {
   selectVariants,
   FormLabelBase
 } from "@/components/ui/design-system"
+import { AlertModal } from "@/components/ui/alert-modal"
 import { useAuthStore } from "@/store/authStore"
 import { usePermission } from "@/hooks/usePermission"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
@@ -82,6 +83,9 @@ export default function LeavesPage() {
   const [submitting, setSubmitting] = useState(false)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [viewingLeave, setViewingLeave] = useState<LeaveRequest | null>(null)
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false)
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false)
+  const [pendingLeaveAction, setPendingLeaveAction] = useState<{id: string, status: string, reason?: string} | null>(null)
   const isLeaveFormComplete =
     Boolean(formData.leaveType) &&
     Boolean(formData.startDate) &&
@@ -162,6 +166,15 @@ export default function LeavesPage() {
       toast.error('Authorization update failed')
     } finally {
       setProcessingId(null)
+      setShowApproveConfirm(false)
+      setShowRejectConfirm(false)
+      setPendingLeaveAction(null)
+    }
+  }
+
+  const confirmApproval = () => {
+    if (pendingLeaveAction) {
+      handleApproval(pendingLeaveAction.id, pendingLeaveAction.status, pendingLeaveAction.reason)
     }
   }
 
@@ -407,8 +420,12 @@ export default function LeavesPage() {
                             className="h-10 px-6 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all active:scale-95"
                             onClick={() => {
                               const nextStatus = getNextStatus(leave)
-                              if (nextStatus) handleApproval(leave.id, nextStatus)
-                              else toast.error("Unable to determine approval status for your role")
+                              if (nextStatus) {
+                                setPendingLeaveAction({id: leave.id, status: nextStatus})
+                                setShowApproveConfirm(true)
+                              } else {
+                                toast.error("Unable to determine approval status for your role")
+                              }
                             }}
                           >
                             <CheckCircle2 className="h-3.5 w-3.5 mr-2" />
@@ -419,7 +436,10 @@ export default function LeavesPage() {
                             className="h-10 px-6 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-rose-100 transition-all active:scale-95"
                             onClick={() => {
                               const reason = prompt("Reason for rejection:");
-                              if (reason) handleApproval(leave.id, 'REJECTED', reason);
+                              if (reason) {
+                                setPendingLeaveAction({id: leave.id, status: 'REJECTED', reason})
+                                setShowRejectConfirm(true)
+                              }
                             }}
                           >
                             <XCircle className="h-3.5 w-3.5 mr-2" />
@@ -497,5 +517,33 @@ export default function LeavesPage() {
         </DialogContent>
       </Dialog>
     </div>
+    
+    {/* Approve Confirmation Modal */}
+    <AlertModal
+      isOpen={showApproveConfirm}
+      onClose={() => {
+        setShowApproveConfirm(false)
+        setPendingLeaveAction(null)
+      }}
+      onConfirm={confirmApproval}
+      loading={processingId !== null}
+      title="Approve Leave Request?"
+      description="Are you sure you want to approve this leave request? This action cannot be undone."
+    />
+
+    {/* Reject Confirmation Modal */}
+    <AlertModal
+      isOpen={showRejectConfirm}
+      onClose={() => {
+        setShowRejectConfirm(false)
+        setPendingLeaveAction(null)
+      }}
+      onConfirm={confirmApproval}
+      loading={processingId !== null}
+      title="Reject Leave Request?"
+      description="Are you sure you want to reject this leave request? This action cannot be undone."
+      variant="warning"
+    />
+  </div>
   )
 }
