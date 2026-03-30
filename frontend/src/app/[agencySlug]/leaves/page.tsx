@@ -511,7 +511,12 @@ export default function LeavesPage() {
                 </div>
               )}
 
-              <Button onClick={() => setViewingLeave(null)} className="w-full h-14 rounded-2xl bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 font-black uppercase tracking-widest shadow-xl shadow-slate-200/50">CLOSE RECORD</Button>
+              <Button 
+                onClick={() => setViewingLeave(null)} 
+                className="w-full h-14 rounded-2xl bg-cyan-50 hover:bg-[#06b6d4] text-cyan-600 hover:text-white border border-cyan-100 hover:border-[#06b6d4] font-black uppercase tracking-widest shadow-xl shadow-cyan-200/50 transition-all duration-300 active:scale-[0.98]"
+              >
+                CLOSE RECORD
+              </Button>
             </div>
           )}
         </DialogContent>
