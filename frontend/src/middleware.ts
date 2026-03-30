@@ -52,8 +52,8 @@ export async function middleware(request: NextRequest) {
   
   // Role groups for portal categorization
   const SUPER_ADMIN_ROLES = ['SUPER_ADMIN']
-  const AGENCY_ADMIN_ROLES = ['AGENCY_ADMIN', 'SUPERVISOR']
-  const STAFF_ROLES = ['GUARD', 'HR', 'STAFF']
+  const AGENCY_ADMIN_ROLES = ['AGENCY_ADMIN']
+  const STAFF_ROLES = ['SUPERVISOR', 'GUARD', 'HR', 'STAFF']
 
   // ── SUPER ADMIN PORTAL PROTECTION ──
   if (pathname.startsWith('/admin')) {
