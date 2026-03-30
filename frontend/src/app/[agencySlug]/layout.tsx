@@ -153,8 +153,8 @@ export default function AgencyLayout({
                 // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
                 const userRoleName = userData.role?.toLowerCase() || "";
                 const superAdminRoles = ['super admin'];
-                const agencyAdminRoles = ['agency admin', 'supervisor'];
-                const staffRoles = ['guard', 'hr', 'staff'];
+                const agencyAdminRoles = ['agency admin'];
+                const staffRoles = ['supervisor', 'guard', 'hr', 'staff'];
                 
                 const hasCorrectRole = [...agencyAdminRoles, ...staffRoles].includes(userRoleName);
                 const routeRule = getRouteRule(pathname, currentAgencySlug);
