@@ -188,6 +188,7 @@ export default function ShiftsPage() {
   // Shift create dialog
   const [shiftDialogOpen, setShiftDialogOpen] = useState(false)
   const [shiftForm, setShiftForm] = useState({ name: "", startTime: "", endTime: "" })
+  const [createShiftConfirmModal, setCreateShiftConfirmModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Edit shift dialog
@@ -266,10 +267,19 @@ export default function ShiftsPage() {
   const handleCreateShift = async (e: React.FormEvent) => {
     e.preventDefault()
     if (submitting) return
+    if (!shiftForm.name || !shiftForm.startTime || !shiftForm.endTime) {
+      toast.error("Please fill all required shift fields")
+      return
+    }
+    setCreateShiftConfirmModal(true)
+  }
+
+  const handleConfirmedCreateShift = async () => {
     setSubmitting(true)
     try {
       await api.post("/shifts", shiftForm)
       toast.success("Shift created successfully")
+      setCreateShiftConfirmModal(false)
       setShiftDialogOpen(false)
       setShiftForm({ name: "", startTime: "", endTime: "" })
       const res = await api.get("/shifts")
@@ -439,7 +449,10 @@ export default function ShiftsPage() {
         action={
           hasPermission("manage_shifts") && (
             <div className="flex items-center gap-3">
-              <Dialog open={shiftDialogOpen} onOpenChange={setShiftDialogOpen}>
+              <Dialog open={shiftDialogOpen} onOpenChange={(open) => {
+                setShiftDialogOpen(open)
+                if (!open) setCreateShiftConfirmModal(false)
+              }}>
                 <DialogTrigger asChild>
                   <CreateButton label="Create Shift" icon={<Plus className="h-4 w-4" />} />
                 </DialogTrigger>
@@ -869,6 +882,18 @@ export default function ShiftsPage() {
       </Dialog>
 
       {/* Delete Shift Confirmation Modal */}
+      <AlertModal
+        isOpen={createShiftConfirmModal}
+        onClose={() => setCreateShiftConfirmModal(false)}
+        onConfirm={handleConfirmedCreateShift}
+        loading={submitting}
+        title="Create Shift"
+        description={`Are you sure you want to create the shift "${shiftForm.name || "New Shift"}"?`}
+        variant="primary"
+        confirmText="Create Shift"
+        cancelText="Cancel"
+      />
+
       <AlertModal
         isOpen={assignConfirmModal}
         onClose={() => setAssignConfirmModal(false)}
