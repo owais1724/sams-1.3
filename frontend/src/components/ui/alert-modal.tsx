@@ -53,7 +53,7 @@ const variants = {
         glow: "shadow-blue-500/10",
     },
     primary: {
-        icon: AlertCircle,
+        icon: CheckCircle2,
         color: "text-cyan-600",
         bg: "bg-cyan-50",
         border: "border-cyan-100",

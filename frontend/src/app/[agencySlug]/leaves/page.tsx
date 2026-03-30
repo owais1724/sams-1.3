@@ -528,6 +528,7 @@ export default function LeavesPage() {
       loading={processingId !== null}
       title="Approve Leave Request?"
       description="Are you sure you want to approve this leave request? This action cannot be undone."
+      variant="primary"
     />
 
     {/* Reject Confirmation Modal */}
