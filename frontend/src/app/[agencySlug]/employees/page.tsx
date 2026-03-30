@@ -152,12 +152,12 @@ export default function EmployeesPage() {
 
             <Tabs defaultValue="staff" className="space-y-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <TabsList className="bg-white p-1.5 rounded-xl border border-border w-fit">
-                        <TabsTrigger value="staff" className="rounded-lg px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-medium text-[14px] text-slate-600">
+                    <TabsList className="bg-white rounded-2xl p-2 h-auto border border-border w-fit">
+                        <TabsTrigger value="staff" className="rounded-xl font-semibold text-[16px] leading-none data-[state=active]:bg-primary data-[state=active]:text-white px-6 py-3 text-slate-600">
                             <Users className="h-4 w-4 mr-2" />
                             Active Employees
                         </TabsTrigger>
-                        <TabsTrigger value="designations" className="rounded-lg px-6 py-2 data-[state=active]:bg-primary data-[state=active]:text-white font-medium text-[14px] text-slate-600">
+                        <TabsTrigger value="designations" className="rounded-xl font-semibold text-[16px] leading-none data-[state=active]:bg-primary data-[state=active]:text-white px-6 py-3 text-slate-600">
                             <Settings2 className="h-4 w-4 mr-2" />
                             Designations
                         </TabsTrigger>
