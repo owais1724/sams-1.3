@@ -54,18 +54,9 @@ export default function StaffLogin() {
             const response = await api.post("/auth/login", values)
             const { user } = response.data
 
-            const isAdminRole = !user.employeeId;
-
-            if (isAdminRole) {
+            // Only allow users with employeeId (staff/employees) to access staff portal
+            if (!user.employeeId) {
                 toast.error("Invalid credentials for staff portal")
-                await api.post("/auth/logout")
-                logout()
-                setLoading(false)
-                return
-            }
-
-            if (!user.employeeId && user.role === 'No Role') {
-                toast.error("Invalid credentials")
                 await api.post("/auth/logout")
                 logout()
                 setLoading(false)
