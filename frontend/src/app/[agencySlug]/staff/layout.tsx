@@ -32,10 +32,12 @@ export default function StaffLayout({
                 
                 const userRoleName = userData.role?.toLowerCase() || ""
                 const isCorrectSlug = userData.agencySlug === currentAgencySlug
-                const isStaffRole = Boolean(userData.employeeId)
+                // Allow access if: has employeeId OR does not have admin role
+                const isBlockedRole = userRoleName.includes('admin') || userRoleName.includes('super admin')
+                const isStaffRole = userData.employeeId || !isBlockedRole
 
                 if (!isCorrectSlug || !isStaffRole) {
-                    console.warn(`[StaffLayout] Unauthorized role ${userRoleName} blocked from Staff portal.`)
+                    console.warn(`[StaffLayout] Unauthorized: slug=${isCorrectSlug}, staffRole=${isStaffRole}, role=${userRoleName}`)
                     toast.error("Unauthorized access to Staff portal. You have been logged out.")
                     clearLocalAuth()
                     window.location.href = `/${currentAgencySlug}/login`
