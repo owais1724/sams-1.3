@@ -64,7 +64,9 @@ export function setActiveSessionUser(user: SessionUser | null | undefined) {
 }
 
 export function getActiveSessionUserKey() {
-  return getCookie(ACTIVE_USER_KEY_COOKIE);
+  const cookieValue = getCookie(ACTIVE_USER_KEY_COOKIE);
+  // getCookie already decodes, but ensure it's decoded
+  return cookieValue ? decodeURIComponent(cookieValue) : null;
 }
 
 export function setTabSessionUser(user: SessionUser | null | undefined) {
@@ -95,7 +97,13 @@ export function clearTabSessionStorage() {
 }
 
 export function hasSessionConflict(expectedUserKey?: string | null, activeUserKey?: string | null) {
-  return Boolean(expectedUserKey && activeUserKey && expectedUserKey !== activeUserKey);
+  if (!expectedUserKey || !activeUserKey) return false;
+  
+  // ✅ Decode both values before comparing to handle URL encoding differences
+  const decodedExpected = decodeURIComponent(expectedUserKey);
+  const decodedActive = decodeURIComponent(activeUserKey);
+  
+  return decodedExpected !== decodedActive;
 }
 
 export function getPortalLoginPath(pathname: string, agencySlug?: string | null, portalType?: string | null) {
