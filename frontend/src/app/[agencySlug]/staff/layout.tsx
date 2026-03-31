@@ -68,6 +68,13 @@ export default function StaffLayout({
                 // Normalize role for comparison
                 const role = userData.role?.toLowerCase()?.trim() || ""
                 
+                console.log('[StaffLayout] Role check:', {
+                    originalRole: userData.role,
+                    normalizedRole: role,
+                    isInStaffRoles: STAFF_ROLES.includes(role),
+                    staffRoles: STAFF_ROLES
+                })
+                
                 // Check agency match
                 const userAgency = userData.agencySlug?.toLowerCase()?.trim() || ""
                 const currentAgency = currentAgencySlug?.toLowerCase()?.trim() || ""
