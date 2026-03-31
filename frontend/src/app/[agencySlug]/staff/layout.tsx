@@ -11,8 +11,6 @@ import { Menu, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 
-const STAFF_ROLES = ['guard', 'hr', 'staff', 'supervisor']
-
 export default function StaffLayout({
     children,
 }: {
@@ -65,14 +63,11 @@ export default function StaffLayout({
                 const response = await api.get('/auth/me')
                 const userData = response.data
                 
-                // Normalize role for comparison
-                const role = userData.role?.toLowerCase()?.trim() || ""
-                
-                console.log('[StaffLayout] Role check:', {
-                    originalRole: userData.role,
-                    normalizedRole: role,
-                    isInStaffRoles: STAFF_ROLES.includes(role),
-                    staffRoles: STAFF_ROLES
+                console.log('[StaffLayout] User check:', {
+                    email: userData.email,
+                    role: userData.role,
+                    employeeId: userData.employeeId,
+                    isStaff: Boolean(userData.employeeId)
                 })
                 
                 // Check agency match
@@ -87,10 +82,10 @@ export default function StaffLayout({
                     return
                 }
                 
-                // ✅ CRITICAL: Only block if role is NOT a staff role
-                // Staff navigating within /staff/ should ALWAYS be allowed
-                if (!STAFF_ROLES.includes(role)) {
-                    console.warn(`[StaffLayout] Non-staff role blocked: ${role}`)
+                // ✅ CRITICAL: Check if user is staff by employeeId (not hardcoded roles)
+                // ANY user with employeeId is staff and can access staff portal
+                if (!userData.employeeId) {
+                    console.warn(`[StaffLayout] Non-staff user blocked - no employeeId`)
                     toast.error("Unauthorized access to Staff portal.")
                     clearLocalAuth()
                     router.push(`/${currentAgencySlug}/login`)

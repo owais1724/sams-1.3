@@ -172,6 +172,14 @@ export default function AgencyLayout({
                 const userRoleName = userData.role?.toLowerCase()?.trim() || "";
                 const AGENCY_ADMIN_ROLES = ['agency admin', 'supervisor'];
                 
+                console.log('[AgencyLayout] User check:', {
+                    email: userData.email,
+                    role: userData.role,
+                    employeeId: userData.employeeId,
+                    isAdmin: AGENCY_ADMIN_ROLES.includes(userRoleName),
+                    isStaff: Boolean(userData.employeeId)
+                })
+                
                 // Check agency match
                 const userAgency = userData.agencySlug?.toLowerCase()?.trim() || "";
                 const currentAgency = currentAgencySlug?.toLowerCase()?.trim() || "";
@@ -212,10 +220,10 @@ export default function AgencyLayout({
                     return;
                 }
 
-                // ✅ CRITICAL: Only block if role is NOT an agency admin role
-                // Agency admin navigating within their portal should ALWAYS be allowed
-                if (!AGENCY_ADMIN_ROLES.includes(userRoleName)) {
-                    console.warn(`[AgencyLayout] Non-admin role blocked: ${userRoleName}`)
+                // ✅ CRITICAL: Block staff users (users with employeeId)
+                // Agency portal is ONLY for agency admins (users without employeeId)
+                if (userData.employeeId) {
+                    console.warn(`[AgencyLayout] Staff user blocked - has employeeId: ${userData.employeeId}`)
                     toast.error("Unauthorized access to Agency Admin portal.")
                     isActive = false;
                     clearLocalAuth();
