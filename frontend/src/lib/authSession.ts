@@ -2,6 +2,8 @@ export const AUTH_STORE_KEY = "sams-auth-v2";
 export const PORTAL_TYPE_KEY = "sams_portal_type";
 export const TAB_USER_KEY = "sams_tab_user_key";
 export const ACTIVE_USER_KEY_COOKIE = "sams_active_user_key";
+export const STAFF_NAV_INTENT_KEY = "sams_staff_nav_intent_path";
+export const STAFF_VERIFIED_PATH_KEY = "sams_staff_verified_path";
 
 type SessionUser = {
   id?: string | null;
@@ -92,6 +94,8 @@ export function clearTabSessionStorage() {
 
   sessionStorage.removeItem(PORTAL_TYPE_KEY);
   sessionStorage.removeItem(TAB_USER_KEY);
+  sessionStorage.removeItem(STAFF_NAV_INTENT_KEY);
+  sessionStorage.removeItem(STAFF_VERIFIED_PATH_KEY);
   sessionStorage.removeItem(AUTH_STORE_KEY);
   localStorage.removeItem(AUTH_STORE_KEY);
 }

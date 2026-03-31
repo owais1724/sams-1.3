@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/lib/api"
 import { loginWithRetry, waitForBackend } from "@/lib/apiWithRetry"
+import { buildSessionUserKey } from "@/lib/authSession"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
@@ -105,6 +106,15 @@ if (user.employeeId) {
             console.log('[Agency Login] Role check passed:', user.role)
             login(user)
             sessionStorage.setItem('sams_portal_type', 'agency')
+            
+            // ✅ Set tab user key for session isolation
+            const userKey = `${user.id}:${user.agencySlug?.toLowerCase()?.trim() || ''}:${user.employeeId || 'no-employee'}:${user.role?.toLowerCase()?.trim() || 'no-role'}`
+            sessionStorage.setItem('sams_tab_user_key', userKey)
+            const normalizedUserKey = buildSessionUserKey(user)
+            if (normalizedUserKey) {
+                sessionStorage.setItem('sams_tab_user_key', normalizedUserKey)
+            }
+            
             toast.success("Identity verified. Welcome back.")
             router.replace(`/${agencySlug}/dashboard`)
         } catch (error: any) {

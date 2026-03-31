@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/lib/api"
 import { loginWithRetry, waitForBackend } from "@/lib/apiWithRetry"
+import { buildSessionUserKey } from "@/lib/authSession"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
@@ -95,6 +96,10 @@ export default function StaffLogin() {
 
             login(user)
             sessionStorage.setItem('sams_portal_type', 'staff')
+            const normalizedUserKey = buildSessionUserKey(user)
+            if (normalizedUserKey) {
+                sessionStorage.setItem('sams_tab_user_key', normalizedUserKey)
+            }
             
             // Debug logging
             console.log('[Staff Login] User logged in:', {
@@ -109,7 +114,7 @@ export default function StaffLogin() {
             const hasDashboardPermission = user.permissions?.includes('view_dashboard')
             const redirectPath = hasDashboardPermission 
                 ? `/${agencySlug}/staff/dashboard` 
-                : `/${agencySlug}/my-schedule`
+                : `/${agencySlug}/staff/my-schedule`
             
             console.log('[Staff Login] Redirecting to:', redirectPath)
             

@@ -99,10 +99,6 @@ export default function AgencyLayout({
     const isStaffPath = pathname?.includes('/staff') || pathname?.includes('staff-login')
     
     // ✅ CRITICAL: Return immediately for staff paths - don't run ANY agency checks
-    if (isStaffPath) {
-        return <>{children}</>
-    }
-    
     const { user, login, clearLocalAuth, initialize } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -124,7 +120,7 @@ export default function AgencyLayout({
     const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem(PORTAL_TYPE_KEY) : null
     const expectedUserKey = typeof window !== 'undefined' ? getTabSessionUserKey() : null
     const activeUserKey = typeof window !== 'undefined' ? getActiveSessionUserKey() : null
-    const hasTabSessionMismatch = !isLoginPage && hasSessionConflict(expectedUserKey, activeUserKey)
+    const hasTabSessionMismatch = !isLoginPage && !isStaffPath && hasSessionConflict(expectedUserKey, activeUserKey)
 
     // Initialize auth from cookies on mount
     useEffect(() => {
@@ -136,6 +132,11 @@ export default function AgencyLayout({
 
         // ✅ ABSOLUTE FIRST CHECK: Skip login pages
         if (isLoginPage) {
+            setVerifying(false)
+            return
+        }
+
+        if (isStaffPath) {
             setVerifying(false)
             return
         }
@@ -160,6 +161,25 @@ export default function AgencyLayout({
             try {
                 const response = await api.get('/auth/me');
                 const userData = response.data;
+                
+                // ✅ Build current user key
+                const currentUserKey = buildSessionUserKey(userData)
+                const tabUserKey = typeof window !== 'undefined' ? sessionStorage.getItem('sams_tab_user_key') : null
+                
+                // ✅ Check if this tab belongs to a different user
+                if (tabUserKey && currentUserKey && tabUserKey !== currentUserKey) {
+                    console.warn('[AgencyLayout] Different user detected!')
+                    console.warn(`Expected: ${tabUserKey}`)
+                    console.warn(`Got: ${currentUserKey}`)
+                    toast.error('Unauthorized access. You have been logged out.')
+                    isActive = false;
+                    clearLocalAuth();
+                    if (!isLoginPage) {
+                        window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                    }
+                    return;
+                }
+                
                 const currentStoredUser = useAuthStore.getState().user;
                 const currentTabUserKey = buildSessionUserKey(currentStoredUser);
                 const responseUserKey = buildSessionUserKey(userData);
@@ -178,7 +198,9 @@ export default function AgencyLayout({
                     role: userData.role,
                     employeeId: userData.employeeId,
                     isStaff: isStaffUser,
-                    isSuperAdmin: isSuperAdmin
+                    isSuperAdmin: isSuperAdmin,
+                    tabUserKey,
+                    currentUserKey
                 })
                 
                 // Check agency match
@@ -249,6 +271,11 @@ export default function AgencyLayout({
                 }
 
                 if (isActive) {
+                    // ✅ Set tab user key for session isolation
+                    const userKey = buildSessionUserKey(userData)
+                    if (userKey && typeof window !== 'undefined') {
+                        sessionStorage.setItem('sams_tab_user_key', userKey)
+                    }
                     login(userData);
                 }
             } catch (error) {
@@ -291,7 +318,7 @@ export default function AgencyLayout({
             window.removeEventListener('pageshow', handlePageShow)
             clearInterval(cookieCheckInterval)
         }
-    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
+    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, isStaffPath, login, pathname, tabPortalType]);
 
     // ✅ Show spinner while verifying (only for agency admin pages)
     if (verifying || hasTabSessionMismatch) {
@@ -304,6 +331,11 @@ export default function AgencyLayout({
 
     // Step 6 debug log
     console.log('Navigation check - User:', user?.role, 'Loading:', verifying, 'Path:', pathname)
+
+    // âœ… Skip agency shell for staff portal routes
+    if (isStaffPath) {
+        return <>{children}</>
+    }
 
     // Login page - no sidebar
     if (isLoginPage) {
@@ -365,9 +397,4 @@ export default function AgencyLayout({
         </div>
     )
 }
-
-
-
-
-
 

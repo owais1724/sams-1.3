@@ -61,7 +61,7 @@ export default function StaffDashboard() {
       // No role-based exceptions, only permission-based access
       if (!perms.includes('view_dashboard')) {
         console.log('[Staff Dashboard] No view_dashboard permission, redirecting to my-schedule')
-        router.push(`/${agencySlug}/my-schedule`)
+        router.push(`/${agencySlug}/staff/my-schedule`)
         return
       }
 
