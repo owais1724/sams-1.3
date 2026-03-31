@@ -111,6 +111,7 @@ export default function AgencyLayout({
     }
 
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login') || pathname?.includes('staff-login')
+    const isStaffPath = pathname?.includes('/staff/') || pathname?.includes('/my-schedule')
     const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem(PORTAL_TYPE_KEY) : null
     const expectedUserKey = typeof window !== 'undefined' ? getTabSessionUserKey() : null
     const activeUserKey = typeof window !== 'undefined' ? getActiveSessionUserKey() : null
@@ -118,6 +119,12 @@ export default function AgencyLayout({
 
     useEffect(() => {
         let isActive = true;
+
+        // ✅ CRITICAL: Skip all checks for staff paths - staff layout handles them
+        if (isStaffPath) {
+            setVerifying(false)
+            return
+        }
 
         if (hasTabSessionMismatch) {
             clearLocalAuth();
@@ -127,9 +134,6 @@ export default function AgencyLayout({
         }
 
         // ── Per-tab Session Isolation ──
-        // sessionStorage is per-tab. If this tab doesn't have the 'agency' or 'staff' flag,
-        // we block automatic cookie-based login to prevent session leakage across tabs
-        // when a URL is copy-pasted.
         if (!isLoginPage && tabPortalType !== 'agency' && tabPortalType !== 'staff') {
             clearLocalAuth();
             window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
@@ -150,35 +154,42 @@ export default function AgencyLayout({
                     currentTabUserKey !== responseUserKey
                 );
 
-                // Strict boundary check: User must belong to this specific agency.
-                // Super Admins are explicitly NOT allowed in the Agency portal to maintain strict RBAC.
-                const userRoleName = userData.role?.toLowerCase() || "";
-                const superAdminRoles = ['super admin'];
-                const agencyAdminRoles = ['agency admin'];
-                const isSuperAdminUser = superAdminRoles.some(k => userRoleName.includes(k));
-                const isAdminLikeRole = userRoleName.includes('admin');
-                // Treat a user as staff if they are linked to an employee record OR their role is not admin-like.
-                const isStaffUser =
-                    Boolean(userData.employeeId) ||
-                    (!isSuperAdminUser && !isAdminLikeRole);
-                const isAgencyAdminUser = !isSuperAdminUser && !isStaffUser;
-                const hasCorrectRole = isAgencyAdminUser || isStaffUser;
-                const routeRule = getRouteRule(pathname, currentAgencySlug);
-
-                // IMPORTANT: Do not log users out based on URL prefix here.
-                // Middleware only checks session existence; portal permission decisions belong to route rules + nested layouts.
-                const isPortalMismatch = false;
+                // Normalize role
+                const userRoleName = userData.role?.toLowerCase()?.trim() || "";
+                const AGENCY_ADMIN_ROLES = ['agency admin', 'supervisor'];
                 
-                if (isSuperAdminUser || userData.agencySlug !== currentAgencySlug || !hasCorrectRole || hasStoredUserMismatch) {
-                    console.warn(
-                        `Access denied. Role: ${userData.role}, Agency: ${userData.agencySlug}, StoredMismatch: ${hasStoredUserMismatch}`
-                    );
-                    toast.error(
-                        hasStoredUserMismatch
-                            ? "Session conflict detected. Please sign in again."
-                            : "Unauthorized access. You have been logged out."
-                    );
-                    // Force hard redirect immediately and stop rendering
+                // Check agency match
+                const userAgency = userData.agencySlug?.toLowerCase()?.trim() || "";
+                const currentAgency = currentAgencySlug?.toLowerCase()?.trim() || "";
+                
+                // Block super admins
+                if (userRoleName.includes('super admin')) {
+                    console.warn(`[AgencyLayout] Super admin blocked from agency portal`)
+                    toast.error("Unauthorized access. You have been logged out.")
+                    isActive = false;
+                    clearLocalAuth();
+                    if (!isLoginPage) {
+                        window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                    }
+                    return;
+                }
+                
+                // Check agency mismatch
+                if (userAgency !== currentAgency) {
+                    console.warn(`[AgencyLayout] Agency mismatch: ${userAgency} !== ${currentAgency}`)
+                    toast.error("Unauthorized access. Wrong agency.")
+                    isActive = false;
+                    clearLocalAuth();
+                    if (!isLoginPage) {
+                        window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                    }
+                    return;
+                }
+                
+                // Check session mismatch
+                if (hasStoredUserMismatch) {
+                    console.warn(`[AgencyLayout] Session mismatch detected`)
+                    toast.error("Session conflict detected. Please sign in again.")
                     isActive = false;
                     clearLocalAuth();
                     if (!isLoginPage) {
@@ -187,28 +198,22 @@ export default function AgencyLayout({
                     return;
                 }
 
-                const routePortalMismatch =
-                    (routeRule?.portal === 'agency' && tabPortalType === 'staff') ||
-                    (routeRule?.portal === 'staff' && tabPortalType === 'agency');
-
-                const routePermissionDenied =
-                    Boolean(routeRule) && !hasRoutePermission(userData, routeRule?.anyPermissions);
-
-                // If there's a portal mismatch but user has permission, redirect to correct portal instead of logging out
-                if (routePortalMismatch && !routePermissionDenied) {
-                    const correctPath = getSafeRouteForUser(userData, currentAgencySlug);
-                    toast.info("Redirecting to your portal...");
-                    window.location.href = correctPath;
-                    return;
-                }
-
-                if (routePortalMismatch) {
-                    toast.error("Session conflict detected for this portal. Please sign in again.");
+                // ✅ CRITICAL: Only block if role is NOT an agency admin role
+                // Agency admin navigating within their portal should ALWAYS be allowed
+                if (!AGENCY_ADMIN_ROLES.includes(userRoleName)) {
+                    console.warn(`[AgencyLayout] Non-admin role blocked: ${userRoleName}`)
+                    toast.error("Unauthorized access to Agency Admin portal.")
                     isActive = false;
                     clearLocalAuth();
-                    window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                    if (!isLoginPage) {
+                        window.location.href = `/${currentAgencySlug}/staff-login`;
+                    }
                     return;
                 }
+
+                const routeRule = getRouteRule(pathname, currentAgencySlug);
+                const routePermissionDenied =
+                    Boolean(routeRule) && !hasRoutePermission(userData, routeRule?.anyPermissions);
 
                 if (routePermissionDenied) {
                     const safeRoute = getSafeRouteForUser(userData, currentAgencySlug);
@@ -251,7 +256,7 @@ export default function AgencyLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
+    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, isStaffPath, login, pathname, tabPortalType]);
 
     if (verifying || hasTabSessionMismatch) {
         return (
@@ -263,6 +268,11 @@ export default function AgencyLayout({
 
     // Step 6 debug log
     console.log('Navigation check - User:', user?.role, 'Loading:', verifying, 'Path:', pathname)
+
+    // ✅ CRITICAL: Skip agency layout for staff paths - staff layout handles them
+    if (isStaffPath) {
+        return <>{children}</>
+    }
 
     if (isLoginPage) {
         return <>{children}</>
