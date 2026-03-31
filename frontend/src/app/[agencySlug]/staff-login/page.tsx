@@ -81,7 +81,7 @@ export default function StaffLogin() {
             
             // If user is a guard/operator without dashboard permission, land on schedule
             if (!user.permissions?.includes('view_dashboard')) {
-                router.push(`/${agencySlug}/my-schedule`)
+                router.push(`/${agencySlug}/staff/my-schedule`)
             } else {
                 router.push(`/${agencySlug}/staff/dashboard`)
             }

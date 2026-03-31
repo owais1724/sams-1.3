@@ -132,7 +132,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
         },
         {
             name: "My Schedule",
-            href: `/${agencySlug}/my-schedule`,
+            href: isStaff ? `/${agencySlug}/staff/my-schedule` : `/${agencySlug}/my-schedule`,
             icon: Calendar,
             staffOnly: true,
         },
