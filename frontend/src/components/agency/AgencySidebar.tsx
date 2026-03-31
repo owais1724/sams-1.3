@@ -81,70 +81,60 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             href: `${basePath}/clients`,
             icon: Building,
             permissions: ["view_clients", "create_client"],
-            agencyOnly: true,
         },
         {
             name: "Projects",
             href: `${basePath}/projects`,
             icon: Briefcase,
             permissions: ["view_projects", "create_project"],
-            agencyOnly: true,
         },
         {
             name: "Employees",
             href: `${basePath}/employees`,
             icon: Users,
             permissions: ["view_employee", "create_employee"],
-            agencyOnly: true,
         },
         {
             name: "Access Control",
             href: `${basePath}/rbac`,
             icon: Key,
             permissions: ["manage_roles"],
-            agencyOnly: true,
         },
         {
             name: "Attendance",
             href: `${basePath}/attendance`,
             icon: Clock,
             permissions: ["view_attendance", "record_attendance", "mark_attendance"],
-            agencyOnly: true, // Staff can't access agency attendance page
         },
         {
             name: "Shifts",
             href: `${basePath}/shifts`,
             icon: Shield,
             permissions: ["view_shifts", "manage_shifts"],
-            agencyOnly: true,
         },
         {
             name: "Deployments",
             href: `${basePath}/deployments`,
             icon: MapPin,
             permissions: ["view_deployments", "manage_deployments"],
-            agencyOnly: true,
         },
         {
             name: "Incidents",
             href: `${basePath}/incidents`,
             icon: AlertTriangle,
             permissions: ["view_incidents", "report_incident", "manage_incidents"],
-            agencyOnly: true, // Staff can't access agency incidents page
         },
         {
             name: "Payroll",
             href: `${basePath}/payroll`,
             icon: Wallet,
             permissions: ["view_payroll", "manage_payroll"],
-            agencyOnly: true,
         },
         {
             name: "Leaves",
             href: `${basePath}/leaves`,
             icon: CalendarDays,
             permissions: ["view_leaves", "apply_leave", "approve_leave"],
-            agencyOnly: true, // Staff can't access agency leaves page
         },
         {
             name: "My Schedule",
@@ -162,14 +152,11 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
         if (isAdmin) return true
 
         // For all other items, if there are specific permissions required, check them.
-        // This makes the sidebar dynamic for both Agency Admin and Staff based on their permissions.
         if (item.permissions && item.permissions.length > 0) {
             return item.permissions.some((perm) => user?.permissions?.includes(perm))
         }
 
-        // If no permissions are specified, show it (except maybe for agencyOnly/staffOnly conflicts)
-        if (item.agencyOnly && isStaff) return false
-        
+        // If no permissions are specified, show it
         return true
     })
 
