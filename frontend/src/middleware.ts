@@ -27,6 +27,8 @@ export async function middleware(request: NextRequest) {
 
   // Session cookies only (middleware must NOT do role/portal checks)
   const session =
+    request.cookies.get('sams_active_user_key')?.value ||
+    request.cookies.get('userRole')?.value ||
     request.cookies.get('access_token')?.value ||
     request.cookies.get('token')?.value ||
     request.cookies.get('auth')?.value ||

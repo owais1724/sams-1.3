@@ -145,7 +145,8 @@ export default function AgencyLayout({
         }
 
         // ── Per-tab Session Isolation ──
-        if (tabPortalType !== 'agency' && tabPortalType !== 'staff') {
+        // Only check portal type if it's explicitly set (not null/undefined)
+        if (tabPortalType && tabPortalType !== 'agency' && tabPortalType !== 'staff') {
             clearLocalAuth();
             window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
             return;
