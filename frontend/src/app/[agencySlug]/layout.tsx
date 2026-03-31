@@ -95,7 +95,9 @@ export default function AgencyLayout({
     
     // ✅ CRITICAL: Check staff paths FIRST before any other logic
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login') || pathname?.includes('staff-login')
-    const isStaffPath = pathname?.includes('/staff')
+    const isStaffPath = pathname?.includes('/staff') || 
+                        pathname?.includes('/my-schedule') || 
+                        pathname?.includes('staff-login')
     
     // ✅ CRITICAL: Return immediately for staff paths - don't run ANY agency checks
     if (isStaffPath) {
@@ -222,7 +224,8 @@ export default function AgencyLayout({
 
                 // ✅ Block staff users (users with employeeId)
                 // Agency portal is ONLY for agency admins (users without employeeId)
-                if (isStaffUser) {
+                // Skip this check for staff paths and login pages
+                if (isStaffUser && !isStaffPath && !isLoginPage) {
                     console.warn(`[AgencyLayout] Staff user blocked - has employeeId: ${userData.employeeId}`)
                     toast.error("Unauthorized access to Agency Admin portal.")
                     isActive = false;
