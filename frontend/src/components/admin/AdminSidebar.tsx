@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ShieldCheck, LayoutDashboard, Building, Users, Key, Wallet, Shield, X, ChevronsLeft, ChevronsRight } from "lucide-react"
@@ -8,6 +9,7 @@ import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
 import { SidebarItem, SidebarLogout, SidebarSectionLabel } from "@/components/ui/design-system"
 import { Badge } from "@/components/ui/badge"
+import { AlertModal } from "@/components/ui/alert-modal"
 
 const navItems = [
     { name: "Platform Control", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -22,6 +24,18 @@ interface AdminSidebarProps {
 export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse }: AdminSidebarProps) {
     const pathname = usePathname()
     const { user, logout } = useAuthStore()
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+    const [loggingOut, setLoggingOut] = useState(false)
+
+    const handleLogout = async () => {
+        setLoggingOut(true)
+        try {
+            if (onItemClick) onItemClick()
+            await api.post("/auth/logout")
+        } catch (e) { }
+        logout()
+        window.location.replace('/admin/login')
+    }
 
     return (
         <div className="flex h-full w-full flex-col bg-white border-r border-[#e2e8f0] relative z-20 font-inter">
@@ -118,19 +132,24 @@ export function AdminSidebar({ onItemClick, collapsed = false, onToggleCollapse 
                     </div>
 
                     <SidebarLogout
-                        onClick={async () => {
-                            if (onItemClick) onItemClick()
-                            try {
-                                await api.post("/auth/logout")
-                            } catch (e) { }
-                            logout()
-                            window.location.replace('/admin/login')
-                        }}
+                        onClick={() => setShowLogoutConfirm(true)}
                         collapsed={collapsed}
-                        className="h-11 font-black uppercase tracking-widest italic bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5"
+                        className="h-11 font-black uppercase tracking-widest italic bg-[#ecfeff] border border-[#06b6d4]/20 text-[#06b6d4] hover:bg-[#06b6d4] hover:text-white transition-all shadow-lg shadow-[#06b6d4]/5"
                     />
                 </div>
             </div>
+
+            <AlertModal
+                isOpen={showLogoutConfirm}
+                onClose={() => setShowLogoutConfirm(false)}
+                onConfirm={handleLogout}
+                loading={loggingOut}
+                title="Sign Out?"
+                description="Are you sure you want to sign out from the Super Admin portal? Any unsaved changes will be lost."
+                variant="primary"
+                confirmText="Sign Out"
+                cancelText="Stay"
+            />
         </div>
     )
 }
