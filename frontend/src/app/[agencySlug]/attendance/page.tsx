@@ -27,6 +27,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AttendanceCheckIn } from "@/components/common/AttendanceCheckIn"
 import { Pagination } from "@/components/ui/Pagination"
+import { AlertModal } from "@/components/ui/alert-modal"
 import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
 import { toast } from "@/components/ui/sonner"
@@ -44,6 +45,7 @@ export default function AttendancePage() {
     const [selectedDeployment, setSelectedDeployment] = useState<string>("")
     const [isChecking, setIsChecking] = useState(false)
     const [attendanceCheckInOpen, setAttendanceCheckInOpen] = useState(false)
+    const [showCheckOutConfirm, setShowCheckOutConfirm] = useState(false)
     
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1)
@@ -172,6 +174,7 @@ export default function AttendancePage() {
                 hasDeployments ? { deploymentId: selectedDeployment } : { projectId: selectedProject }
             )
             toast.success("Check-out recorded.")
+            setShowCheckOutConfirm(false)
             fetchData()
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Check-out failed.")
@@ -271,12 +274,12 @@ export default function AttendancePage() {
                                             <div className="text-xl font-bold text-slate-900">{new Date(myStatus.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                         </div>
                                         <Button
-                                            onClick={handleCheckOut}
+                                            onClick={() => setShowCheckOutConfirm(true)}
                                             disabled={isChecking}
                                             variant="destructive"
                                             className="h-12 rounded-xl px-8 w-full md:w-auto"
                                         >
-                                            {isChecking ? "LOADING..." : "CHECK OUT"}
+                                            CHECK OUT
                                         </Button>
                                     </div>
                                 ) : selectedSite && myStatus?.checkOut ? (
@@ -411,6 +414,19 @@ export default function AttendancePage() {
                     })}
                 />
             )}
+
+            {/* Check-Out Confirmation Modal */}
+            <AlertModal
+                isOpen={showCheckOutConfirm}
+                onClose={() => setShowCheckOutConfirm(false)}
+                onConfirm={handleCheckOut}
+                loading={isChecking}
+                title="Confirm Check-Out"
+                description={`Are you sure you want to check out from ${hasDeployments ? activeDeployments.find(d => d.id === selectedDeployment)?.client?.name : projects.find(p => p.id === selectedProject)?.name}? This will mark the end of your shift.`}
+                variant="destructive"
+                confirmText="Check Out"
+                cancelText="Cancel"
+            />
         </div>
     )
 }
