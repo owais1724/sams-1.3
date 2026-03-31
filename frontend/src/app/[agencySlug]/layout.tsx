@@ -95,7 +95,7 @@ export default function AgencyLayout({
     
     // ✅ CRITICAL: Check staff paths FIRST before any other logic
     const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login') || pathname?.includes('staff-login')
-    const isStaffPath = pathname?.includes('/staff') || pathname?.includes('/my-schedule')
+    const isStaffPath = pathname?.includes('/staff')
     
     // ✅ CRITICAL: Return immediately for staff paths - don't run ANY agency checks
     if (isStaffPath) {
