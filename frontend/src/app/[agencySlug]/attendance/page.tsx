@@ -423,7 +423,7 @@ export default function AttendancePage() {
                 loading={isChecking}
                 title="Confirm Check-Out"
                 description={`Are you sure you want to check out from ${hasDeployments ? activeDeployments.find(d => d.id === selectedDeployment)?.client?.name : projects.find(p => p.id === selectedProject)?.name}? This will mark the end of your shift.`}
-                variant="destructive"
+                variant="danger"
                 confirmText="Check Out"
                 cancelText="Cancel"
             />
