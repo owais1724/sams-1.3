@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Commit and push latest changes",
+			"type": "shell",
+			"command": "git add .vscode/settings.json && git commit -m \"chore: add VS Code settings file\" && git push",
+			"isBackground": false
+		},
+		{
+			"label": "Commit and push latest changes ps",
+			"type": "shell",
+			"command": "git add .vscode/settings.json; git commit -m \"chore: add VS Code settings file\"; git push",
+			"isBackground": false
+		},
+		{
+			"label": "Frontend production build",
+			"type": "shell",
+			"command": "cd security-agency-management-system-main/frontend; npm run build",
+			"isBackground": false
+		}
+	]
+}
