@@ -22,7 +22,7 @@ export default function StaffLayout({
     const router = useRouter()
     const { agencySlug } = useParams()
     const currentAgencySlug = (Array.isArray(agencySlug) ? agencySlug[0] : agencySlug) || ""
-    const { user, login, clearLocalAuth, isAuthenticated } = useAuthStore()
+    const { user, login, clearLocalAuth, isAuthenticated, isLoading: authLoading, initialize } = useAuthStore()
     const [isLoading, setIsLoading] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -42,7 +42,17 @@ export default function StaffLayout({
 
     const isLoginPage = pathname?.includes('staff-login') || pathname?.includes('/login')
 
+    // Initialize auth from cookies on mount
     useEffect(() => {
+        initialize()
+    }, [initialize])
+
+    useEffect(() => {
+        // Wait for auth initialization
+        if (authLoading) {
+            return
+        }
+
         // Skip check on login pages
         if (isLoginPage) {
             setIsLoading(false)
@@ -92,7 +102,7 @@ export default function StaffLayout({
         }
 
         verifyStaffAccess()
-    }, [clearLocalAuth, currentAgencySlug, isLoginPage, login, router])
+    }, [authLoading, clearLocalAuth, currentAgencySlug, isLoginPage, login, router])
     
     // ✅ Show spinner while loading - never show blank screen
     if (isLoading && !isLoginPage) {

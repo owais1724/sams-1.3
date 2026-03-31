@@ -92,7 +92,7 @@ export default function AgencyLayout({
     const pathname = usePathname()
     const { agencySlug } = useParams()
     const currentAgencySlug = (Array.isArray(agencySlug) ? agencySlug[0] : agencySlug) || ""
-    const { user, login, clearLocalAuth } = useAuthStore()
+    const { user, login, clearLocalAuth, initialize } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -116,6 +116,11 @@ export default function AgencyLayout({
     const expectedUserKey = typeof window !== 'undefined' ? getTabSessionUserKey() : null
     const activeUserKey = typeof window !== 'undefined' ? getActiveSessionUserKey() : null
     const hasTabSessionMismatch = !isLoginPage && hasSessionConflict(expectedUserKey, activeUserKey)
+
+    // Initialize auth from cookies on mount
+    useEffect(() => {
+        initialize()
+    }, [initialize])
 
     useEffect(() => {
         let isActive = true;
