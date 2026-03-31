@@ -17,13 +17,12 @@ export default function MySchedulePage() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // RBAC: Only allow Guard, HR, and Staff to access this page
-        // Case-insensitive role check
-        const userRole = user?.role?.toLowerCase() || '';
-        const staffOnlyRoles = ['guard', 'hr', 'staff', 'supervisor'];
+        // ✅ Dynamic RBAC: Any user with employeeId can access this page
+        // No hardcoded role names - completely dynamic
+        const isStaffUser = Boolean(user?.employeeId);
         
-        if (user && !staffOnlyRoles.includes(userRole)) {
-            console.warn(`[My Schedule] Access denied for role: ${user.role}`)
+        if (user && !isStaffUser) {
+            console.warn(`[My Schedule] Access denied - no employeeId for user: ${user.email}`)
             toast.error("Unauthorized access. You have been logged out.")
             api.post('/auth/logout').catch(() => {})
             router.push(`/${agencySlug}/login`)
