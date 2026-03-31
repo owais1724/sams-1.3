@@ -63,6 +63,12 @@ export default function StaffLayout({
                 const response = await api.get('/auth/me')
                 const userData = response.data
                 
+                console.log('STAFF DEBUG:', {
+                    role: userData?.role,
+                    employeeId: userData?.employeeId,
+                    isStaffUser: Boolean(userData?.employeeId)
+                })
+                
                 // ✅ Dynamic check — any user with employeeId is staff
                 const isStaffUser = Boolean(userData?.employeeId)
                 const isSuperAdmin = userData?.role?.toLowerCase()?.includes('super admin')
