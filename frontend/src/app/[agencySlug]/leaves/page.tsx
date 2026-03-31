@@ -132,6 +132,13 @@ export default function LeavesPage() {
     }
 
     try {
+      console.log('[Leave Request] Submitting:', {
+        ...formData,
+        employeeId: user.employeeId,
+        startDate: new Date(formData.startDate),
+        endDate: new Date(formData.endDate)
+      })
+      
       await api.post('/leaves', {
         ...formData,
         startDate: new Date(formData.startDate),
@@ -143,8 +150,10 @@ export default function LeavesPage() {
       setIsDialogOpen(false)
       setFormData({ leaveType: "", startDate: "", endDate: "", reason: "" })
       fetchLeaveRequests()
-    } catch (error) {
-      toast.error('Failed to transmit leave request')
+    } catch (error: any) {
+      console.error('[Leave Request Error]:', error.response?.data || error)
+      const errorMsg = error.response?.data?.message || 'Failed to transmit leave request'
+      toast.error(errorMsg)
     } finally {
       setSubmitting(false)
     }
