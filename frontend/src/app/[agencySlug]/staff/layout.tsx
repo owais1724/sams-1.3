@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Menu, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { getCookie } from "@/lib/authSession"
 
 export default function StaffLayout({
     children,
@@ -124,6 +125,27 @@ export default function StaffLayout({
         }
 
         verifyStaffAccess()
+
+        // ✅ Listen for cookie changes from other tabs
+        const handleCookieChange = () => {
+            console.log('[StaffLayout] Cookie changed in another tab, re-verifying session')
+            verifyStaffAccess()
+        }
+
+        // Poll for cookie changes every 2 seconds
+        const cookieCheckInterval = setInterval(() => {
+            const activeUserKey = typeof window !== 'undefined' ? getCookie('sams_active_user_key') : null
+            const tabUserKey = typeof window !== 'undefined' ? sessionStorage.getItem('sams_tab_user_key') : null
+            
+            if (activeUserKey && tabUserKey && activeUserKey !== tabUserKey) {
+                console.log('[StaffLayout] Session conflict detected via polling')
+                handleCookieChange()
+            }
+        }, 2000)
+
+        return () => {
+            clearInterval(cookieCheckInterval)
+        }
     }, [authLoading, clearLocalAuth, currentAgencySlug, isLoginPage, login, router])
     
     // ✅ Show spinner while loading - never show blank screen

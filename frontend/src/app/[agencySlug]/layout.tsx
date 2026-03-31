@@ -17,6 +17,7 @@ import {
     getTabSessionUserKey,
     hasSessionConflict,
     PORTAL_TYPE_KEY,
+    getCookie,
 } from "@/lib/authSession"
 
 type PortalType = "agency" | "staff"
@@ -274,7 +275,22 @@ export default function AgencyLayout({
         verifySession();
 
         window.addEventListener('pageshow', handlePageShow);
-        return () => window.removeEventListener('pageshow', handlePageShow);
+
+        // ✅ Poll for cookie changes every 2 seconds to detect session changes from other tabs
+        const cookieCheckInterval = setInterval(() => {
+            const activeUserKey = typeof window !== 'undefined' ? getCookie('sams_active_user_key') : null
+            const tabUserKey = typeof window !== 'undefined' ? sessionStorage.getItem('sams_tab_user_key') : null
+            
+            if (activeUserKey && tabUserKey && activeUserKey !== tabUserKey) {
+                console.log('[AgencyLayout] Session conflict detected via polling')
+                verifySession()
+            }
+        }, 2000)
+
+        return () => {
+            window.removeEventListener('pageshow', handlePageShow)
+            clearInterval(cookieCheckInterval)
+        }
     }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
 
     // ✅ Show spinner while verifying (only for agency admin pages)
