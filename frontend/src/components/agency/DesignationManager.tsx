@@ -82,7 +82,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
 
     return (
         <div className="grid gap-8 lg:grid-cols-3">
-            <PermissionGuard permission="manage_roles">
+            <PermissionGuard permission={["manage_roles", "create_employee"]}>
                 <div className="lg:col-span-1">
                     <div className="rounded-[32px] p-1 shadow-2xl overflow-hidden relative group bg-slate-100/80">
                         <div className="bg-white rounded-[30px] p-8 relative z-10 border border-slate-100">
@@ -125,7 +125,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
 
             <div className={cn(
                 "lg:col-span-2 space-y-4",
-                !user?.permissions?.includes('manage_roles') && "lg:col-span-3"
+                !user?.permissions?.includes('manage_roles') && !user?.permissions?.includes('create_employee') && "lg:col-span-3"
             )}>
                 <div className="flex items-center justify-between mb-4 px-2">
                     <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
@@ -159,7 +159,7 @@ export function DesignationManager({ designations, onUpdate }: { designations: a
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right px-4 sm:px-8">
-                                            <PermissionGuard permission="manage_roles">
+                                            <PermissionGuard permission={["manage_roles", "create_employee"]}>
                                                 <RowDeleteButton onClick={() => setDeleteTarget({ id: des.id, name: des.name })} />
                                             </PermissionGuard>
                                         </TableCell>
