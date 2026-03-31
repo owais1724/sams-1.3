@@ -63,11 +63,16 @@ export default function StaffLayout({
                 const response = await api.get('/auth/me')
                 const userData = response.data
                 
+                // ✅ Dynamic check — any user with employeeId is staff
+                const isStaffUser = Boolean(userData?.employeeId)
+                const isSuperAdmin = userData?.role?.toLowerCase()?.includes('super admin')
+                
                 console.log('[StaffLayout] User check:', {
                     email: userData.email,
                     role: userData.role,
                     employeeId: userData.employeeId,
-                    isStaff: Boolean(userData.employeeId)
+                    isStaff: isStaffUser,
+                    isSuperAdmin: isSuperAdmin
                 })
                 
                 // Check agency match
@@ -82,9 +87,18 @@ export default function StaffLayout({
                     return
                 }
                 
-                // ✅ CRITICAL: Check if user is staff by employeeId (not hardcoded roles)
-                // ANY user with employeeId is staff and can access staff portal
-                if (!userData.employeeId) {
+                // Block super admins
+                if (isSuperAdmin) {
+                    console.warn(`[StaffLayout] Super admin blocked from staff portal`)
+                    toast.error("Unauthorized access.")
+                    clearLocalAuth()
+                    router.push('/admin/login')
+                    return
+                }
+                
+                // ✅ Block agency admins (no employeeId)
+                // Staff portal is ONLY for users with employeeId
+                if (!isStaffUser) {
                     console.warn(`[StaffLayout] Non-staff user blocked - no employeeId`)
                     toast.error("Unauthorized access to Staff portal.")
                     clearLocalAuth()
@@ -92,7 +106,7 @@ export default function StaffLayout({
                     return
                 }
 
-                // ✅ Valid staff user - update store and allow access
+                // ✅ Valid staff user - any user with employeeId is allowed
                 login(userData)
             } catch (error) {
                 console.error('[StaffLayout] Session verification failed:', error)

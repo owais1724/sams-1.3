@@ -168,16 +168,16 @@ export default function AgencyLayout({
                     currentTabUserKey !== responseUserKey
                 );
 
-                // Normalize role
-                const userRoleName = userData.role?.toLowerCase()?.trim() || "";
-                const AGENCY_ADMIN_ROLES = ['agency admin', 'supervisor'];
+                // Check user type
+                const isStaffUser = Boolean(userData?.employeeId)
+                const isSuperAdmin = userData?.role?.toLowerCase()?.includes('super admin')
                 
                 console.log('[AgencyLayout] User check:', {
                     email: userData.email,
                     role: userData.role,
                     employeeId: userData.employeeId,
-                    isAdmin: AGENCY_ADMIN_ROLES.includes(userRoleName),
-                    isStaff: Boolean(userData.employeeId)
+                    isStaff: isStaffUser,
+                    isSuperAdmin: isSuperAdmin
                 })
                 
                 // Check agency match
@@ -185,13 +185,13 @@ export default function AgencyLayout({
                 const currentAgency = currentAgencySlug?.toLowerCase()?.trim() || "";
                 
                 // Block super admins
-                if (userRoleName.includes('super admin')) {
+                if (isSuperAdmin) {
                     console.warn(`[AgencyLayout] Super admin blocked from agency portal`)
                     toast.error("Unauthorized access. You have been logged out.")
                     isActive = false;
                     clearLocalAuth();
                     if (!isLoginPage) {
-                        window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                        window.location.href = '/admin/login';
                     }
                     return;
                 }
@@ -220,9 +220,9 @@ export default function AgencyLayout({
                     return;
                 }
 
-                // ✅ CRITICAL: Block staff users (users with employeeId)
+                // ✅ Block staff users (users with employeeId)
                 // Agency portal is ONLY for agency admins (users without employeeId)
-                if (userData.employeeId) {
+                if (isStaffUser) {
                     console.warn(`[AgencyLayout] Staff user blocked - has employeeId: ${userData.employeeId}`)
                     toast.error("Unauthorized access to Agency Admin portal.")
                     isActive = false;
