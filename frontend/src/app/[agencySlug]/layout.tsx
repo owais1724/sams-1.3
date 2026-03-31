@@ -29,7 +29,7 @@ type RouteAccessRule = {
 
 const routeAccessRules: RouteAccessRule[] = [
     { pattern: /^\/staff\/dashboard$/, portal: "staff", anyPermissions: ["view_dashboard"] },
-    { pattern: /^\/my-schedule$/, portal: "staff" },
+    { pattern: /^\/staff\/my-schedule$/, portal: "staff" },
     { pattern: /^\/dashboard$/, anyPermissions: ["view_dashboard"] },
     { pattern: /^\/clients$/, anyPermissions: ["view_clients"] },
     { pattern: /^\/projects$/, anyPermissions: ["view_projects"] },
@@ -78,7 +78,7 @@ function getSafeRouteForUser(userData: any, agencySlug: string) {
     if (isStaffUser) {
         return permissions.includes("view_dashboard")
             ? `/${agencySlug}/staff/dashboard`
-            : `/${agencySlug}/my-schedule`
+            : `/${agencySlug}/staff/my-schedule`
     }
 
     return `/${agencySlug}/dashboard`
