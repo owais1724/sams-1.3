@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import api from "@/lib/api"
+import { loginWithRetry } from "@/lib/apiWithRetry"
 import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
@@ -51,8 +52,9 @@ export default function StaffLogin() {
         toast.dismiss()
 
         try {
-            const response = await api.post("/auth/login", values)
-            const { user } = response.data
+            // Use retry logic for Railway cold start
+            const data = await loginWithRetry(values)
+            const { user } = data
 
             console.log('[Staff Login] Login response:', { 
                 email: user.email, 
@@ -85,7 +87,21 @@ export default function StaffLogin() {
             }
         } catch (error: any) {
             console.error('[Staff Login Error]', error)
-            toast.error("Invalid credentials")
+            
+            const status = error.response?.status;
+            const message = error.message || '';
+            const is502 = status === 502 || message.includes('Application failed to respond');
+            
+            if (is502) {
+                toast.error("Server is starting up, please try again in a moment...", {
+                    duration: 4000
+                })
+            } else if (status === 401) {
+                toast.error("Invalid credentials")
+            } else {
+                toast.error("Login failed. Please try again.")
+            }
+            
             setLoading(false)
         }
     }

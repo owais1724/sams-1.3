@@ -39,6 +39,8 @@ export const useAuthStore = create<AuthState>()(
             isLoading: true,
             
             initialize: async () => {
+                set({ isLoading: true });
+                
                 // Check if already initialized
                 const currentUser = get().user;
                 if (currentUser) {
@@ -50,20 +52,24 @@ export const useAuthStore = create<AuthState>()(
                 if (typeof document !== 'undefined') {
                     const hasAuthCookie = 
                         document.cookie.includes('access_token') || 
-                        document.cookie.includes('token');
+                        document.cookie.includes('token') ||
+                        document.cookie.includes('userRole');
                     
                     if (hasAuthCookie) {
+                        console.log('[AuthStore] Auth cookies found, restoring session from backend...');
                         // Try to restore session from backend
                         try {
                             const response = await fetch('/api/auth/me', {
                                 credentials: 'include',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                }
+                                },
+                                cache: 'no-store'
                             });
                             
                             if (response.ok) {
                                 const userData = await response.json();
+                                console.log('[AuthStore] Session restored successfully:', userData.email);
                                 set({ 
                                     user: userData, 
                                     isAuthenticated: true, 
@@ -77,6 +83,8 @@ export const useAuthStore = create<AuthState>()(
                                 setActiveSessionUser(userData);
                                 setTabSessionUser(userData);
                                 return;
+                            } else {
+                                console.warn('[AuthStore] Failed to restore session, status:', response.status);
                             }
                         } catch (error) {
                             console.warn('[AuthStore] Failed to restore session:', error);

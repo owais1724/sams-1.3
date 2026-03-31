@@ -25,7 +25,7 @@ export const waitForBackend = async (maxAttempts = 5): Promise<boolean> => {
 
 /**
  * Login with automatic retry logic
- * Handles cold start issues on Railway
+ * Handles cold start issues on Railway (502 errors)
  */
 export const loginWithRetry = async (
   credentials: { email: string; password: string },
@@ -45,18 +45,39 @@ export const loginWithRetry = async (
       }
     } catch (error: any) {
       lastError = error;
-      console.error(`[Login Retry] Attempt ${attempt} failed:`, error.message);
+      const status = error.response?.status;
+      const message = error.message || '';
+      
+      console.error(`[Login Retry] Attempt ${attempt} failed:`, {
+        status,
+        message,
+        data: error.response?.data
+      });
       
       // If it's a 401 (invalid credentials), don't retry
-      if (error.response?.status === 401) {
+      if (status === 401) {
         throw error;
       }
       
-      // If it's a network error or 5xx, retry after delay
-      if (attempt < maxRetries) {
-        const delay = attempt * 1000; // Exponential backoff: 1s, 2s, 3s
-        console.log(`[Login Retry] Waiting ${delay}ms before retry...`);
+      // Check if it's a 502 or "Application failed to respond" error
+      const is502 = status === 502 || message.includes('Application failed to respond');
+      
+      // If it's a 502 or network error, retry after delay
+      if ((is502 || status >= 500) && attempt < maxRetries) {
+        const delay = attempt * 2000; // Exponential backoff: 2s, 4s, 6s
+        console.log(`[Login Retry] Server starting up (502), waiting ${delay}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      // For other errors, don't retry
+      if (status && status < 500 && status !== 502) {
+        throw error;
+      }
+      
+      // Last attempt failed
+      if (attempt === maxRetries) {
+        throw error;
       }
     }
   }
