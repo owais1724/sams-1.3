@@ -125,8 +125,14 @@ export default function AgencyLayout({
     useEffect(() => {
         let isActive = true;
 
-        // ✅ CRITICAL: Skip all checks for staff paths - staff layout handles them
+        // ✅ CRITICAL: Skip ALL checks for staff paths FIRST - staff layout handles them
         if (isStaffPath) {
+            setVerifying(false)
+            return
+        }
+
+        // Skip checks for login pages
+        if (isLoginPage) {
             setVerifying(false)
             return
         }
@@ -139,7 +145,7 @@ export default function AgencyLayout({
         }
 
         // ── Per-tab Session Isolation ──
-        if (!isLoginPage && tabPortalType !== 'agency' && tabPortalType !== 'staff') {
+        if (tabPortalType !== 'agency' && tabPortalType !== 'staff') {
             clearLocalAuth();
             window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
             return;
@@ -253,11 +259,7 @@ export default function AgencyLayout({
             }
         };
 
-        if (isLoginPage) {
-            setVerifying(false);
-        } else {
-            verifySession();
-        }
+        verifySession();
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
