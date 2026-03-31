@@ -49,6 +49,12 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
     const role = user?.role?.toLowerCase() || ""
     const isStaff = user?.employeeId ? true : !role.includes("admin")
     const isAdmin = role.includes("admin") && !user?.employeeId
+    
+    // ✅ Detect if we are in staff portal
+    const isStaffPortal = pathname?.includes('/staff') || isStaff
+    
+    // ✅ Build correct base path for all navigation links
+    const basePath = isStaffPortal ? `/${agencySlug}/staff` : `/${agencySlug}`
 
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
     const [loggingOut, setLoggingOut] = useState(false)
@@ -66,76 +72,76 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
     const allItems: SidebarNavItem[] = [
         {
             name: "Dashboard",
-            href: isStaff ? `/${agencySlug}/staff/dashboard` : `/${agencySlug}/dashboard`,
+            href: `${basePath}/dashboard`,
             icon: BarChart3,
             permissions: ["view_dashboard"],
         },
         {
             name: "Clients",
-            href: `/${agencySlug}/clients`,
+            href: `${basePath}/clients`,
             icon: Building,
             permissions: ["view_clients", "create_client"],
             agencyOnly: true,
         },
         {
             name: "Projects",
-            href: `/${agencySlug}/projects`,
+            href: `${basePath}/projects`,
             icon: Briefcase,
             permissions: ["view_projects", "create_project"],
             agencyOnly: true,
         },
         {
             name: "Employees",
-            href: `/${agencySlug}/employees`,
+            href: `${basePath}/employees`,
             icon: Users,
             permissions: ["view_employee", "create_employee"],
             agencyOnly: true,
         },
         {
             name: "Access Control",
-            href: `/${agencySlug}/rbac`,
+            href: `${basePath}/rbac`,
             icon: Key,
             permissions: ["manage_roles"],
             agencyOnly: true,
         },
         {
             name: "Attendance",
-            href: `/${agencySlug}/attendance`,
+            href: `${basePath}/attendance`,
             icon: Clock,
             permissions: ["view_attendance", "record_attendance", "mark_attendance"],
             agencyOnly: true, // Staff can't access agency attendance page
         },
         {
             name: "Shifts",
-            href: `/${agencySlug}/shifts`,
+            href: `${basePath}/shifts`,
             icon: Shield,
             permissions: ["view_shifts", "manage_shifts"],
             agencyOnly: true,
         },
         {
             name: "Deployments",
-            href: `/${agencySlug}/deployments`,
+            href: `${basePath}/deployments`,
             icon: MapPin,
             permissions: ["view_deployments", "manage_deployments"],
             agencyOnly: true,
         },
         {
             name: "Incidents",
-            href: `/${agencySlug}/incidents`,
+            href: `${basePath}/incidents`,
             icon: AlertTriangle,
             permissions: ["view_incidents", "report_incident", "manage_incidents"],
             agencyOnly: true, // Staff can't access agency incidents page
         },
         {
             name: "Payroll",
-            href: `/${agencySlug}/payroll`,
+            href: `${basePath}/payroll`,
             icon: Wallet,
             permissions: ["view_payroll", "manage_payroll"],
             agencyOnly: true,
         },
         {
             name: "Leaves",
-            href: `/${agencySlug}/leaves`,
+            href: `${basePath}/leaves`,
             icon: CalendarDays,
             permissions: ["view_leaves", "apply_leave", "approve_leave"],
             agencyOnly: true, // Staff can't access agency leaves page
