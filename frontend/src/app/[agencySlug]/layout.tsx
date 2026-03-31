@@ -92,6 +92,16 @@ export default function AgencyLayout({
     const pathname = usePathname()
     const { agencySlug } = useParams()
     const currentAgencySlug = (Array.isArray(agencySlug) ? agencySlug[0] : agencySlug) || ""
+    
+    // ✅ CRITICAL: Check staff paths FIRST before any other logic
+    const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login') || pathname?.includes('staff-login')
+    const isStaffPath = pathname?.includes('/staff') || pathname?.includes('/my-schedule')
+    
+    // ✅ CRITICAL: Return immediately for staff paths - don't run ANY agency checks
+    if (isStaffPath) {
+        return <>{children}</>
+    }
+    
     const { user, login, clearLocalAuth, initialize } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -110,8 +120,6 @@ export default function AgencyLayout({
         })
     }
 
-    const isLoginPage = pathname?.split('/').some(segment => segment.toLowerCase() === 'login') || pathname?.includes('staff-login')
-    const isStaffPath = pathname?.includes('/staff/') || pathname?.includes('/my-schedule')
     const tabPortalType = typeof window !== 'undefined' ? sessionStorage.getItem(PORTAL_TYPE_KEY) : null
     const expectedUserKey = typeof window !== 'undefined' ? getTabSessionUserKey() : null
     const activeUserKey = typeof window !== 'undefined' ? getActiveSessionUserKey() : null
@@ -125,13 +133,7 @@ export default function AgencyLayout({
     useEffect(() => {
         let isActive = true;
 
-        // ✅ CRITICAL: Skip ALL checks for staff paths FIRST - staff layout handles them
-        if (isStaffPath) {
-            setVerifying(false)
-            return
-        }
-
-        // Skip checks for login pages
+        // ✅ ABSOLUTE FIRST CHECK: Skip login pages
         if (isLoginPage) {
             setVerifying(false)
             return
@@ -264,8 +266,9 @@ export default function AgencyLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, isStaffPath, login, pathname, tabPortalType]);
+    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
 
+    // ✅ Show spinner while verifying (only for agency admin pages)
     if (verifying || hasTabSessionMismatch) {
         return (
             <div className="h-screen w-screen flex items-center justify-center bg-[var(--background)]">
@@ -277,11 +280,7 @@ export default function AgencyLayout({
     // Step 6 debug log
     console.log('Navigation check - User:', user?.role, 'Loading:', verifying, 'Path:', pathname)
 
-    // ✅ CRITICAL: Skip agency layout for staff paths - staff layout handles them
-    if (isStaffPath) {
-        return <>{children}</>
-    }
-
+    // Login page - no sidebar
     if (isLoginPage) {
         return <>{children}</>
     }
