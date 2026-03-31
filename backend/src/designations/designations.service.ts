@@ -52,6 +52,29 @@ export class DesignationsService {
       throw new ConflictException(`Cannot delete designation "${designation.name}" because it is currently assigned to ${designation._count.employees} employees.`);
     }
 
+    // Delete the associated auto-generated role if it exists
+    const roleName = designation.name.toLowerCase();
+    const associatedRole = await this.prisma.role.findFirst({
+      where: {
+        agencyId,
+        name: {
+          equals: roleName,
+          mode: 'insensitive'
+        }
+      },
+      include: {
+        users: true
+      }
+    });
+
+    // Only delete the role if it has no users assigned
+    if (associatedRole && associatedRole.users.length === 0) {
+      await this.prisma.role.delete({
+        where: { id: associatedRole.id }
+      });
+      this.logger.log(`Deleted associated role: ${associatedRole.name}`);
+    }
+
     return this.prisma.designation.delete({
       where: { id, agencyId },
     });
