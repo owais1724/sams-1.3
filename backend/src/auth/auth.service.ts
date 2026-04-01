@@ -45,7 +45,7 @@ export class AuthService {
 
     // Block login if the agency is deactivated (Super Admins have no agency — always allowed)
     const userWithAgency = user as any;
-    if (userWithAgency.agency && !userWithAgency.agency.isActive) {
+    if (userWithAgency.agency && userWithAgency.agency.isActive === false) {
       if (!isProd) {
         this.logger.warn(`Login blocked — agency is deactivated for: "${normalizedEmail}"`);
       }

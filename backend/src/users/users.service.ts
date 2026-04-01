@@ -11,18 +11,28 @@ export class UsersService {
     password: true,
     fullName: true,
     isActive: true,
-    createdAt: true,
-    updatedAt: true,
     agencyId: true,
     roleId: true,
     employeeId: true,
     phoneNumber: true,
     role: {
-      include: {
-        permissions: true,
+      select: {
+        id: true,
+        name: true,
+        permissions: {
+          select: {
+            action: true,
+          },
+        },
       },
     },
-    agency: true,
+    agency: {
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+      },
+    },
   } as const;
 
   async findOne(email: string): Promise<any> {
