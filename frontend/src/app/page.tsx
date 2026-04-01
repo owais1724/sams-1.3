@@ -60,8 +60,11 @@ export default function RootLoginPage() {
       const data = await loginWithRetry(values)
       const { user } = data
 
+      const normalizedRole = (user?.role || "").toString().toLowerCase().trim()
+      const isSuperAdmin = ["super admin", "superadmin", "platform admin"].includes(normalizedRole)
+
       // RESTRICTION: Root login is EXCLUSIVELY for Super Admins
-      if (user.role !== 'Super Admin') {
+      if (!isSuperAdmin) {
         toast.error("Invalid credentials")
         await api.post("/auth/logout")
         setLoading(false)

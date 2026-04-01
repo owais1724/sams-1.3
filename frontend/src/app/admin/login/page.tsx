@@ -53,7 +53,10 @@ export default function LoginPage() {
             const response = await api.post("/auth/login", values)
             const { user } = response.data
 
-            if (user.role !== 'Super Admin') {
+            const normalizedRole = (user?.role || "").toString().toLowerCase().trim()
+            const isSuperAdmin = ["super admin", "superadmin", "platform admin"].includes(normalizedRole)
+
+            if (!isSuperAdmin) {
                 toast.error("Invalid credentials")
                 await api.post("/auth/logout")
                 logout()

@@ -32,8 +32,8 @@ NODE_ENV=production
 1. Push code to GitHub
 2. Railway will auto-deploy using `railway.toml` and `nixpacks.toml`
 3. Build command: `npm ci && npx prisma generate && npm run build`
-4. Start command: `node dist/src/main.js`
-5. Run migrations manually if needed: `npx prisma db push`
+4. Start command: `npx prisma migrate deploy && node dist/src/main.js`
+5. Set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in Railway backend env.
 
 ### Frontend
 1. Push code to GitHub

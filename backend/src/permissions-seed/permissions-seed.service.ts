@@ -109,6 +109,7 @@ export class PermissionsSeedService implements OnModuleInit {
     try {
       await this.migrateOldPermissionNames();
       await this.seedPermissions();
+      await this.ensureSuperAdminRole();
       await this.seedDefaultRolesForExistingAgencies();
       await this.fixAgencyAdminRoles();
       await this.fixSuperAdminRole();
@@ -329,6 +330,36 @@ export class PermissionsSeedService implements OnModuleInit {
     });
 
     this.logger.log('Fixed Super Admin platform permissions.');
+  }
+
+  private async ensureSuperAdminRole() {
+    const existingRole = await this.prisma.role.findFirst({
+      where: {
+        name: 'Super Admin',
+        agencyId: null,
+      },
+      select: { id: true },
+    });
+
+    if (existingRole) {
+      return existingRole;
+    }
+
+    const createdRole = await this.prisma.role.create({
+      data: {
+        name: 'Super Admin',
+        description: 'Platform Owner',
+        isSystem: true,
+        agencyId: null,
+        permissions: {
+          connect: this.PLATFORM_PERMISSIONS.map((action) => ({ action })),
+        },
+      },
+      select: { id: true },
+    });
+
+    this.logger.log('Created missing "Super Admin" role.');
+    return createdRole;
   }
 
   private async ensureSuperAdminAccount() {
