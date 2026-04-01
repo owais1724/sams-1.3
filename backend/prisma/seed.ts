@@ -3,11 +3,98 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+const DEFAULT_AGENCY_ROLE_TEMPLATES = [
+    {
+        name: 'HR',
+        description: 'Human resources operations role',
+        permissions: [
+            'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
+            'manage_roles',
+            'view_shifts', 'manage_shifts',
+            'view_deployments', 'manage_deployments',
+            'approve_leave', 'apply_leave', 'view_leaves',
+            'record_attendance', 'view_attendance',
+            'report_incident', 'view_incidents', 'manage_incidents',
+            'view_clients',
+            'view_dashboard',
+            'view_reports',
+            'assign_staff',
+            'view_payroll',
+        ],
+    },
+    {
+        name: 'Supervisor',
+        description: 'Supervisor operations role',
+        permissions: [
+            'view_shifts', 'manage_shifts',
+            'view_deployments', 'manage_deployments',
+            'approve_leave', 'apply_leave', 'view_leaves',
+            'record_attendance', 'view_attendance',
+            'report_incident', 'view_incidents', 'manage_incidents',
+            'view_clients',
+            'view_dashboard',
+            'view_reports',
+            'assign_staff',
+        ],
+    },
+    {
+        name: 'Guard',
+        description: 'Guard operations role',
+        permissions: [
+            'view_shifts',
+            'view_deployments',
+            'apply_leave', 'view_leaves',
+            'record_attendance', 'view_attendance',
+            'report_incident', 'view_incidents',
+        ],
+    },
+    {
+        name: 'Cleaner',
+        description: 'Cleaner operations role',
+        permissions: [
+            'view_shifts',
+            'view_deployments',
+            'apply_leave', 'view_leaves',
+            'record_attendance', 'view_attendance',
+            'report_incident', 'view_incidents',
+        ],
+    },
+] as const;
+
+async function seedDefaultAgencyRoles(agencyId: string) {
+    for (const template of DEFAULT_AGENCY_ROLE_TEMPLATES) {
+        const existingRole = await prisma.role.findFirst({
+            where: {
+                agencyId,
+                name: template.name,
+            },
+            select: { id: true },
+        });
+
+        // Preserve existing role records exactly as they are.
+        if (existingRole) {
+            continue;
+        }
+
+        await prisma.role.create({
+            data: {
+                name: template.name,
+                description: template.description,
+                isSystem: true,
+                agencyId,
+                permissions: {
+                    connect: template.permissions.map((action) => ({ action })),
+                },
+            },
+        });
+    }
+}
+
 async function main() {
     console.log('Seeding database...');
 
     // 1. Create Permissions
-    const allPermissions = [
+    const allPermissions = Array.from(new Set([
         // Platform Level
         'manage_agencies', 'create_agency', 'edit_agency', 'delete_agency',
         'create_agency_admin',
@@ -22,8 +109,14 @@ async function main() {
         'view_attendance', 'record_attendance',
         'approve_leave', 'apply_leave', 'view_leaves',
         'manage_payroll', 'view_payroll',
-        'view_reports'
-    ];
+        'view_reports',
+        'view_shifts', 'manage_shifts',
+        'view_deployments', 'manage_deployments',
+        'view_incidents', 'report_incident', 'manage_incidents',
+        'view_dashboard',
+
+        ...DEFAULT_AGENCY_ROLE_TEMPLATES.flatMap((template) => template.permissions),
+    ]));
 
     for (const action of allPermissions) {
         await prisma.permission.upsert({
@@ -46,11 +139,7 @@ async function main() {
 
     await prisma.role.upsert({
         where: { id: 'super-admin-role' },
-        update: {
-            permissions: {
-                set: platformPermissions.map(p => ({ id: p.id }))
-            }
-        },
+        update: {},
         create: {
             id: 'super-admin-role',
             name: 'Super Admin',
@@ -73,11 +162,7 @@ async function main() {
 
     await prisma.role.upsert({
         where: { id: 'system-staff-role' },
-        update: {
-            permissions: {
-                set: staffPermissions.map(p => ({ id: p.id }))
-            }
-        },
+        update: {},
         create: {
             id: 'system-staff-role',
             name: 'Staff',
@@ -105,6 +190,14 @@ async function main() {
             roleId: 'super-admin-role',
         }
     });
+
+    const agencies = await prisma.agency.findMany({
+        select: { id: true },
+    });
+
+    for (const agency of agencies) {
+        await seedDefaultAgencyRoles(agency.id);
+    }
 
     console.log('Seeding complete. Master Admin created:', superAdmin.email);
 }

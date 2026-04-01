@@ -90,15 +90,16 @@ export class RolesService {
     if (!role) throw new NotFoundException('Role not found');
     if (role.agencyId !== agencyId) throw new ForbiddenException('Access to this role is forbidden');
 
-    // Block ALL modifications to system roles
-    if (role.isSystem) {
-      throw new ForbiddenException('Cannot modify system roles');
-    }
-
-    // For custom roles, allow all updates
-    return this.prisma.role.update({
-      where: { id: roleId },
-      data: {
+    // System roles are editable for permissions, but keep core identity immutable.
+    const updateData = role.isSystem
+      ? {
+        permissions: data.permissionIds
+          ? {
+            set: data.permissionIds.map((id) => ({ id })),
+          }
+          : undefined,
+      }
+      : {
         name: data.name,
         description: data.description,
         permissions: data.permissionIds
@@ -106,7 +107,11 @@ export class RolesService {
             set: data.permissionIds.map((id) => ({ id })),
           }
           : undefined,
-      },
+      };
+
+    return this.prisma.role.update({
+      where: { id: roleId },
+      data: updateData,
       include: { permissions: true },
     });
   }

@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -20,6 +21,143 @@ export class EmployeesService {
   ) { }
 
   private readonly logger = new Logger(EmployeesService.name);
+
+  private readonly agencyAdminPermissions = [
+    'view_clients', 'create_client', 'edit_client', 'delete_client',
+    'view_projects', 'create_project', 'edit_project', 'delete_project',
+    'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
+    'manage_roles', 'assign_staff', 'view_attendance', 'record_attendance',
+    'approve_leave', 'apply_leave', 'view_leaves', 'manage_payroll',
+    'view_payroll', 'view_reports', 'view_shifts', 'manage_shifts',
+    'view_deployments', 'manage_deployments', 'view_incidents',
+    'report_incident', 'manage_incidents', 'view_dashboard',
+  ];
+
+  private readonly defaultStaffPermissions = [
+    'record_attendance',
+    'apply_leave',
+  ];
+
+  private normalizeRoleName(name?: string | null) {
+    return (name || '').toLowerCase().trim();
+  }
+
+  private isAgencyAdminRole(name?: string | null) {
+    const normalized = this.normalizeRoleName(name);
+    return normalized === 'agency admin' || normalized === 'agencyadmin';
+  }
+
+  private async findLinkedUserByEmployeeId(agencyId: string, employeeId: string) {
+    return this.prisma.user.findFirst({
+      where: {
+        agencyId,
+        OR: [
+          { employeeId },
+          { previousEmployeeId: employeeId },
+        ],
+      },
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  private async getEmployeeWithLinkedUser(agencyId: string, employeeId: string) {
+    const employee = await this.prisma.employee.findFirst({
+      where: {
+        id: employeeId,
+        agencyId,
+      },
+    });
+
+    if (!employee) {
+      throw new NotFoundException('Employee not found');
+    }
+
+    const user = await this.findLinkedUserByEmployeeId(agencyId, employee.id);
+    if (!user) {
+      throw new NotFoundException('Linked user account not found');
+    }
+
+    return { employee, user };
+  }
+
+  private async ensureAgencyAdminRole(agencyId: string) {
+    for (const action of this.agencyAdminPermissions) {
+      await this.prisma.permission.upsert({
+        where: { action },
+        update: {},
+        create: { action, description: `Permission: ${action}` },
+      });
+    }
+
+    const existingRole = await this.prisma.role.findFirst({
+      where: {
+        agencyId,
+        name: 'Agency Admin',
+      },
+    });
+
+    if (existingRole) {
+      return existingRole;
+    }
+
+    return this.prisma.role.create({
+      data: {
+        name: 'Agency Admin',
+        description: 'Full control of the agency',
+        isSystem: true,
+        agencyId,
+        permissions: {
+          connect: this.agencyAdminPermissions.map((action) => ({ action })),
+        },
+      },
+    });
+  }
+
+  private async ensureDefaultStaffRole(agencyId: string) {
+    for (const action of this.defaultStaffPermissions) {
+      await this.prisma.permission.upsert({
+        where: { action },
+        update: {},
+        create: { action, description: `Permission: ${action}` },
+      });
+    }
+
+    const agencyStaffRole = await this.prisma.role.findFirst({
+      where: {
+        agencyId,
+        name: 'Staff',
+      },
+    });
+
+    if (agencyStaffRole) {
+      return agencyStaffRole;
+    }
+
+    const globalStaffRole = await this.prisma.role.findFirst({
+      where: {
+        agencyId: null,
+        name: 'Staff',
+      },
+    });
+
+    if (globalStaffRole) {
+      return globalStaffRole;
+    }
+
+    return this.prisma.role.create({
+      data: {
+        name: 'Staff',
+        description: 'Default staff role',
+        isSystem: true,
+        agencyId,
+        permissions: {
+          connect: this.defaultStaffPermissions.map((action) => ({ action })),
+        },
+      },
+    });
+  }
 
   async create(agencyId: string, data: CreateEmployeeDto) {
     const isProd = process.env.NODE_ENV === 'production';
@@ -162,8 +300,9 @@ export class EmployeesService {
 
       const employee = await this.prisma.employee.findUnique({
         where: { id },
-        include: { user: true },
       });
+
+      const linkedUser = await this.findLinkedUserByEmployeeId(agencyId, id);
 
       return await this.prisma.$transaction(async (tx) => {
         // Prepare employee update data
@@ -193,7 +332,7 @@ export class EmployeesService {
         });
 
         // Update User account if it exists and details changed
-        if (employee.user) {
+        if (linkedUser) {
           const userUpdate: any = {};
 
           if (employeeUpdate.email) userUpdate.email = employeeUpdate.email;
@@ -206,7 +345,7 @@ export class EmployeesService {
           // Only perform update if there's actual data to change
           if (Object.keys(userUpdate).length > 0) {
             await tx.user.update({
-              where: { id: employee.user.id },
+              where: { id: linkedUser.id },
               data: userUpdate,
             });
           }
@@ -234,7 +373,7 @@ export class EmployeesService {
   async findAll(agencyId: string) {
     if (!agencyId) return [];
     try {
-      return await this.prisma.employee.findMany({
+      const employees = await this.prisma.employee.findMany({
         where: { agencyId },
         include: {
           user: {
@@ -242,6 +381,7 @@ export class EmployeesService {
               id: true,
               fullName: true,
               email: true,
+              isActive: true,
               role: true,
             },
           },
@@ -249,10 +389,204 @@ export class EmployeesService {
           assignedProjects: true,
         },
       });
+
+      const employeeIdsMissingLinkedUser = employees
+        .filter((employee) => !employee.user)
+        .map((employee) => employee.id);
+
+      if (!employeeIdsMissingLinkedUser.length) {
+        return employees;
+      }
+
+      const fallbackUsers = await this.prisma.user.findMany({
+        where: {
+          agencyId,
+          previousEmployeeId: {
+            in: employeeIdsMissingLinkedUser,
+          },
+        },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          isActive: true,
+          role: true,
+          previousEmployeeId: true,
+        },
+      });
+
+      const fallbackByEmployeeId = new Map(
+        fallbackUsers
+          .filter((user) => Boolean(user.previousEmployeeId))
+          .map((user) => [user.previousEmployeeId as string, user]),
+      );
+
+      return employees.map((employee) => {
+        if (employee.user) {
+          return employee;
+        }
+
+        const fallbackUser = fallbackByEmployeeId.get(employee.id);
+        if (!fallbackUser) {
+          return employee;
+        }
+
+        const { previousEmployeeId, ...userWithoutPreviousEmployeeId } = fallbackUser;
+        return {
+          ...employee,
+          user: userWithoutPreviousEmployeeId,
+        };
+      });
     } catch (e) {
       this.logger.error('Find Employees Error:', e);
       throw e;
     }
+  }
+
+  async promoteToAgencyAdmin(agencyId: string, employeeId: string, targetRoleId?: string) {
+    const { employee, user } = await this.getEmployeeWithLinkedUser(agencyId, employeeId);
+
+    let roleToAssign: { id: string; name?: string | null };
+
+    if (targetRoleId) {
+      const targetRole = await this.prisma.role.findUnique({
+        where: { id: targetRoleId },
+        select: {
+          id: true,
+          agencyId: true,
+          name: true,
+        },
+      });
+
+      if (!targetRole || targetRole.agencyId !== agencyId) {
+        throw new ForbiddenException('Invalid target role for this agency');
+      }
+
+      roleToAssign = { id: targetRole.id, name: targetRole.name };
+    } else {
+      const adminRole = await this.ensureAgencyAdminRole(agencyId);
+      roleToAssign = { id: adminRole.id, name: adminRole.name };
+    }
+
+    const promotingToAgencyAdmin = this.isAgencyAdminRole(roleToAssign.name);
+    const switchingToAgencyAdminPortal = promotingToAgencyAdmin && !this.isAgencyAdminRole(user.role?.name);
+
+    if (switchingToAgencyAdminPortal) {
+      const adminCount = await this.prisma.user.count({
+        where: {
+          agencyId,
+          role: {
+            name: 'Agency Admin',
+          },
+        },
+      });
+
+      if (adminCount >= 2) {
+        throw new BadRequestException('This agency already has the maximum of 2 Agency Admins.');
+      }
+    }
+
+    const updateData: any = {
+      roleId: roleToAssign.id,
+    };
+
+    if (promotingToAgencyAdmin) {
+      updateData.previousEmployeeId = user.previousEmployeeId || user.employeeId || employee.id;
+      updateData.employeeId = null;
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: updateData,
+    });
+
+    const refreshedUser = await this.findLinkedUserByEmployeeId(agencyId, employee.id);
+
+    const updatedEmployee = {
+      ...employee,
+      user: refreshedUser,
+    };
+
+    return {
+      ...updatedEmployee,
+      portalSwitch: switchingToAgencyAdminPortal,
+      message: switchingToAgencyAdminPortal ? 'Promoted to Agency Admin' : 'Role updated successfully',
+    };
+  }
+
+  async demoteToStaffRole(agencyId: string, employeeId: string, targetRoleId?: string) {
+    const { employee, user } = await this.getEmployeeWithLinkedUser(agencyId, employeeId);
+
+    let roleToAssign: { id: string; name?: string | null };
+
+    if (targetRoleId) {
+      const targetRole = await this.prisma.role.findUnique({
+        where: { id: targetRoleId },
+        select: {
+          id: true,
+          agencyId: true,
+          name: true,
+        },
+      });
+
+      if (!targetRole || targetRole.agencyId !== agencyId) {
+        throw new ForbiddenException('Invalid target role for this agency');
+      }
+
+      roleToAssign = { id: targetRole.id, name: targetRole.name };
+    } else {
+      const staffRole = await this.ensureDefaultStaffRole(agencyId);
+      roleToAssign = { id: staffRole.id, name: staffRole.name };
+    }
+
+    const demotingToStaffPortalRole = !this.isAgencyAdminRole(roleToAssign.name);
+    const switchingToStaffPortal = this.isAgencyAdminRole(user.role?.name) && demotingToStaffPortalRole;
+    const updateData: any = {
+      roleId: roleToAssign.id,
+    };
+
+    if (demotingToStaffPortalRole) {
+      updateData.employeeId = user.employeeId || user.previousEmployeeId || employee.id;
+      updateData.previousEmployeeId = null;
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: updateData,
+    });
+
+    const refreshedUser = await this.findLinkedUserByEmployeeId(agencyId, employee.id);
+
+    const updatedEmployee = {
+      ...employee,
+      user: refreshedUser,
+    };
+
+    return {
+      ...updatedEmployee,
+      portalSwitch: switchingToStaffPortal,
+      message: switchingToStaffPortal ? 'Demoted to Staff' : 'Role updated successfully',
+    };
+  }
+
+  async toggleEmployeeUserSuspension(agencyId: string, employeeId: string) {
+    const { employee, user } = await this.getEmployeeWithLinkedUser(agencyId, employeeId);
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isActive: !user.isActive,
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        isActive: true,
+        employeeId: true,
+      },
+    });
+
+    return updatedUser;
   }
 
   async remove(agencyId: string, id: string, userId?: string) {
@@ -263,8 +597,20 @@ export class EmployeesService {
       if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
       const employee = exists;
 
-      await this.prisma.employee.delete({
-        where: { id, agencyId },
+      await this.prisma.$transaction(async (tx) => {
+        await tx.user.deleteMany({
+          where: {
+            agencyId,
+            OR: [
+              { employeeId: id },
+              { previousEmployeeId: id },
+            ],
+          },
+        });
+
+        await tx.employee.delete({
+          where: { id, agencyId },
+        });
       });
 
       // Log the action
@@ -280,7 +626,10 @@ export class EmployeesService {
         userId,
       );
 
-      return { success: true };
+      return {
+        success: true,
+        message: 'Employee and linked user deleted successfully',
+      };
     } catch (error) {
       this.logger.error('Remove Employee Error:', error);
       if (error instanceof ConflictException) throw error;

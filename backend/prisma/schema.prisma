@@ -48,6 +48,7 @@ model User {
   agencyId    String?
   roleId      String?
   employeeId  String?    @unique
+  previousEmployeeId String?
   phoneNumber String?
   auditLogs        AuditLog[]
   agency           Agency?           @relation(fields: [agencyId], references: [id], onDelete: Cascade)

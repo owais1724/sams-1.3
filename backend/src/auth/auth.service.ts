@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger, ForbiddenException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -63,13 +63,17 @@ export class AuthService {
   }
 
   async login(user: any, clientIp: string = 'unknown') {
-    // Fetch user with role and permissions
-    const userWithPermissions = await this.usersService.findOneWithPermissions(
-      user.email,
-    );
+    // Fetch the latest user state from DB at login time.
+    const userWithPermissions = user?.id
+      ? await this.usersService.findById(user.id)
+      : await this.usersService.findOneWithPermissions(user.email);
 
     if (!userWithPermissions) {
       throw new UnauthorizedException('User no longer exists');
+    }
+
+    if (!userWithPermissions.isActive) {
+      throw new ForbiddenException('Account suspended. Contact your administrator.');
     }
 
     const payload = {
@@ -77,7 +81,7 @@ export class AuthService {
       sub: userWithPermissions.id,
       agencyId: userWithPermissions.agencyId,
       agencySlug: userWithPermissions.agency?.slug || null,
-      employeeId: userWithPermissions.employeeId,
+      employeeId: userWithPermissions.employeeId ?? null,
       role: userWithPermissions.role?.name,
       permissions:
         userWithPermissions.role?.permissions?.map((p: any) => p.action) || [],
@@ -111,7 +115,7 @@ export class AuthService {
         agencyId: userWithPermissions.agencyId,
         agencySlug: userWithPermissions.agency?.slug,
         agencyName: userWithPermissions.agency?.name,
-        employeeId: userWithPermissions.employeeId,
+        employeeId: userWithPermissions.employeeId ?? null,
       },
     };
   }

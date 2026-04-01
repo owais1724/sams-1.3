@@ -34,6 +34,7 @@ export default function RBACPage() {
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
     const [selectedRole, setSelectedRole] = useState<any>(null)
+    const visibleEmployees = employees.filter((emp: any) => Boolean(emp.user))
 
     const fetchData = async () => {
         if (!user) return
@@ -107,17 +108,17 @@ export default function RBACPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard title="Total Roles" value={roles.length} icon={<ShieldCheck />} color="blue" />
                 <StatCard title="Permissions" value={permissions.length} icon={<Database />} color="emerald" />
-                <StatCard title="Total Users" value={employees.length} icon={<Users />} color="amber" />
+                <StatCard title="Total Users" value={visibleEmployees.length} icon={<Users />} color="amber" />
             </div>
 
             <div className="space-y-6">
                 <SectionHeading title="Employee Access" />
                 <DataTable columns={['Employee', 'Role', 'Actions']}>
                     <AnimatePresence mode="popLayout">
-                        {employees.length === 0 ? (
+                        {visibleEmployees.length === 0 ? (
                             <TableRowEmpty colSpan={3} title="No users found" icon={<Users />} />
                         ) : (
-                            employees.map((emp, idx) => (
+                            visibleEmployees.map((emp, idx) => (
                                 <motion.tr
                                     key={emp.id}
                                     initial={{ opacity: 0, scale: 0.98 }}
@@ -210,17 +211,17 @@ export default function RBACPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-right px-4 sm:px-8">
-                                    {!role.isSystem ? (
-                                        <div className="flex justify-end gap-2">
-                                            <RowEditButton onClick={() => {
-                                                setSelectedRole(role)
-                                                setOpen(true)
-                                            }} />
+                                    <div className="flex justify-end gap-2 items-center">
+                                        <RowEditButton onClick={() => {
+                                            setSelectedRole(role)
+                                            setOpen(true)
+                                        }} />
+                                        {!role.isSystem ? (
                                             <RowDeleteButton onClick={() => openDelete(role.id, role.name)} />
-                                        </div>
-                                    ) : (
-                                        <div className="px-4 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-black text-slate-300 uppercase tracking-widest w-fit ml-auto">PROTECTED</div>
-                                    )}
+                                        ) : (
+                                            <div className="px-3 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-black text-slate-300 uppercase tracking-widest">PROTECTED</div>
+                                        )}
+                                    </div>
                                 </TableCell>
                             </motion.tr>
                         ))}

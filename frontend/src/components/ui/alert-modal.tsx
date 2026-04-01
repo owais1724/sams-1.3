@@ -102,6 +102,7 @@ export function AlertModal({
 }: AlertModalProps) {
     const activeVariant = variants[variant]
     const Icon = activeVariant.icon
+    const isPlainDescription = typeof description === "string" || typeof description === "number"
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -130,9 +131,15 @@ export function AlertModal({
                         <DialogTitle className="text-2xl font-black text-[#0f172a] tracking-tight leading-tight m-0">
                             {title}
                         </DialogTitle>
-                        <DialogDescription className="text-sm font-bold text-[#64748b] leading-tight !mt-0">
-                            {description}
-                        </DialogDescription>
+                        {isPlainDescription ? (
+                            <DialogDescription className="text-sm font-bold text-[#64748b] leading-tight !mt-0">
+                                {description}
+                            </DialogDescription>
+                        ) : (
+                            <div className="text-sm font-bold text-[#64748b] leading-tight !mt-0">
+                                {description}
+                            </div>
+                        )}
                     </DialogHeader>
 
                     <DialogFooter className="w-full flex-col sm:flex-row gap-3 mt-8">

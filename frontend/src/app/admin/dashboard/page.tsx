@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import api from "@/lib/api"
 import {
     Table,
@@ -23,6 +24,7 @@ import { AlertModal } from "@/components/ui/alert-modal"
 import { TableRowEmpty, TableRowLoading } from "@/components/ui/design-system"
 
 export default function AdminDashboard() {
+    const router = useRouter()
     const [agencies, setAgencies] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [open, setOpen] = useState(false)
@@ -40,7 +42,7 @@ export default function AdminDashboard() {
 
     const fetchAgencies = async () => {
         try {
-            const response = await api.get("/agencies")
+            const response = await api.get("/agencies", { params: { _t: Date.now() } })
             setAgencies(response.data)
         } catch (error) {
             console.error(error)
@@ -220,6 +222,14 @@ export default function AdminDashboard() {
                                         </TableCell>
                                         <TableCell className="pr-4 sm:pr-6 text-right">
                                             <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-[#06b6d4] text-[#06b6d4] hover:bg-cyan-50 hover:text-[#0891b2]"
+                                                    onClick={() => router.push(`/admin/agencies/${agency.id}/admins`)}
+                                                >
+                                                    View Admins
+                                                </Button>
                                                 <Button
                                                     variant="secondary"
                                                     size="sm"

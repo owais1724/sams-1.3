@@ -74,11 +74,17 @@ export default function RootLoginPage() {
       router.push("/admin/dashboard")
 
     } catch (error: any) {
-      console.error(error)
+      const status = error.response?.status ?? error.status
+      const message = error.extractedMessage || error.message || ""
+      if (!status || status >= 500) {
+        console.error("[RootLogin] Unexpected login failure:", error)
+      }
       
       // Better error messages
-      if (error.response?.status === 401) {
+      if (status === 401) {
         toast.error("Invalid credentials")
+      } else if (status === 403) {
+        toast.error(message || "Account suspended. Contact your administrator.")
       } else if (error.message?.includes('Network Error') || error.code === 'ECONNREFUSED') {
         toast.error("Unable to connect to server. Please try again.")
       } else {

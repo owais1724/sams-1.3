@@ -152,7 +152,7 @@ export default function AdminLayout({
             {/* Unified Container — sidebar + content as one panel */}
             <div className="flex flex-1 min-h-screen w-full overflow-hidden bg-white">
                 {/* Desktop Sidebar */}
-                <div className={`hidden lg:flex shrink-0 z-20 transition-all duration-300 border-r border-slate-200 ${sidebarCollapsed ? 'w-24' : 'w-[22rem]'}`}>
+                <div className={`hidden lg:flex sticky top-0 self-start h-screen shrink-0 z-20 transition-all duration-300 border-r border-slate-200 ${sidebarCollapsed ? 'w-24' : 'w-[22rem]'}`}>
                     <AdminSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebarCollapse} />
                 </div>
 

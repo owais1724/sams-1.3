@@ -54,11 +54,40 @@ export class EmployeesController {
     return this.employeesService.update(agencyId, id, data);
   }
 
+  @Patch(':id/promote')
+  @Permissions('manage_roles')
+  promote(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() data?: { roleId?: string },
+  ) {
+    const agencyId = requireAgencyContext(req);
+    return this.employeesService.promoteToAgencyAdmin(agencyId, id, data?.roleId);
+  }
+
+  @Patch(':id/demote')
+  @Permissions('manage_roles')
+  demote(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() data?: { roleId?: string },
+  ) {
+    const agencyId = requireAgencyContext(req);
+    return this.employeesService.demoteToStaffRole(agencyId, id, data?.roleId);
+  }
+
+  @Patch(':id/suspend')
+  @Permissions('manage_roles')
+  suspend(@Request() req, @Param('id') id: string) {
+    const agencyId = requireAgencyContext(req);
+    return this.employeesService.toggleEmployeeUserSuspension(agencyId, id);
+  }
+
   @Delete(':id')
-  @Permissions('delete_employee')
+  @Permissions('manage_roles')
   remove(@Request() req, @Param('id') id: string) {
     const agencyId = requireAgencyContext(req);
-    return this.employeesService.remove(agencyId, id, req.user.sub);
+    return this.employeesService.remove(agencyId, id, req.user?.userId || req.user?.sub);
   }
 
   @Post('sync-roles')

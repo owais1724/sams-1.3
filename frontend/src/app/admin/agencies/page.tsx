@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import api from "@/lib/api"
 import {
     Table,
@@ -11,7 +12,6 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, Shield, PowerOff, Power } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AgencyForm } from "@/components/admin/AgencyForm"
@@ -34,7 +34,7 @@ export default function AgenciesPage() {
 
     const fetchAgencies = async () => {
         try {
-            const response = await api.get("/agencies")
+            const response = await api.get("/agencies", { params: { _t: Date.now() } })
             setAgencies(response.data)
         } catch (error) {
             console.error(error)
@@ -80,7 +80,7 @@ export default function AgenciesPage() {
     }, [])
 
     return (
-        <div className="space-y-8 max-w-7xl mx-auto px-4 py-8">
+        <div className="space-y-8 max-w-7xl mx-auto px-4 py-8 font-inter">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="flex-1 min-w-0">
                     <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-2 truncate">Platform Agencies</h1>
@@ -113,6 +113,7 @@ export default function AgenciesPage() {
                     <TableHeader className="bg-slate-50/50 border-b border-slate-100">
                         <TableRow className="hover:bg-transparent">
                             <TableHead className="h-14 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Entity</TableHead>
+                            <TableHead className="h-14 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency Admin</TableHead>
                             <TableHead className="h-14 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Private Endpoint</TableHead>
                             <TableHead className="h-14 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Status</TableHead>
                             <TableHead className="h-14 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployed Since</TableHead>
@@ -122,7 +123,7 @@ export default function AgenciesPage() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-20">
+                                <TableCell colSpan={6} className="text-center py-20">
                                     <div className="flex flex-col items-center gap-3">
                                         <div className="h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanning Network...</p>
@@ -131,7 +132,7 @@ export default function AgenciesPage() {
                             </TableRow>
                         ) : agencies.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-32">
+                                <TableCell colSpan={6} className="text-center py-32">
                                     <div className="flex flex-col items-center gap-4">
                                         <div className="h-12 w-12 bg-slate-50 rounded-2xl flex items-center justify-center">
                                             <Shield className="h-6 w-6 text-slate-200" />
@@ -148,6 +149,20 @@ export default function AgenciesPage() {
                                             <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors">{agency.name}</span>
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">ID: {agency.id.slice(-8).toUpperCase()}</span>
                                         </div>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-5">
+                                        {agency.users?.length ? (
+                                            <div className="flex flex-col">
+                                                {agency.users.map((admin: any) => (
+                                                    <div key={admin.id} className="mb-1 last:mb-0">
+                                                        <span className="text-sm font-bold text-[#0f172a] block">{admin.fullName}</span>
+                                                        <span className="text-xs text-slate-500 block">{admin.email}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm font-semibold text-slate-400">No Admin</span>
+                                        )}
                                     </TableCell>
                                     <TableCell className="px-6 py-5">
                                         <div className="flex items-center gap-2">
@@ -184,6 +199,14 @@ export default function AgenciesPage() {
                                     </TableCell>
                                     <TableCell className="px-6 py-5 text-right">
                                         <div className="flex items-center justify-end gap-2">
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-10 px-5 border-[#06b6d4] text-[#06b6d4] hover:bg-cyan-50 hover:text-[#0891b2] font-bold rounded-2xl transition-all active:scale-95"
+                                            >
+                                                <Link href={`/admin/agencies/${agency.id}/admins`}>View Admins</Link>
+                                            </Button>
                                             {/* ── Toggle Button ── */}
                                             <Button
                                                 variant="ghost"

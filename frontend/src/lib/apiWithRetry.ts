@@ -45,17 +45,11 @@ export const loginWithRetry = async (
       }
     } catch (error: any) {
       lastError = error;
-      const status = error.response?.status;
-      const message = error.message || '';
-      
-      console.error(`[Login Retry] Attempt ${attempt} failed:`, {
-        status,
-        message,
-        data: error.response?.data
-      });
+      const status = error.response?.status ?? error.status;
+      const message = error.extractedMessage || error.message || '';
       
       // If it's a 401 (invalid credentials), don't retry
-      if (status === 401) {
+      if (status === 401 || status === 403) {
         throw error;
       }
       
@@ -65,9 +59,13 @@ export const loginWithRetry = async (
       // If it's a 502 or network error, retry after delay
       if ((is502 || status >= 500) && attempt < maxRetries) {
         const delay = attempt * 2000; // Exponential backoff: 2s, 4s, 6s
-        console.log(`[Login Retry] Server starting up (502), waiting ${delay}ms before retry...`);
+        console.warn(`[Login Retry] Attempt ${attempt} failed (${status || 'network'}). Retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
+      }
+
+      if (status) {
+        console.warn(`[Login Retry] Non-retryable login failure (${status}): ${message || 'Request failed'}`);
       }
       
       // For other errors, don't retry

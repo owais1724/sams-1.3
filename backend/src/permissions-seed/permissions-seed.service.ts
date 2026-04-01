@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -41,6 +42,64 @@ export class PermissionsSeedService implements OnModuleInit {
     'view_platform_analytics',
   ];
 
+  private readonly DEFAULT_AGENCY_ROLE_TEMPLATES = [
+    {
+      name: 'HR',
+      description: 'Human resources operations role',
+      permissions: [
+        'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
+        'manage_roles',
+        'view_shifts', 'manage_shifts',
+        'view_deployments', 'manage_deployments',
+        'approve_leave', 'apply_leave', 'view_leaves',
+        'record_attendance', 'view_attendance',
+        'report_incident', 'view_incidents', 'manage_incidents',
+        'view_clients',
+        'view_dashboard',
+        'view_reports',
+        'assign_staff',
+        'view_payroll',
+      ],
+    },
+    {
+      name: 'Supervisor',
+      description: 'Supervisor operations role',
+      permissions: [
+        'view_shifts', 'manage_shifts',
+        'view_deployments', 'manage_deployments',
+        'approve_leave', 'apply_leave', 'view_leaves',
+        'record_attendance', 'view_attendance',
+        'report_incident', 'view_incidents', 'manage_incidents',
+        'view_clients',
+        'view_dashboard',
+        'view_reports',
+        'assign_staff',
+      ],
+    },
+    {
+      name: 'Guard',
+      description: 'Guard operations role',
+      permissions: [
+        'view_shifts',
+        'view_deployments',
+        'apply_leave', 'view_leaves',
+        'record_attendance', 'view_attendance',
+        'report_incident', 'view_incidents',
+      ],
+    },
+    {
+      name: 'Cleaner',
+      description: 'Cleaner operations role',
+      permissions: [
+        'view_shifts',
+        'view_deployments',
+        'apply_leave', 'view_leaves',
+        'record_attendance', 'view_attendance',
+        'report_incident', 'view_incidents',
+      ],
+    },
+  ] as const;
+
   constructor(private prisma: PrismaService) { }
 
   async onModuleInit() {
@@ -49,6 +108,7 @@ export class PermissionsSeedService implements OnModuleInit {
     try {
       await this.migrateOldPermissionNames();
       await this.seedPermissions();
+      await this.seedDefaultRolesForExistingAgencies();
       await this.fixAgencyAdminRoles();
       await this.fixSuperAdminRole();
       this.logger.log('Permissions seed & migration complete.');
@@ -106,10 +166,17 @@ export class PermissionsSeedService implements OnModuleInit {
   }
 
   private async seedPermissions() {
-    const canonicalPermissions = [
-      ...this.PLATFORM_PERMISSIONS,
-      ...this.AGENCY_ADMIN_PERMISSIONS,
-    ];
+    const roleTemplatePermissions = this.DEFAULT_AGENCY_ROLE_TEMPLATES.flatMap(
+      (template) => template.permissions,
+    );
+
+    const canonicalPermissions = Array.from(
+      new Set([
+        ...this.PLATFORM_PERMISSIONS,
+        ...this.AGENCY_ADMIN_PERMISSIONS,
+        ...roleTemplatePermissions,
+      ]),
+    );
 
     for (const action of canonicalPermissions) {
       await this.prisma.permission.upsert({
@@ -120,6 +187,68 @@ export class PermissionsSeedService implements OnModuleInit {
     }
 
     this.logger.log(`Verified ${canonicalPermissions.length} permissions exist.`);
+  }
+
+  async seedDefaultRolesForAgency(
+    agencyId: string,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const db = tx ?? this.prisma;
+
+    const requiredActions = Array.from(
+      new Set(
+        this.DEFAULT_AGENCY_ROLE_TEMPLATES.flatMap((template) => template.permissions),
+      ),
+    );
+
+    for (const action of requiredActions) {
+      await db.permission.upsert({
+        where: { action },
+        update: {},
+        create: { action, description: `Permission: ${action}` },
+      });
+    }
+
+    for (const template of this.DEFAULT_AGENCY_ROLE_TEMPLATES) {
+      const existingRole = await db.role.findFirst({
+        where: {
+          agencyId,
+          name: template.name,
+        },
+        select: { id: true },
+      });
+
+      // Do not modify existing role records.
+      if (existingRole) {
+        continue;
+      }
+
+      await db.role.create({
+        data: {
+          name: template.name,
+          description: template.description,
+          isSystem: true,
+          agencyId,
+          permissions: {
+            connect: template.permissions.map((action) => ({ action })),
+          },
+        },
+      });
+    }
+  }
+
+  private async seedDefaultRolesForExistingAgencies() {
+    const agencies = await this.prisma.agency.findMany({
+      select: { id: true },
+    });
+
+    for (const agency of agencies) {
+      await this.seedDefaultRolesForAgency(agency.id);
+    }
+
+    this.logger.log(
+      `Verified default HR/Supervisor/Guard/Cleaner roles for ${agencies.length} agencies.`,
+    );
   }
 
   private async fixAgencyAdminRoles() {

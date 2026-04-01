@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams, usePathname, useRouter } from "next/navigation"
 import api from "@/lib/api"
 import {
     PageHeader,
@@ -53,6 +54,11 @@ import { SearchBar } from "@/components/common/SearchBar"
 import { Input } from "@/components/ui/input"
 
 export default function EmployeesPage() {
+    const router = useRouter()
+    const pathname = usePathname()
+    const params = useParams<{ agencySlug?: string | string[] }>()
+    const agencySlug = Array.isArray(params?.agencySlug) ? params.agencySlug[0] : params?.agencySlug
+    const isStaffPortal = pathname?.includes("/staff/")
     const { user } = useAuthStore()
     const [employees, setEmployees] = useState<any[]>([])
     const [designations, setDesignations] = useState<any[]>([])
@@ -120,7 +126,9 @@ export default function EmployeesPage() {
         }
     }
 
-    const filteredEmployees = employees.filter((emp: any) =>
+    const visibleEmployees = employees.filter((emp: any) => Boolean(emp.user))
+
+    const filteredEmployees = visibleEmployees.filter((emp: any) =>
         emp.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         emp.employeeCode?.toLowerCase().includes(searchQuery.toLowerCase())
     )
@@ -145,8 +153,8 @@ export default function EmployeesPage() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Total Employees" value={employees.length} icon={<Users className="text-teal-700" />} color="teal" />
-                <StatCard title="Active Status" value={employees.filter((e: any) => e.status === 'ACTIVE').length} icon={<UserCheck className="text-green-700" />} color="emerald" />
+                <StatCard title="Total Employees" value={visibleEmployees.length} icon={<Users className="text-teal-700" />} color="teal" />
+                <StatCard title="Active Status" value={visibleEmployees.filter((e: any) => e.status === 'ACTIVE').length} icon={<UserCheck className="text-green-700" />} color="emerald" />
                 <StatCard title="Designations" value={designations.length} icon={<Shield className="text-sky-700" />} color="blue" />
             </div>
 
@@ -223,7 +231,15 @@ export default function EmployeesPage() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <RowViewButton onClick={() => setProfileDialog({ open: true, employee: emp })} />
+                                                <RowViewButton
+                                                    onClick={() => {
+                                                        if (isStaffPortal) {
+                                                            setProfileDialog({ open: true, employee: emp })
+                                                            return
+                                                        }
+                                                        router.push(`/${agencySlug}/employees/${emp.id}`)
+                                                    }}
+                                                />
                                                 <PermissionGuard permission="edit_project">
                                                     <Button
                                                         onClick={() => setAssignDialog({ open: true, employee: emp })}
