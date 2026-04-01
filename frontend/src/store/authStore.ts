@@ -82,47 +82,39 @@ export const useAuthStore = create<AuthState>()(
                     return;
                 }
 
-                // Check if we have auth cookies
                 if (typeof document !== 'undefined') {
-                    const hasAuthCookie = 
-                        document.cookie.includes('access_token') || 
-                        document.cookie.includes('token') ||
-                        document.cookie.includes('userRole');
-                    
-                    if (hasAuthCookie) {
-                        console.log('[AuthStore] Auth cookies found, restoring session from backend...');
-                        // Try to restore session from backend
-                        try {
-                            const response = await fetch('/api/auth/me', {
-                                credentials: 'include',
-                                headers: withCsrfHeaders('GET', {
-                                    'Content-Type': 'application/json',
-                                }),
-                                cache: 'no-store'
+                    console.log('[AuthStore] Restoring session from backend...');
+
+                    try {
+                        const response = await fetch('/api/auth/me', {
+                            credentials: 'include',
+                            headers: withCsrfHeaders('GET', {
+                                'Content-Type': 'application/json',
+                            }),
+                            cache: 'no-store'
+                        });
+                        
+                        if (response.ok) {
+                            const userData = await response.json();
+                            console.log('[AuthStore] Session restored successfully:', userData.email);
+                            set({ 
+                                user: userData, 
+                                isAuthenticated: true, 
+                                isLoading: false 
                             });
                             
-                            if (response.ok) {
-                                const userData = await response.json();
-                                console.log('[AuthStore] Session restored successfully:', userData.email);
-                                set({ 
-                                    user: userData, 
-                                    isAuthenticated: true, 
-                                    isLoading: false 
-                                });
-                                
-                                // Store in cookies for middleware
-                                if (userData.role) {
-                                    document.cookie = `userRole=${userData.role}; path=/; max-age=86400; SameSite=Lax`;
-                                }
-                                setActiveSessionUser(userData);
-                                setTabSessionUser(userData);
-                                return;
-                            } else {
-                                console.warn('[AuthStore] Failed to restore session, status:', response.status);
+                            // Store role in cookie for middleware
+                            if (userData.role) {
+                                document.cookie = `userRole=${userData.role}; path=/; max-age=86400; SameSite=Lax`;
                             }
-                        } catch (error) {
-                            console.warn('[AuthStore] Failed to restore session:', error);
+                            setActiveSessionUser(userData);
+                            setTabSessionUser(userData);
+                            return;
                         }
+
+                        console.warn('[AuthStore] Failed to restore session, status:', response.status);
+                    } catch (error) {
+                        console.warn('[AuthStore] Failed to restore session:', error);
                     }
                 }
 

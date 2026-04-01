@@ -129,6 +129,22 @@ function rememberStaffNavigationIntent(urlValue: string | URL | null | undefined
     }
 }
 
+function hasTrustedStaffReferrer(agencySlug: string) {
+    if (typeof window === "undefined" || !agencySlug || !document.referrer) {
+        return false
+    }
+
+    try {
+        const referrerUrl = new URL(document.referrer, window.location.origin)
+        return (
+            referrerUrl.origin === window.location.origin &&
+            referrerUrl.pathname.startsWith(`/${agencySlug}/staff`)
+        )
+    } catch {
+        return false
+    }
+}
+
 export default function StaffLayout({
     children,
 }: {
@@ -189,11 +205,13 @@ export default function StaffLayout({
             const verifiedStaffPath = sessionStorage.getItem(STAFF_VERIFIED_PATH_KEY)
             const navIntent = getRecentStaffNavigationIntent()
             const navIntentPath = navIntent?.path || null
+            const trustedReferrer = hasTrustedStaffReferrer(currentAgencySlug)
             const isManualProtectedDeepLink =
                 Boolean(verifiedStaffPath) &&
                 verifiedStaffPath !== normalizedCurrentPath &&
                 navIntentPath !== normalizedCurrentPath &&
-                !navIntent
+                !navIntent &&
+                !trustedReferrer
 
             if (isManualProtectedDeepLink) {
                 console.warn(`[StaffLayout] Manual protected URL detected for ${pathname}`)
