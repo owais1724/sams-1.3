@@ -182,10 +182,13 @@ export default function StaffLayout({
                 const normalizedCurrentPath = normalizeStaffPath(pathname, currentAgencySlug)
                 const verifiedStaffPath = sessionStorage.getItem(STAFF_VERIFIED_PATH_KEY)
                 const navIntentPath = sessionStorage.getItem(STAFF_NAV_INTENT_KEY)
+                
+                // Only block if there's a verified path, current path is different, 
+                // AND there's no navigation intent (meaning it was a manual paste/copy)
                 const hasManualProtectedNavigation =
                     Boolean(verifiedStaffPath) &&
                     verifiedStaffPath !== normalizedCurrentPath &&
-                    navIntentPath !== normalizedCurrentPath
+                    !navIntentPath
 
                 if (hasManualProtectedNavigation) {
                     console.warn("[StaffLayout] Manual protected-route navigation detected", {
