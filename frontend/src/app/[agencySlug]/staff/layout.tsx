@@ -362,13 +362,42 @@ export default function StaffLayout({
             return
         }
 
-        // Always verify on pathname change to catch pasted URLs
-        verifyStaffAccess()
+        // Only verify once on initial load
+        if (!isAuthenticated) {
+            verifyStaffAccess()
+        } else {
+            // On subsequent navigations, just check tab user key locally (no API call)
+            const tabUserKey = getTabSessionUserKey()
+            const currentUserKey = buildSessionUserKey(user)
+            
+            if (tabUserKey && currentUserKey && tabUserKey !== currentUserKey) {
+                console.warn("[StaffLayout] Different user detected via local check")
+                toast.error("Unauthorized access. You have been logged out.")
+                void forceLogout()
+                return
+            }
+            
+            // Check permissions locally without API call
+            const routeRule = getRouteRule(pathname, currentAgencySlug)
+            const routePermissionDenied =
+                Boolean(routeRule) && !hasRoutePermission(user, routeRule?.anyPermissions)
+
+            if (routePermissionDenied) {
+                console.warn(`[StaffLayout] Route permission denied for ${pathname}`)
+                toast.error("Access denied. You don't have permission for this page.")
+                window.location.href = `/${currentAgencySlug}/staff/my-schedule`
+                return
+            }
+            
+            setIsLoading(false)
+        }
     }, [
         authLoading,
         isLoginPage,
         hasTabSessionMismatch,
+        isAuthenticated,
         pathname,
+        user,
     ])
 
     if ((isLoading || hasTabSessionMismatch) && !isLoginPage) {
