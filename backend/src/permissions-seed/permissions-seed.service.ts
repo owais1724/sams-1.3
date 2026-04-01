@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class PermissionsSeedService implements OnModuleInit {
@@ -111,6 +112,7 @@ export class PermissionsSeedService implements OnModuleInit {
       await this.seedDefaultRolesForExistingAgencies();
       await this.fixAgencyAdminRoles();
       await this.fixSuperAdminRole();
+      await this.ensureSuperAdminAccount();
       this.logger.log('Permissions seed & migration complete.');
     } catch (err) {
       this.logger.error('Permissions seed check failed', err.stack);
@@ -327,5 +329,70 @@ export class PermissionsSeedService implements OnModuleInit {
     });
 
     this.logger.log('Fixed Super Admin platform permissions.');
+  }
+
+  private async ensureSuperAdminAccount() {
+    const configuredEmail = (process.env.SUPER_ADMIN_EMAIL || 'admin@sams.com')
+      .toLowerCase()
+      .trim();
+    const configuredPassword = process.env.SUPER_ADMIN_PASSWORD;
+    const configuredName = (process.env.SUPER_ADMIN_NAME || 'SAMS GLOBAL ADMIN').trim();
+
+    const superAdminRole = await this.prisma.role.findFirst({
+      where: { name: 'Super Admin', agencyId: null },
+      select: { id: true },
+    });
+
+    if (!superAdminRole) {
+      this.logger.warn('Cannot ensure Super Admin account because role "Super Admin" is missing.');
+      return;
+    }
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: configuredEmail },
+      select: { id: true },
+    });
+
+    if (!existingUser) {
+      const bootstrapPassword = configuredPassword || 'password123';
+      const hashedPassword = await bcrypt.hash(bootstrapPassword, 10);
+
+      await this.prisma.user.create({
+        data: {
+          email: configuredEmail,
+          password: hashedPassword,
+          fullName: configuredName,
+          roleId: superAdminRole.id,
+          agencyId: null,
+          employeeId: null,
+          previousEmployeeId: null,
+        },
+      });
+
+      this.logger.log(`Created Super Admin account: ${configuredEmail}`);
+      return;
+    }
+
+    const updateData: any = {
+      roleId: superAdminRole.id,
+      agencyId: null,
+      employeeId: null,
+      previousEmployeeId: null,
+      fullName: configuredName,
+    };
+
+    if (configuredPassword) {
+      updateData.password = await bcrypt.hash(configuredPassword, 10);
+      this.logger.log('Super Admin password synced from SUPER_ADMIN_PASSWORD.');
+    } else if (process.env.NODE_ENV === 'production') {
+      this.logger.warn('SUPER_ADMIN_PASSWORD is not set; existing Super Admin password was kept as-is.');
+    }
+
+    await this.prisma.user.update({
+      where: { email: configuredEmail },
+      data: updateData,
+    });
+
+    this.logger.log(`Verified Super Admin account: ${configuredEmail}`);
   }
 }

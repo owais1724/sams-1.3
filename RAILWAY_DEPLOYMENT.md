@@ -11,6 +11,9 @@ JWT_EXPIRATION=1d
 PORT=3000
 NODE_ENV=production
 CORS_ORIGINS=https://happy-joy-production.up.railway.app
+SUPER_ADMIN_EMAIL=admin@sams.com
+SUPER_ADMIN_PASSWORD=<set-a-strong-password>
+SUPER_ADMIN_NAME=SAMS GLOBAL ADMIN
 ```
 
 ## Frontend Environment Variables
