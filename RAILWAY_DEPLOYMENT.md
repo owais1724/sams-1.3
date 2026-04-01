@@ -57,3 +57,10 @@ NODE_ENV=production
 - Run `npx prisma db push` manually in Railway backend shell
 - Check DATABASE_URL format
 - Verify Postgres service is running
+
+### Prisma P2022 (column does not exist)
+- This means deployed code expects a newer schema than the current Railway database.
+- Backend startup now runs `npx prisma migrate deploy` automatically.
+- If still failing, open Railway backend shell and run:
+	- `npx prisma migrate deploy`
+	- restart the backend service
