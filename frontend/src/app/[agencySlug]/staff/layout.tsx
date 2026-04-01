@@ -42,6 +42,8 @@ const routeAccessRules: RouteAccessRule[] = [
     { pattern: /^\/payroll$/, anyPermissions: ["view_payroll", "manage_payroll"] },
 ]
 
+const STAFF_NAV_INTENT_TTL_MS = 5000
+
 function normalizeStaffPath(pathname: string | null | undefined, agencySlug: string) {
     if (!pathname) return "/"
 
@@ -68,6 +70,34 @@ function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
     return requiredPermissions.some((permission) => userData?.permissions?.includes(permission))
 }
 
+function getRecentStaffNavigationIntent() {
+    if (typeof window === "undefined") {
+        return null
+    }
+
+    const rawIntent = sessionStorage.getItem(STAFF_NAV_INTENT_KEY)
+    if (!rawIntent) {
+        return null
+    }
+
+    try {
+        const parsedIntent = JSON.parse(rawIntent) as { path?: string; at?: number }
+        const isFreshIntent =
+            typeof parsedIntent?.at === "number" &&
+            Date.now() - parsedIntent.at <= STAFF_NAV_INTENT_TTL_MS
+
+        if (!isFreshIntent) {
+            sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
+            return null
+        }
+
+        return parsedIntent
+    } catch {
+        sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
+        return null
+    }
+}
+
 function rememberStaffNavigationIntent(urlValue: string | URL | null | undefined, agencySlug: string) {
     if (typeof window === "undefined" || !urlValue || !agencySlug) {
         return
@@ -89,7 +119,10 @@ function rememberStaffNavigationIntent(urlValue: string | URL | null | undefined
 
         sessionStorage.setItem(
             STAFF_NAV_INTENT_KEY,
-            normalizeStaffPath(url.pathname, agencySlug),
+            JSON.stringify({
+                path: normalizeStaffPath(url.pathname, agencySlug),
+                at: Date.now(),
+            }),
         )
     } catch {
         // Ignore malformed URLs and keep the current tab session intact.
@@ -154,11 +187,13 @@ export default function StaffLayout({
         try {
             const normalizedCurrentPath = normalizeStaffPath(pathname, currentAgencySlug)
             const verifiedStaffPath = sessionStorage.getItem(STAFF_VERIFIED_PATH_KEY)
-            const navIntentPath = sessionStorage.getItem(STAFF_NAV_INTENT_KEY)
+            const navIntent = getRecentStaffNavigationIntent()
+            const navIntentPath = navIntent?.path || null
             const isManualProtectedDeepLink =
                 Boolean(verifiedStaffPath) &&
                 verifiedStaffPath !== normalizedCurrentPath &&
-                navIntentPath !== normalizedCurrentPath
+                navIntentPath !== normalizedCurrentPath &&
+                !navIntent
 
             if (isManualProtectedDeepLink) {
                 console.warn(`[StaffLayout] Manual protected URL detected for ${pathname}`)
@@ -231,9 +266,7 @@ export default function StaffLayout({
             }
 
             sessionStorage.setItem(STAFF_VERIFIED_PATH_KEY, normalizedCurrentPath)
-            if (navIntentPath === normalizedCurrentPath) {
-                sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
-            }
+            sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
 
             login(userData)
         } catch (error) {
