@@ -102,17 +102,24 @@ export default function AgencyLayout({
     const { user, login, clearLocalAuth, initialize } = useAuthStore()
     const [verifying, setVerifying] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+    // Load sidebar state from localStorage after mount to avoid hydration mismatch
+    useEffect(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem('sams_sidebar_collapsed') === 'true'
+            const saved = localStorage.getItem('sams_sidebar_collapsed')
+            if (saved === 'true') {
+                setSidebarCollapsed(true)
+            }
         }
-        return false
-    })
+    }, [])
 
     const toggleSidebarCollapse = () => {
         setSidebarCollapsed(prev => {
             const next = !prev
-            localStorage.setItem('sams_sidebar_collapsed', String(next))
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('sams_sidebar_collapsed', String(next))
+            }
             return next
         })
     }
