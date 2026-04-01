@@ -68,6 +68,34 @@ function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
     return requiredPermissions.some((permission) => userData?.permissions?.includes(permission))
 }
 
+function rememberStaffNavigationIntent(urlValue: string | URL | null | undefined, agencySlug: string) {
+    if (typeof window === "undefined" || !urlValue || !agencySlug) {
+        return
+    }
+
+    try {
+        const url = typeof urlValue === "string"
+            ? new URL(urlValue, window.location.origin)
+            : new URL(urlValue.toString(), window.location.origin)
+
+        if (url.origin !== window.location.origin) {
+            return
+        }
+
+        const staffPrefix = `/${agencySlug}/staff`
+        if (!url.pathname.startsWith(staffPrefix)) {
+            return
+        }
+
+        sessionStorage.setItem(
+            STAFF_NAV_INTENT_KEY,
+            normalizeStaffPath(url.pathname, agencySlug),
+        )
+    } catch {
+        // Ignore malformed URLs and keep the current tab session intact.
+    }
+}
+
 export default function StaffLayout({
     children,
 }: {
@@ -80,6 +108,7 @@ export default function StaffLayout({
 
     const [isLoading, setIsLoading] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [verifying, setVerifying] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         if (typeof window !== "undefined") {
             return localStorage.getItem("sams_sidebar_collapsed") === "true"
@@ -119,7 +148,25 @@ export default function StaffLayout({
     }
 
     const verifyStaffAccess = async () => {
+        if (verifying) return // Prevent concurrent verifications
+        setVerifying(true)
+        
         try {
+            const normalizedCurrentPath = normalizeStaffPath(pathname, currentAgencySlug)
+            const verifiedStaffPath = sessionStorage.getItem(STAFF_VERIFIED_PATH_KEY)
+            const navIntentPath = sessionStorage.getItem(STAFF_NAV_INTENT_KEY)
+            const isManualProtectedDeepLink =
+                Boolean(verifiedStaffPath) &&
+                verifiedStaffPath !== normalizedCurrentPath &&
+                navIntentPath !== normalizedCurrentPath
+
+            if (isManualProtectedDeepLink) {
+                console.warn(`[StaffLayout] Manual protected URL detected for ${pathname}`)
+                toast.error("Copied or pasted protected staff URLs are not allowed. Please sign in again.")
+                void forceLogout()
+                return
+            }
+
             const response = await api.get("/auth/me")
             const userData = response.data
 
@@ -129,6 +176,17 @@ export default function StaffLayout({
                 employeeId: userData?.employeeId,
                 path: pathname,
             })
+
+            // Check if this tab belongs to a different user
+            const tabUserKey = getTabSessionUserKey()
+            const currentUserKey = buildSessionUserKey(userData)
+            
+            if (tabUserKey && currentUserKey && tabUserKey !== currentUserKey) {
+                console.warn("[StaffLayout] Different user detected in this tab")
+                toast.error("Unauthorized access. You have been logged out.")
+                void forceLogout()
+                return
+            }
 
             const isStaffUser = Boolean(userData?.employeeId)
             const isSuperAdmin = userData?.role?.toLowerCase()?.includes("super admin")
@@ -162,15 +220,19 @@ export default function StaffLayout({
 
             if (routePermissionDenied) {
                 console.warn(`[StaffLayout] Route permission denied for ${pathname}`)
-                toast.error("Access denied. You don't have permission for this page.")
-                // Don't logout, just redirect to my-schedule
-                window.location.href = `/${currentAgencySlug}/staff/my-schedule`
+                toast.error("Unauthorized staff URL access detected. Please sign in again.")
+                void forceLogout()
                 return
             }
 
-            const currentUserKey = buildSessionUserKey(userData)
-            if (currentUserKey) {
-                sessionStorage.setItem("sams_tab_user_key", currentUserKey)
+            const currentUserKey2 = buildSessionUserKey(userData)
+            if (currentUserKey2) {
+                sessionStorage.setItem("sams_tab_user_key", currentUserKey2)
+            }
+
+            sessionStorage.setItem(STAFF_VERIFIED_PATH_KEY, normalizedCurrentPath)
+            if (navIntentPath === normalizedCurrentPath) {
+                sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
             }
 
             login(userData)
@@ -179,12 +241,59 @@ export default function StaffLayout({
             void forceLogout()
         } finally {
             setIsLoading(false)
+            setVerifying(false)
         }
     }
 
     useEffect(() => {
         initialize()
     }, [initialize])
+
+    useEffect(() => {
+        if (typeof window === "undefined" || isLoginPage || !currentAgencySlug) {
+            return
+        }
+
+        const handleDocumentClick = (event: MouseEvent) => {
+            const target = event.target
+            if (!(target instanceof Element)) {
+                return
+            }
+
+            const link = target.closest("a")
+            if (!link) {
+                return
+            }
+
+            const href = link.getAttribute("href")
+            if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) {
+                return
+            }
+
+            rememberStaffNavigationIntent(href, currentAgencySlug)
+        }
+
+        const originalPushState = window.history.pushState.bind(window.history)
+        const originalReplaceState = window.history.replaceState.bind(window.history)
+
+        window.history.pushState = function pushState(state, unused, url) {
+            rememberStaffNavigationIntent(url, currentAgencySlug)
+            return originalPushState(state, unused, url)
+        }
+
+        window.history.replaceState = function replaceState(state, unused, url) {
+            rememberStaffNavigationIntent(url, currentAgencySlug)
+            return originalReplaceState(state, unused, url)
+        }
+
+        document.addEventListener("click", handleDocumentClick, true)
+
+        return () => {
+            document.removeEventListener("click", handleDocumentClick, true)
+            window.history.pushState = originalPushState
+            window.history.replaceState = originalReplaceState
+        }
+    }, [currentAgencySlug, isLoginPage])
 
     useEffect(() => {
         if (authLoading) {
@@ -202,17 +311,13 @@ export default function StaffLayout({
             return
         }
 
-        // Only verify on initial load, not on every navigation
-        if (!isAuthenticated) {
-            verifyStaffAccess()
-        } else {
-            setIsLoading(false)
-        }
+        // Always verify on pathname change to catch pasted URLs
+        verifyStaffAccess()
     }, [
         authLoading,
         isLoginPage,
         hasTabSessionMismatch,
-        isAuthenticated,
+        pathname,
     ])
 
     if ((isLoading || hasTabSessionMismatch) && !isLoginPage) {
