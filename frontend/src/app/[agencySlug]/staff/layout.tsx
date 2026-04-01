@@ -118,48 +118,73 @@ export default function StaffLayout({
         window.location.replace(targetPath || `/${currentAgencySlug}/staff-login`)
     }
 
+    const verifyStaffAccess = async () => {
+        try {
+            const response = await api.get("/auth/me")
+            const userData = response.data
+
+            console.log("[StaffLayout] User check:", {
+                email: userData?.email,
+                role: userData?.role,
+                employeeId: userData?.employeeId,
+                path: pathname,
+            })
+
+            const isStaffUser = Boolean(userData?.employeeId)
+            const isSuperAdmin = userData?.role?.toLowerCase()?.includes("super admin")
+            const userAgency = userData?.agencySlug?.toLowerCase()?.trim() || ""
+            const currentAgency = currentAgencySlug?.toLowerCase()?.trim() || ""
+
+            if (userAgency !== currentAgency) {
+                console.warn(`[StaffLayout] Agency mismatch: ${userAgency} !== ${currentAgency}`)
+                toast.error("Unauthorized access. Wrong agency.")
+                void forceLogout()
+                return
+            }
+
+            if (isSuperAdmin) {
+                console.warn("[StaffLayout] Super admin blocked from staff portal")
+                toast.error("Unauthorized access.")
+                void forceLogout("/admin/login")
+                return
+            }
+
+            if (!isStaffUser) {
+                console.warn("[StaffLayout] Non-staff user blocked from staff portal")
+                toast.error("Unauthorized access to Staff portal.")
+                void forceLogout(`/${currentAgencySlug}/login`)
+                return
+            }
+
+            const routeRule = getRouteRule(pathname, currentAgencySlug)
+            const routePermissionDenied =
+                Boolean(routeRule) && !hasRoutePermission(userData, routeRule?.anyPermissions)
+
+            if (routePermissionDenied) {
+                console.warn(`[StaffLayout] Route permission denied for ${pathname}`)
+                toast.error("Access denied. You don't have permission for this page.")
+                // Don't logout, just redirect to my-schedule
+                window.location.href = `/${currentAgencySlug}/staff/my-schedule`
+                return
+            }
+
+            const currentUserKey = buildSessionUserKey(userData)
+            if (currentUserKey) {
+                sessionStorage.setItem("sams_tab_user_key", currentUserKey)
+            }
+
+            login(userData)
+        } catch (error) {
+            console.error("[StaffLayout] Session verification failed:", error)
+            void forceLogout()
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     useEffect(() => {
         initialize()
     }, [initialize])
-
-    useEffect(() => {
-        if (isLoginPage || typeof window === "undefined") {
-            return
-        }
-
-        const handleDocumentClick = (event: MouseEvent) => {
-            if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-                return
-            }
-
-            const target = event.target instanceof Element ? event.target : null
-            const anchor = target?.closest('a[href]') as HTMLAnchorElement | null
-
-            if (!anchor || anchor.target === "_blank") {
-                return
-            }
-
-            try {
-                const nextUrl = new URL(anchor.href, window.location.origin)
-                const isSameOrigin = nextUrl.origin === window.location.origin
-                const isStaffRoute = nextUrl.pathname.startsWith(`/${currentAgencySlug}/staff`)
-
-                if (!isSameOrigin || !isStaffRoute) {
-                    return
-                }
-
-                const intendedPath = normalizeStaffPath(nextUrl.pathname, currentAgencySlug)
-                sessionStorage.setItem(STAFF_NAV_INTENT_KEY, intendedPath)
-            } catch {
-                // Ignore malformed hrefs.
-            }
-        }
-
-        document.addEventListener("click", handleDocumentClick, true)
-        return () => {
-            document.removeEventListener("click", handleDocumentClick, true)
-        }
-    }, [currentAgencySlug, isLoginPage])
 
     useEffect(() => {
         if (authLoading) {
@@ -177,110 +202,17 @@ export default function StaffLayout({
             return
         }
 
-        const verifyStaffAccess = async () => {
-            try {
-                const normalizedCurrentPath = normalizeStaffPath(pathname, currentAgencySlug)
-                const navIntentPath = sessionStorage.getItem(STAFF_NAV_INTENT_KEY)
-
-                const response = await api.get("/auth/me")
-                const userData = response.data
-                const currentUserKey = buildSessionUserKey(userData)
-                const tabUserKey = getTabSessionUserKey()
-
-                console.log("[StaffLayout] User check:", {
-                    email: userData?.email,
-                    role: userData?.role,
-                    employeeId: userData?.employeeId,
-                    tabUserKey,
-                    currentUserKey,
-                    path: pathname,
-                })
-
-                if (tabUserKey && currentUserKey && tabUserKey !== currentUserKey) {
-                    console.warn("[StaffLayout] Different user detected in this tab")
-                    toast.error("Unauthorized access. You have been logged out.")
-                    void forceLogout()
-                    return
-                }
-
-                const isStaffUser = Boolean(userData?.employeeId)
-                const isSuperAdmin = userData?.role?.toLowerCase()?.includes("super admin")
-                const userAgency = userData?.agencySlug?.toLowerCase()?.trim() || ""
-                const currentAgency = currentAgencySlug?.toLowerCase()?.trim() || ""
-
-                if (userAgency !== currentAgency) {
-                    console.warn(`[StaffLayout] Agency mismatch: ${userAgency} !== ${currentAgency}`)
-                    toast.error("Unauthorized access. Wrong agency.")
-                    void forceLogout()
-                    return
-                }
-
-                if (isSuperAdmin) {
-                    console.warn("[StaffLayout] Super admin blocked from staff portal")
-                    toast.error("Unauthorized access.")
-                    void forceLogout("/admin/login")
-                    return
-                }
-
-                if (!isStaffUser) {
-                    console.warn("[StaffLayout] Non-staff user blocked from staff portal")
-                    toast.error("Unauthorized access to Staff portal.")
-                    void forceLogout(`/${currentAgencySlug}/login`)
-                    return
-                }
-
-                const routeRule = getRouteRule(pathname, currentAgencySlug)
-                const routePermissionDenied =
-                    Boolean(routeRule) && !hasRoutePermission(userData, routeRule?.anyPermissions)
-
-                if (routePermissionDenied) {
-                    console.warn(`[StaffLayout] Route permission denied for ${pathname}`)
-                    toast.error("RBAC Violation: Unauthorized access. You have been isolated and logged out.")
-                    void forceLogout()
-                    return
-                }
-
-                if (currentUserKey) {
-                    sessionStorage.setItem("sams_tab_user_key", currentUserKey)
-                }
-                sessionStorage.setItem(STAFF_VERIFIED_PATH_KEY, normalizedCurrentPath)
-                if (navIntentPath === normalizedCurrentPath) {
-                    sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
-                }
-
-                login(userData)
-            } catch (error) {
-                console.error("[StaffLayout] Session verification failed:", error)
-                void forceLogout()
-            } finally {
-                setIsLoading(false)
-            }
-        }
-
-        verifyStaffAccess()
-
-        const cookieCheckInterval = window.setInterval(() => {
-            const latestActiveUserKey = getActiveSessionUserKey()
-            const latestTabUserKey = getTabSessionUserKey()
-
-            if (hasSessionConflict(latestTabUserKey, latestActiveUserKey)) {
-                console.log("[StaffLayout] Session conflict detected via polling")
-                verifyStaffAccess()
-            }
-        }, 2000)
-
-        return () => {
-            clearInterval(cookieCheckInterval)
+        // Only verify on initial load, not on every navigation
+        if (!isAuthenticated) {
+            verifyStaffAccess()
+        } else {
+            setIsLoading(false)
         }
     }, [
         authLoading,
-        clearLocalAuth,
-        currentAgencySlug,
-        hasTabSessionMismatch,
         isLoginPage,
-        login,
-        pathname,
-        tabPortalType,
+        hasTabSessionMismatch,
+        isAuthenticated,
     ])
 
     if ((isLoading || hasTabSessionMismatch) && !isLoginPage) {

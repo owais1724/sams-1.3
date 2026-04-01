@@ -86,6 +86,8 @@ export default function LeavesPage() {
   const [showApproveConfirm, setShowApproveConfirm] = useState(false)
   const [showRejectConfirm, setShowRejectConfirm] = useState(false)
   const [pendingLeaveAction, setPendingLeaveAction] = useState<{id: string, status: string, reason?: string} | null>(null)
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
+  const [pendingSubmitData, setPendingSubmitData] = useState<typeof formData | null>(null)
   const isLeaveFormComplete =
     Boolean(formData.leaveType) &&
     Boolean(formData.startDate) &&
@@ -111,43 +113,50 @@ export default function LeavesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (submitting) return
-    setSubmitting(true)
 
     if (!user?.employeeId) {
       toast.error('Only employees can request leave')
-      setSubmitting(false)
       return
     }
 
     if (!formData.leaveType) {
       toast.error('Please select a leave type')
-      setSubmitting(false)
       return
     }
 
     if (new Date(formData.endDate) < new Date(formData.startDate)) {
       toast.error('End date must be on or after start date')
-      setSubmitting(false)
       return
     }
 
+    // Show confirmation modal
+    setPendingSubmitData(formData)
+    setShowSubmitConfirm(true)
+  }
+
+  const confirmSubmit = async () => {
+    if (!pendingSubmitData) return
+    setSubmitting(true)
+
     try {
       console.log('[Leave Request] Submitting:', {
-        ...formData,
-        employeeId: user.employeeId,
-        startDate: new Date(formData.startDate),
-        endDate: new Date(formData.endDate)
+        ...pendingSubmitData,
+        employeeId: user?.employeeId,
+        startDate: new Date(pendingSubmitData.startDate),
+        endDate: new Date(pendingSubmitData.endDate)
       })
       
       await api.post('/leaves', {
-        ...formData,
-        startDate: new Date(formData.startDate),
-        endDate: new Date(formData.endDate),
-        employeeId: user.employeeId
+        ...pendingSubmitData,
+        startDate: new Date(pendingSubmitData.startDate),
+        endDate: new Date(pendingSubmitData.endDate),
+        employeeId: user?.employeeId
       })
 
       toast.success('Leave request submitted')
       setIsDialogOpen(false)
+      setShowSubmitConfirm(false)
+      setPendingSubmitData(null)
       setFormData({ leaveType: "", startDate: "", endDate: "", reason: "" })
       fetchLeaveRequests()
     } catch (error: any) {
@@ -557,6 +566,20 @@ export default function LeavesPage() {
       title="Reject Leave Request?"
       description="Are you sure you want to reject this leave request? This action cannot be undone."
       variant="warning"
+    />
+
+    {/* Submit Confirmation Modal */}
+    <AlertModal
+      isOpen={showSubmitConfirm}
+      onClose={() => {
+        setShowSubmitConfirm(false)
+        setPendingSubmitData(null)
+      }}
+      onConfirm={confirmSubmit}
+      loading={submitting}
+      title="Submit Leave Request?"
+      description={`Are you sure you want to submit this ${pendingSubmitData?.leaveType?.toLowerCase()?.replace(/_/g, ' ')} leave request from ${pendingSubmitData?.startDate} to ${pendingSubmitData?.endDate}?`}
+      variant="primary"
     />
     </div>
   )
