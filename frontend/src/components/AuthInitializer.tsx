@@ -1,10 +1,17 @@
 "use client"
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { getCsrfTokenFromCookie, useAuthStore, withCsrfHeaders } from '@/store/authStore'
 
 export function AuthInitializer() {
+    const [mounted, setMounted] = useState(false)
+    
     useEffect(() => {
+        setMounted(true)
+    }, [])
+    
+    useEffect(() => {
+        if (!mounted) return
         if (typeof window !== 'undefined' && !(window as typeof window & { __samsCsrfFetchPatched?: boolean }).__samsCsrfFetchPatched) {
             const originalFetch = window.fetch.bind(window)
 
@@ -82,7 +89,7 @@ export function AuthInitializer() {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange)
         }
-    }, [])
+    }, [mounted])
 
     return null
 }

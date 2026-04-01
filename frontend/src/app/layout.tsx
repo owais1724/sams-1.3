@@ -39,6 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="h-full w-full">
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${inter.variable} antialiased h-full w-full`}
       >
         <ThemeProvider
@@ -49,7 +50,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthInitializer />
-          <div className="h-full w-full">
+          <div suppressHydrationWarning className="h-full w-full">
             {children}
           </div>
           <Toaster />

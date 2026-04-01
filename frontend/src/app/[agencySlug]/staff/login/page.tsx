@@ -24,6 +24,7 @@ import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
 import { Lock, Mail, ChevronRight, Loader2, Contact, Fingerprint, Eye, EyeOff } from "lucide-react"
+import { ClientOnly } from "@/components/ClientOnly"
 
 const formSchema = z.object({
     email: z.string().email("Please enter a valid staff email"),
@@ -141,7 +142,8 @@ export default function StaffLogin() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 relative overflow-hidden selection:bg-white/20">
+        <ClientOnly>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 relative overflow-hidden selection:bg-white/20">
             <motion.div
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -250,5 +252,6 @@ export default function StaffLogin() {
                 <div className="mt-8 text-center text-[12px] text-white/75">Deployment portal • Node: {agencySlug}</div>
             </motion.div>
         </div>
+        </ClientOnly>
     )
 }

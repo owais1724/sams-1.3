@@ -24,6 +24,7 @@ import { toast } from "@/components/ui/sonner"
 import { useAuthStore } from "@/store/authStore"
 import { motion } from "framer-motion"
 import { Lock, Mail, ChevronRight, Loader2, Building2, Eye, EyeOff } from "lucide-react"
+import { ClientOnly } from "@/components/ClientOnly"
 
 const formSchema = z.object({
     email: z.string().email("Please enter a valid administrative email"),
@@ -133,7 +134,8 @@ if (user.employeeId) {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 selection:bg-white/20">
+        <ClientOnly>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 selection:bg-white/20">
             <motion.div
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -243,5 +245,6 @@ if (user.employeeId) {
                 </div>
             </motion.div>
         </div>
+        </ClientOnly>
     )
 }

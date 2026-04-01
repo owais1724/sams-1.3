@@ -22,6 +22,7 @@ import { toast } from "@/components/ui/sonner"
 import { ShieldCheck, Lock, Mail, ChevronRight, Loader2, Eye, EyeOff } from "lucide-react"
 import { motion } from "framer-motion"
 import { useAuthStore } from "@/store/authStore"
+import { ClientOnly } from "@/components/ClientOnly"
 
 const formSchema = z.object({
   email: z.string().email("Authorized email required"),
@@ -99,7 +100,8 @@ export default function RootLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 selection:bg-white/20">
+    <ClientOnly>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 selection:bg-white/20">
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
@@ -204,5 +206,6 @@ export default function RootLoginPage() {
         </Card>
       </motion.div>
     </div>
+    </ClientOnly>
   )
 }

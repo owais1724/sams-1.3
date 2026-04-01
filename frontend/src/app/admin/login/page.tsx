@@ -22,6 +22,7 @@ import { motion } from "framer-motion"
 import { Lock, Mail, ChevronRight, Loader2, ShieldCheck, Eye, EyeOff } from "lucide-react"
 import { useAuthStore } from "@/store/authStore"
 import api from "@/lib/api"
+import { ClientOnly } from "@/components/ClientOnly"
 
 const formSchema = z.object({
     email: z.string().email("Please enter a valid administrative email"),
@@ -77,7 +78,8 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 selection:bg-white/20">
+        <ClientOnly>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#06b6d4] font-inter p-4 selection:bg-white/20">
             <motion.div
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -188,5 +190,6 @@ export default function LoginPage() {
                 </div>
             </motion.div>
         </div>
+        </ClientOnly>
     )
 }
