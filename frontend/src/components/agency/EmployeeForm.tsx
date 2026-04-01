@@ -202,7 +202,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                 await api.patch(`/employees/${initialData.id}`, payload)
                 toast.success("Employee updated successfully")
             } else {
-                await api.post("/employees", { ...payload, agencyId: user?.agencyId })
+                await api.post("/employees", payload)
                 toast.success("Employee added successfully")
             }
             setShowConfirmModal(false)
