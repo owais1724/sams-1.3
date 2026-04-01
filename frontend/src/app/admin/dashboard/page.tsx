@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import api from "@/lib/api"
 import {
@@ -86,9 +86,22 @@ export default function AdminDashboard() {
         fetchAgencies()
     }, [])
 
+    const createdDateFormatter = useMemo(
+        () => new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" }),
+        [],
+    )
+
+    const agenciesWithFormattedCreatedAt = useMemo(
+        () => agencies.map((agency) => ({
+            ...agency,
+            formattedCreatedAt: agency.createdAt ? createdDateFormatter.format(new Date(agency.createdAt)) : "",
+        })),
+        [agencies, createdDateFormatter],
+    )
+
     const stats = [
-        { title: "Total Agencies", value: agencies.length.toString(), icon: Building2, color: "text-blue-600" },
-        { title: "Active Deployments", value: agencies.filter(a => a.isActive).length.toString(), icon: Shield, color: "text-emerald-600" },
+        { title: "Total Agencies", value: agenciesWithFormattedCreatedAt.length.toString(), icon: Building2, color: "text-blue-600" },
+        { title: "Active Deployments", value: agenciesWithFormattedCreatedAt.filter(a => a.isActive).length.toString(), icon: Shield, color: "text-emerald-600" },
         { title: "Platform Health", value: "Optimal", icon: Users, color: "text-purple-600" },
     ]
 
@@ -166,7 +179,7 @@ export default function AdminDashboard() {
                         <h3 className="text-[20px] font-semibold text-slate-900">Network Directory</h3>
                         <p className="text-[14px] text-slate-500 mt-1">Active infrastructure nodes and agency portals.</p>
                     </div>
-                    <Badge variant="secondary">{agencies.length} total</Badge>
+                    <Badge variant="secondary">{agenciesWithFormattedCreatedAt.length} total</Badge>
                 </div>
                 <div className="overflow-x-auto scrollbar-hide">
                     <Table className="min-w-[800px]">
@@ -182,7 +195,7 @@ export default function AdminDashboard() {
                         <TableBody>
                             {loading ? (
                                 <TableRowLoading colSpan={5} message="Loading agencies..." />
-                            ) : agencies.length === 0 ? (
+                            ) : agenciesWithFormattedCreatedAt.length === 0 ? (
                                 <TableRowEmpty
                                     colSpan={5}
                                     title="No agencies found"
@@ -190,7 +203,7 @@ export default function AdminDashboard() {
                                     icon={<Building2 className="h-6 w-6 text-[#06b6d4]" />}
                                 />
                             ) : (
-                                agencies.map((agency) => (
+                                agenciesWithFormattedCreatedAt.map((agency) => (
                                     <TableRow key={agency.id} className="group/row">
                                         <TableCell className="pl-4 sm:pl-6">
                                             <div className="flex flex-col gap-2">
@@ -213,13 +226,7 @@ export default function AdminDashboard() {
                                                 {agency.isActive ? "Active" : "Inactive"}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-slate-600">
-                                            {new Date(agency.createdAt).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric'
-                                            })}
-                                        </TableCell>
+                                        <TableCell className="text-slate-600">{agency.formattedCreatedAt}</TableCell>
                                         <TableCell className="pr-4 sm:pr-6 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <Button

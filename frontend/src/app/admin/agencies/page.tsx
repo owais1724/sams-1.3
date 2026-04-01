@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import api from "@/lib/api"
 import {
@@ -79,6 +79,19 @@ export default function AgenciesPage() {
         fetchAgencies()
     }, [])
 
+    const createdDateFormatter = useMemo(
+        () => new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" }),
+        [],
+    )
+
+    const agenciesWithFormattedCreatedAt = useMemo(
+        () => agencies.map((agency) => ({
+            ...agency,
+            formattedCreatedAt: agency.createdAt ? createdDateFormatter.format(new Date(agency.createdAt)) : "",
+        })),
+        [agencies, createdDateFormatter],
+    )
+
     return (
         <div className="space-y-8 max-w-7xl mx-auto px-4 py-8 font-inter">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -130,7 +143,7 @@ export default function AgenciesPage() {
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ) : agencies.length === 0 ? (
+                        ) : agenciesWithFormattedCreatedAt.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="text-center py-32">
                                     <div className="flex flex-col items-center gap-4">
@@ -142,7 +155,7 @@ export default function AgenciesPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            agencies.map((agency) => (
+                            agenciesWithFormattedCreatedAt.map((agency) => (
                                 <TableRow key={agency.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0 group">
                                     <TableCell className="px-6 py-5">
                                         <div className="flex flex-col">
@@ -191,11 +204,7 @@ export default function AgenciesPage() {
                                         </button>
                                     </TableCell>
                                     <TableCell className="px-6 py-5">
-                                        <span className="text-sm font-bold text-slate-600">
-                                            {new Date(agency.createdAt).toLocaleDateString('en-US', {
-                                                year: 'numeric', month: 'short', day: 'numeric'
-                                            })}
-                                        </span>
+                                        <span className="text-sm font-bold text-slate-600">{agency.formattedCreatedAt}</span>
                                     </TableCell>
                                     <TableCell className="px-6 py-5 text-right">
                                         <div className="flex items-center justify-end gap-2">
