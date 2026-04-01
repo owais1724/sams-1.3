@@ -14,8 +14,18 @@ import { useAuthStore } from '@/store/authStore';
  * This makes all requests appear same-domain to the browser, so HTTP-only
  * cookies work on all browsers including Safari iOS.
  */
+function resolveApiBaseUrl() {
+    // Always use same-origin API proxy in the browser so middleware and
+    // backend auth cookies stay on one domain in production.
+    if (typeof window !== 'undefined') {
+        return '/api';
+    }
+
+    return process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || 'http://localhost:3000';
+}
+
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: resolveApiBaseUrl(),
     headers: {
         'Content-Type': 'application/json',
     },

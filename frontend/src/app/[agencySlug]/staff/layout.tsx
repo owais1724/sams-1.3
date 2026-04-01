@@ -30,9 +30,9 @@ type RouteAccessRule = {
 const routeAccessRules: RouteAccessRule[] = [
     { pattern: /^\/dashboard$/, anyPermissions: ["view_dashboard"] },
     { pattern: /^\/my-schedule$/ },
-    { pattern: /^\/clients$/, anyPermissions: ["view_clients"] },
-    { pattern: /^\/projects$/, anyPermissions: ["view_projects"] },
-    { pattern: /^\/employees$/, anyPermissions: ["view_employee"] },
+    { pattern: /^\/clients$/, anyPermissions: ["view_clients", "create_client"] },
+    { pattern: /^\/projects$/, anyPermissions: ["view_projects", "create_project"] },
+    { pattern: /^\/employees$/, anyPermissions: ["view_employee", "create_employee"] },
     { pattern: /^\/rbac$/, anyPermissions: ["manage_roles"] },
     { pattern: /^\/attendance$/, anyPermissions: ["view_attendance", "record_attendance", "mark_attendance"] },
     { pattern: /^\/shifts$/, anyPermissions: ["view_shifts", "manage_shifts"] },
