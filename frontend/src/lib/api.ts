@@ -86,13 +86,11 @@ api.interceptors.request.use((config) => {
         const csrfToken = getCookieValue('csrf_token');
 
         if (csrfToken) {
-            if (config.headers && typeof config.headers.set === 'function') {
+            config.headers = config.headers || {};
+            if (typeof config.headers.set === 'function') {
                 config.headers.set('x-csrf-token', csrfToken);
             } else {
-                config.headers = {
-                    ...(config.headers || {}),
-                    'x-csrf-token': csrfToken,
-                };
+                (config.headers as any)['x-csrf-token'] = csrfToken;
             }
         }
     }
