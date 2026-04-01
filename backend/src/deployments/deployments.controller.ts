@@ -17,6 +17,7 @@ import { DeploymentsService } from './deployments.service';
 import { CreateDeploymentDto } from './dto/create-deployment.dto';
 import { UpdateDeploymentDto } from './dto/update-deployment.dto';
 import { AssignGuardsDto } from './dto/assign-guards.dto';
+import { requireAgencyContext } from '../common/utils/agency-context.util';
 
 @Controller('deployments')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -30,24 +31,28 @@ export class DeploymentsController {
     @Query('status') status?: string,
     @Query('clientId') clientId?: string,
   ) {
-    return this.deploymentsService.findAll(req.user.agencyId, { status, clientId });
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.findAll(agencyId, { status, clientId });
   }
 
   @Get('my-schedule')
   async mySchedule(@Request() req) {
-    return this.deploymentsService.findByGuard(req.user.agencyId, req.user.userId);
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.findByGuard(agencyId, req.user.userId);
   }
 
   @Get(':id')
   @Permissions('view_deployments')
   async findOne(@Param('id') id: string, @Request() req) {
-    return this.deploymentsService.findOne(req.user.agencyId, id);
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.findOne(agencyId, id);
   }
 
   @Post()
   @Permissions('manage_deployments')
   async create(@Request() req, @Body() dto: CreateDeploymentDto) {
-    return this.deploymentsService.create(req.user.agencyId, dto, req.user.userId);
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.create(agencyId, dto, req.user.userId);
   }
 
   @Patch(':id')
@@ -57,7 +62,8 @@ export class DeploymentsController {
     @Request() req,
     @Body() dto: UpdateDeploymentDto,
   ) {
-    return this.deploymentsService.update(req.user.agencyId, id, dto, req.user.userId);
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.update(agencyId, id, dto, req.user.userId);
   }
 
   @Patch(':id/status')
@@ -67,7 +73,8 @@ export class DeploymentsController {
     @Request() req,
     @Body('status') status: string,
   ) {
-    return this.deploymentsService.updateStatus(req.user.agencyId, id, status, req.user.userId);
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.updateStatus(agencyId, id, status, req.user.userId);
   }
 
   @Post(':id/guards')
@@ -77,7 +84,8 @@ export class DeploymentsController {
     @Request() req,
     @Body() dto: AssignGuardsDto,
   ) {
-    return this.deploymentsService.assignGuards(req.user.agencyId, id, dto.guardIds);
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.assignGuards(agencyId, id, dto.guardIds);
   }
 
   @Delete(':id/guards/:guardId')
@@ -87,12 +95,14 @@ export class DeploymentsController {
     @Param('guardId') guardId: string,
     @Request() req,
   ) {
-    return this.deploymentsService.removeGuard(req.user.agencyId, id, guardId);
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.removeGuard(agencyId, id, guardId);
   }
 
   @Delete(':id')
   @Permissions('manage_deployments')
   async remove(@Param('id') id: string, @Request() req) {
-    return this.deploymentsService.remove(req.user.agencyId, id, req.user.userId);
+    const agencyId = requireAgencyContext(req);
+    return this.deploymentsService.remove(agencyId, id, req.user.userId);
   }
 }

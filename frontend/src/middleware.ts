@@ -25,14 +25,8 @@ export async function middleware(request: NextRequest) {
 
   if (isPublicRoute) return NextResponse.next()
 
-  // Session cookies only (middleware must NOT do role/portal checks)
-  const session =
-    request.cookies.get('sams_active_user_key')?.value ||
-    request.cookies.get('userRole')?.value ||
-    request.cookies.get('access_token')?.value ||
-    request.cookies.get('token')?.value ||
-    request.cookies.get('auth')?.value ||
-    request.cookies.get('session')?.value
+  // Middleware should trust only the backend-set HttpOnly auth cookie.
+  const session = request.cookies.get('access_token')?.value
 
   if (!session) {
     // Super Admin portal

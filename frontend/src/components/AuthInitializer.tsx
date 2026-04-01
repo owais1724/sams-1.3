@@ -1,12 +1,31 @@
 "use client"
 
 import { useEffect } from 'react'
-import { useAuthStore } from '@/store/authStore'
+import { getCsrfTokenFromCookie, useAuthStore, withCsrfHeaders } from '@/store/authStore'
 
 export function AuthInitializer() {
     useEffect(() => {
+        if (typeof window !== 'undefined' && !(window as typeof window & { __samsCsrfFetchPatched?: boolean }).__samsCsrfFetchPatched) {
+            const originalFetch = window.fetch.bind(window)
+
+            window.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+                const request = input instanceof Request ? input : null
+                const method = init?.method || request?.method || 'GET'
+                const csrfToken = getCsrfTokenFromCookie()
+
+                if (!csrfToken || !['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+                    return originalFetch(input, init)
+                }
+
+                const headers = withCsrfHeaders(method, init?.headers ?? request?.headers)
+                return originalFetch(input, { ...init, headers })
+            }) as typeof window.fetch
+
+            ;(window as typeof window & { __samsCsrfFetchPatched?: boolean }).__samsCsrfFetchPatched = true
+        }
+
         const syncSession = async () => {
-            const { user, initialize } = useAuthStore.getState()
+            const { initialize } = useAuthStore.getState()
             
             // Always try to initialize from cookies
             await initialize()
@@ -19,14 +38,14 @@ export function AuthInitializer() {
                     document.cookie.includes('userRole')
                 
                 if (hasAuthCookie) {
-                    console.log('[AuthInitializer] Cookies exist but no user, syncing from backend...')
-                    try {
-                        const response = await fetch('/api/auth/me', {
-                            credentials: 'include',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            }
-                        })
+                        console.log('[AuthInitializer] Cookies exist but no user, syncing from backend...')
+                        try {
+                            const response = await fetch('/api/auth/me', {
+                                credentials: 'include',
+                                headers: withCsrfHeaders('GET', {
+                                    'Content-Type': 'application/json',
+                                })
+                            })
                         
                         if (response.ok) {
                             const userData = await response.json()

@@ -3,6 +3,7 @@ import { AuditLogsService } from './audit-logs.service';
 import { AuthGuard } from '@nestjs/passport';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
+import { requireAgencyContext } from '../common/utils/agency-context.util';
 
 @Controller('audit-logs')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -12,6 +13,7 @@ export class AuditLogsController {
   @Get()
   @Permissions('view_reports')
   async findAll(@Request() req) {
-    return this.auditLogsService.findAll(req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.auditLogsService.findAll(agencyId);
   }
 }

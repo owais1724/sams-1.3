@@ -14,6 +14,7 @@ import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
 import { PayrollService } from './payroll.service';
 import { CreatePayrollDto, UpdatePayrollDto } from './payroll.entity';
+import { requireAgencyContext } from '../common/utils/agency-context.util';
 
 @Controller('payrolls')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -23,31 +24,36 @@ export class PayrollController {
   @Post()
   @Permissions('manage_payroll')
   async createPayroll(@Body() createPayrollDto: CreatePayrollDto, @Request() req) {
-    return this.payrollService.createPayroll(createPayrollDto, req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.payrollService.createPayroll(createPayrollDto, agencyId);
   }
 
   @Get()
   @Permissions('view_payroll', 'manage_payroll')
   async getPayrolls(@Request() req) {
-    return this.payrollService.getPayrolls(req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.payrollService.getPayrolls(agencyId);
   }
 
   @Get(':id')
   @Permissions('view_payroll', 'manage_payroll')
   async getPayrollById(@Param('id') id: string, @Request() req) {
-    return this.payrollService.getPayrollById(id, req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.payrollService.getPayrollById(id, agencyId);
   }
 
   @Put(':id')
   @Permissions('manage_payroll')
   async updatePayroll(@Param('id') id: string, @Body() updatePayrollDto: UpdatePayrollDto, @Request() req) {
-    return this.payrollService.updatePayroll(id, updatePayrollDto, req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.payrollService.updatePayroll(id, updatePayrollDto, agencyId);
   }
 
   @Delete(':id')
   @Permissions('manage_payroll')
   async deletePayroll(@Param('id') id: string, @Request() req) {
-    return this.payrollService.deletePayroll(id, req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.payrollService.deletePayroll(id, agencyId);
   }
 
   @Post('generate-bulk')
@@ -57,13 +63,15 @@ export class PayrollController {
     @Body('designationId') designationId: string,
     @Request() req,
   ) {
-    return this.payrollService.generateBulkPayroll(month, req.user.agencyId, designationId);
+    const agencyId = requireAgencyContext(req);
+    return this.payrollService.generateBulkPayroll(month, agencyId, designationId);
   }
 
   @Post(':id/status')
   @Permissions('manage_payroll')
   async updateStatus(@Param('id') id: string, @Body('status') status: string, @Request() req) {
-    return this.payrollService.updateStatus(id, status, req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.payrollService.updateStatus(id, status, agencyId);
   }
 
   @Post('generate-individual')
@@ -72,6 +80,7 @@ export class PayrollController {
     @Body() data: { employeeId: string; month: string; amount: number },
     @Request() req,
   ) {
-    return this.payrollService.generateIndividual(data, req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.payrollService.generateIndividual(data, agencyId);
   }
 }

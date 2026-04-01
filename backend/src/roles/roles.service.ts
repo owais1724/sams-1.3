@@ -19,6 +19,7 @@ export class RolesService {
   // Permissions that are platform-level (Super Admin only) and must NEVER
   // appear in the agency RBAC role editor.
   private readonly PLATFORM_ONLY_PERMISSIONS = [
+    'manage_agencies',
     'create_agency',
     'edit_agency',
     'delete_agency',

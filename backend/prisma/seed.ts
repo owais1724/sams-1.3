@@ -9,7 +9,7 @@ async function main() {
     // 1. Create Permissions
     const allPermissions = [
         // Platform Level
-        'create_agency', 'edit_agency', 'delete_agency',
+        'manage_agencies', 'create_agency', 'edit_agency', 'delete_agency',
         'create_agency_admin',
         'view_platform_analytics',
 
@@ -39,7 +39,7 @@ async function main() {
     const platformPermissions = await prisma.permission.findMany({
         where: {
             action: {
-                in: ['create_agency', 'edit_agency', 'delete_agency', 'create_agency_admin', 'view_platform_analytics']
+                in: ['manage_agencies', 'create_agency', 'edit_agency', 'delete_agency', 'create_agency_admin', 'view_platform_analytics']
             }
         }
     });

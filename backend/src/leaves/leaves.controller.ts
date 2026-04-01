@@ -15,6 +15,7 @@ import { LeavesService } from './leaves.service';
 import { LeaveStatus, LeaveType } from './leave.entity';
 import { CreateLeaveRequestDto } from './dto/create-leave.dto';
 import { LeaveApprovalDto } from './dto/approve-leave.dto';
+import { requireAgencyContext } from '../common/utils/agency-context.util';
 
 @Controller('leaves')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -27,9 +28,10 @@ export class LeavesController {
     @Body() createLeaveDto: CreateLeaveRequestDto,
     @Request() req,
   ) {
+    const agencyId = requireAgencyContext(req);
     return this.leavesService.createLeaveRequest(
       createLeaveDto,
-      req.user.agencyId,
+      agencyId,
       req.user.role,
       req.user.userId,
     );
@@ -38,7 +40,8 @@ export class LeavesController {
   @Get()
   @Permissions('view_leaves', 'approve_leave', 'apply_leave')
   async getLeaveRequests(@Request() req) {
-    return this.leavesService.getLeaveRequests(req.user.agencyId, req.user.role, req.user.userId);
+    const agencyId = requireAgencyContext(req);
+    return this.leavesService.getLeaveRequests(agencyId, req.user.role, req.user.userId);
   }
 
   @Put(':id/approve')
@@ -48,7 +51,8 @@ export class LeavesController {
     @Body() approvalDto: LeaveApprovalDto,
     @Request() req,
   ) {
-    return this.leavesService.approveLeave(leaveId, approvalDto, req.user.role, req.user.userId, req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.leavesService.approveLeave(leaveId, approvalDto, req.user.role, req.user.userId, agencyId);
   }
 
   // These enum routes don't need permission checks as they are read-only metadata

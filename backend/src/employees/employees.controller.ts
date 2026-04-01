@@ -8,8 +8,6 @@ import {
   Request,
   Delete,
   Param,
-  Query,
-  BadRequestException,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { MigrationService } from './migration.service';
@@ -18,6 +16,7 @@ import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { requireAgencyContext } from '../common/utils/agency-context.util';
 
 @Controller('employees')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -29,22 +28,19 @@ export class EmployeesController {
 
   @Get()
   @Permissions('view_employee', 'edit_project', 'create_project')
-  findAll(@Request() req, @Query('agencyId') agencyId?: string) {
-    const targetAgencyId = req.user.agencyId || agencyId;
-    return this.employeesService.findAll(targetAgencyId);
+  findAll(@Request() req) {
+    const agencyId = requireAgencyContext(req);
+    return this.employeesService.findAll(agencyId);
   }
 
   @Post()
   @Permissions('create_employee')
   create(
     @Request() req,
-    @Body() data: CreateEmployeeDto & { agencyId?: string },
+    @Body() data: CreateEmployeeDto,
   ) {
-    const targetAgencyId = req.user.agencyId || data.agencyId;
-    if (!targetAgencyId) {
-      throw new BadRequestException('Agency context is required to create an employee');
-    }
-    return this.employeesService.create(targetAgencyId, data);
+    const agencyId = requireAgencyContext(req);
+    return this.employeesService.create(agencyId, data);
   }
 
   @Patch(':id')
@@ -54,22 +50,21 @@ export class EmployeesController {
     @Param('id') id: string,
     @Body() data: UpdateEmployeeDto,
   ) {
-    return this.employeesService.update(req.user.agencyId, id, data);
+    const agencyId = requireAgencyContext(req);
+    return this.employeesService.update(agencyId, id, data);
   }
 
   @Delete(':id')
   @Permissions('delete_employee')
   remove(@Request() req, @Param('id') id: string) {
-    return this.employeesService.remove(req.user.agencyId, id, req.user.sub);
+    const agencyId = requireAgencyContext(req);
+    return this.employeesService.remove(agencyId, id, req.user.sub);
   }
 
   @Post('sync-roles')
   @Permissions('manage_roles')
-  syncRoles(@Request() req, @Body() data: { agencyId?: string }) {
-    const targetAgencyId = req.user.agencyId || data.agencyId;
-    if (!targetAgencyId) {
-      throw new BadRequestException('Agency context is required to sync roles');
-    }
-    return this.migrationService.syncEmployeeRolesToDesignations(targetAgencyId);
+  syncRoles(@Request() req) {
+    const agencyId = requireAgencyContext(req);
+    return this.migrationService.syncEmployeeRolesToDesignations(agencyId);
   }
 }

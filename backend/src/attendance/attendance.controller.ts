@@ -16,6 +16,7 @@ import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
 import { CheckInDto } from './dto/check-in.dto';
 import { CheckOutDto } from './dto/check-out.dto';
+import { requireAgencyContext } from '../common/utils/agency-context.util';
 
 @Controller('attendance')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -31,6 +32,7 @@ export class AttendanceController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
+    const agencyId = requireAgencyContext(req);
     // If not a manager, restrict to own records only
     const role = req.user.role?.toLowerCase() || '';
     const isManager =
@@ -47,7 +49,7 @@ export class AttendanceController {
     const limitNum = limit ? parseInt(limit, 10) : undefined;
 
     return this.attendanceService.findAll(
-      req.user.agencyId,
+      agencyId,
       today === 'true',
       targetEmployeeId,
       pageNum,
@@ -59,13 +61,14 @@ export class AttendanceController {
   @Permissions('record_attendance')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
   async checkIn(@Request() req, @Body() data: CheckInDto) {
+    const agencyId = requireAgencyContext(req);
     // Additional validation: at least one of projectId or deploymentId must be provided
     if (!data.projectId && !data.deploymentId) {
       throw new BadRequestException('Either projectId or deploymentId is required for check-in');
     }
 
     return this.attendanceService.checkIn(
-      req.user.agencyId,
+      agencyId,
       req.user.userId,
       data,
     );
@@ -75,13 +78,14 @@ export class AttendanceController {
   @Permissions('record_attendance')
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
   async checkOut(@Request() req, @Body() data: CheckOutDto) {
+    const agencyId = requireAgencyContext(req);
     // Additional validation: at least one of projectId or deploymentId must be provided
     if (!data.projectId && !data.deploymentId) {
       throw new BadRequestException('Either projectId or deploymentId is required for check-out');
     }
 
     return this.attendanceService.checkOut(
-      req.user.agencyId,
+      agencyId,
       req.user.userId,
       data,
     );
@@ -90,6 +94,7 @@ export class AttendanceController {
   @Post('detect-absent')
   @Permissions('view_attendance')
   async detectAbsent(@Request() req) {
-    return this.attendanceService.detectAbsent(req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.attendanceService.detectAbsent(agencyId);
   }
 }

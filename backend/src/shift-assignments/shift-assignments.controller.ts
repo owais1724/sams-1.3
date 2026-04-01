@@ -13,6 +13,7 @@ import { ShiftAssignmentsService } from './shift-assignments.service';
 import { AuthGuard } from '@nestjs/passport';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
+import { requireAgencyContext } from '../common/utils/agency-context.util';
 
 @Controller('shift-assignments')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -30,7 +31,8 @@ export class ShiftAssignmentsController {
     @Query('shiftId') shiftId?: string,
     @Query('status') status?: string,
   ) {
-    return this.shiftAssignmentsService.findAll(req.user.agencyId, {
+    const agencyId = requireAgencyContext(req);
+    return this.shiftAssignmentsService.findAll(agencyId, {
       date,
       employeeId,
       shiftId,
@@ -51,7 +53,8 @@ export class ShiftAssignmentsController {
       notes?: string;
     },
   ) {
-    return this.shiftAssignmentsService.create(req.user.agencyId, data);
+    const agencyId = requireAgencyContext(req);
+    return this.shiftAssignmentsService.create(agencyId, data);
   }
 
   @Post('bulk')
@@ -66,32 +69,37 @@ export class ShiftAssignmentsController {
       projectId?: string;
     },
   ) {
-    return this.shiftAssignmentsService.bulkCreate(req.user.agencyId, data);
+    const agencyId = requireAgencyContext(req);
+    return this.shiftAssignmentsService.bulkCreate(agencyId, data);
   }
 
   @Post(':id/check-in')
   @Permissions('view_shifts')
   checkIn(@Request() req, @Param('id') id: string) {
-    return this.shiftAssignmentsService.checkIn(req.user.agencyId, id);
+    const agencyId = requireAgencyContext(req);
+    return this.shiftAssignmentsService.checkIn(agencyId, id);
   }
 
   @Post(':id/check-out')
   @Permissions('view_shifts')
   checkOut(@Request() req, @Param('id') id: string) {
-    return this.shiftAssignmentsService.checkOut(req.user.agencyId, id);
+    const agencyId = requireAgencyContext(req);
+    return this.shiftAssignmentsService.checkOut(agencyId, id);
   }
 
   @Post('detect-missed')
   @Permissions('manage_shifts')
   detectMissed(@Request() req) {
-    return this.shiftAssignmentsService.detectMissedShifts(req.user.agencyId);
+    const agencyId = requireAgencyContext(req);
+    return this.shiftAssignmentsService.detectMissedShifts(agencyId);
   }
 
   @Get('report')
   @Permissions('view_shifts')
   getReport(@Request() req, @Query('date') date?: string) {
+    const agencyId = requireAgencyContext(req);
     return this.shiftAssignmentsService.getShiftReport(
-      req.user.agencyId,
+      agencyId,
       date,
     );
   }
@@ -99,6 +107,7 @@ export class ShiftAssignmentsController {
   @Delete(':id')
   @Permissions('manage_shifts')
   remove(@Request() req, @Param('id') id: string) {
-    return this.shiftAssignmentsService.remove(req.user.agencyId, id);
+    const agencyId = requireAgencyContext(req);
+    return this.shiftAssignmentsService.remove(agencyId, id);
   }
 }

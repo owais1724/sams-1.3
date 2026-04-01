@@ -22,6 +22,22 @@ const api = axios.create({
     withCredentials: true,
 });
 
+function getCookieValue(name: string) {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const cookies = document.cookie ? document.cookie.split('; ') : [];
+    const prefix = `${name}=`;
+    const match = cookies.find((cookie) => cookie.startsWith(prefix));
+
+    if (!match) {
+        return null;
+    }
+
+    return decodeURIComponent(match.slice(prefix.length));
+}
+
 function redirectToLogin(portalType?: string | null) {
     if (typeof window === 'undefined') return;
 
@@ -60,6 +76,24 @@ api.interceptors.request.use((config) => {
             conflictError.sessionConflict = true;
 
             return Promise.reject(conflictError);
+        }
+    }
+
+    const method = (config.method || 'get').toUpperCase();
+    const isStateChanging = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+
+    if (isStateChanging) {
+        const csrfToken = getCookieValue('csrf_token');
+
+        if (csrfToken) {
+            if (config.headers && typeof config.headers.set === 'function') {
+                config.headers.set('x-csrf-token', csrfToken);
+            } else {
+                config.headers = {
+                    ...(config.headers || {}),
+                    'x-csrf-token': csrfToken,
+                };
+            }
         }
     }
 

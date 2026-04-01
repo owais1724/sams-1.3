@@ -31,6 +31,39 @@ async function bootstrap() {
   // Enable cookie parsing
   app.use(cookieParser());
 
+  // Validate double-submit CSRF tokens for authenticated, state-changing requests.
+  app.use((req, res, next) => {
+    const method = req.method.toUpperCase();
+    const isStateChanging = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+
+    if (!isStateChanging) {
+      return next();
+    }
+
+    if (req.path === '/auth/login' || req.path === '/auth/logout') {
+      return next();
+    }
+
+    const accessToken = req.cookies?.access_token;
+    if (!accessToken) {
+      return next();
+    }
+
+    const csrfCookie = req.cookies?.csrf_token;
+    const csrfHeader = req.headers['x-csrf-token'];
+    const csrfHeaderValue = Array.isArray(csrfHeader) ? csrfHeader[0] : csrfHeader;
+
+    if (!csrfCookie || !csrfHeaderValue || csrfCookie !== csrfHeaderValue) {
+      return res.status(403).json({
+        statusCode: 403,
+        message: 'Invalid CSRF token',
+        error: 'Forbidden',
+      });
+    }
+
+    return next();
+  });
+
   const isProd = process.env.NODE_ENV === 'production';
 
   // Debug middleware to log cookies - DISABLE IN PRODUCTION
@@ -99,7 +132,7 @@ async function bootstrap() {
     },
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Accept, Authorization, Cookie',
+    allowedHeaders: 'Content-Type, Accept, Authorization, Cookie, X-CSRF-Token',
     exposedHeaders: ['Set-Cookie'],
   });
 

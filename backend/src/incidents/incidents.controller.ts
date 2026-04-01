@@ -18,6 +18,7 @@ import { IncidentsService } from './incidents.service';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { UpdateIncidentStatusDto } from './dto/update-incident-status.dto';
 import { UpdateIncidentDto } from './dto/update-incident.dto';
+import { requireAgencyContext } from '../common/utils/agency-context.util';
 
 @Controller('incidents')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
@@ -36,8 +37,9 @@ export class IncidentsController {
   ) {
     const pageNum = page ? parseInt(page, 10) : undefined;
     const limitNum = limit ? parseInt(limit, 10) : undefined;
-    
-    return this.incidentsService.findAll(req.user.agencyId, {
+    const agencyId = requireAgencyContext(req);
+
+    return this.incidentsService.findAll(agencyId, {
       status,
       severity: severity ? parseInt(severity, 10) : undefined,
       deploymentId,
@@ -46,13 +48,15 @@ export class IncidentsController {
 
   @Get('my-incidents')
   async myIncidents(@Request() req) {
-    return this.incidentsService.findByReporter(req.user.agencyId, req.user.userId);
+    const agencyId = requireAgencyContext(req);
+    return this.incidentsService.findByReporter(agencyId, req.user.userId);
   }
 
   @Get(':id')
   @Permissions('view_incidents')
   async findOne(@Param('id') id: string, @Request() req) {
-    return this.incidentsService.findOne(req.user.agencyId, id);
+    const agencyId = requireAgencyContext(req);
+    return this.incidentsService.findOne(agencyId, id);
   }
 
   @Patch(':id')
@@ -63,14 +67,15 @@ export class IncidentsController {
     @Request() req,
     @Body() dto: UpdateIncidentDto,
   ) {
-    // Always use agencyId from session, ignore any agencyId in request body
-    return this.incidentsService.update(req.user.agencyId, id, dto, req.user.userId);
+    const agencyId = requireAgencyContext(req);
+    return this.incidentsService.update(agencyId, id, dto, req.user.userId);
   }
 
   @Post()
   @Permissions('report_incident')
   async create(@Request() req, @Body() dto: CreateIncidentDto) {
-    return this.incidentsService.create(req.user.agencyId, req.user.userId, dto);
+    const agencyId = requireAgencyContext(req);
+    return this.incidentsService.create(agencyId, req.user.userId, dto);
   }
 
   @Patch(':id/status')
@@ -80,8 +85,9 @@ export class IncidentsController {
     @Request() req,
     @Body() dto: UpdateIncidentStatusDto,
   ) {
+    const agencyId = requireAgencyContext(req);
     return this.incidentsService.updateStatus(
-      req.user.agencyId,
+      agencyId,
       id,
       dto.status,
       req.user.userId,

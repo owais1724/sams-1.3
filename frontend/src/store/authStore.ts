@@ -9,6 +9,40 @@ import {
     setTabSessionUser,
 } from '@/lib/authSession';
 
+export function getCsrfTokenFromCookie() {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    const cookies = document.cookie ? document.cookie.split('; ') : [];
+    const prefix = 'csrf_token=';
+    const match = cookies.find((cookie) => cookie.startsWith(prefix));
+
+    if (!match) {
+        return null;
+    }
+
+    return decodeURIComponent(match.slice(prefix.length));
+}
+
+export function withCsrfHeaders(
+    method: string | undefined,
+    headers?: HeadersInit,
+): Headers {
+    const normalizedMethod = (method || 'GET').toUpperCase();
+    const nextHeaders = new Headers(headers);
+
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(normalizedMethod)) {
+        const csrfToken = getCsrfTokenFromCookie();
+
+        if (csrfToken) {
+            nextHeaders.set('x-csrf-token', csrfToken);
+        }
+    }
+
+    return nextHeaders;
+}
+
 interface User {
     id: string;
     email: string;
@@ -61,9 +95,9 @@ export const useAuthStore = create<AuthState>()(
                         try {
                             const response = await fetch('/api/auth/me', {
                                 credentials: 'include',
-                                headers: {
+                                headers: withCsrfHeaders('GET', {
                                     'Content-Type': 'application/json',
-                                },
+                                }),
                                 cache: 'no-store'
                             });
                             

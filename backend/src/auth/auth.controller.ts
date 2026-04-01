@@ -9,7 +9,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import type { Response } from 'express';
+import type { CookieOptions, Response } from 'express';
+import { randomBytes } from 'crypto';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from '../users/users.service';
@@ -22,6 +23,37 @@ export class AuthController {
     private authService: AuthService,
     private usersService: UsersService,
   ) { }
+
+  private getCookieOptions(isProd: boolean, httpOnly: boolean): CookieOptions {
+    return {
+      httpOnly,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000,
+    };
+  }
+
+  private getCsrfCookieOptions(isProd: boolean): CookieOptions {
+    return {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000,
+    };
+  }
+
+  private generateCsrfToken() {
+    return randomBytes(32).toString('hex');
+  }
+
+  private setCsrfCookie(res: Response, isProd: boolean, token?: string) {
+    const csrfToken = token ?? this.generateCsrfToken();
+
+    res.cookie('csrf_token', csrfToken, this.getCsrfCookieOptions(isProd));
+    return csrfToken;
+  }
 
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @UseGuards(AuthGuard('local'))
@@ -50,13 +82,8 @@ export class AuthController {
       this.logger.log(`Setting cookie. Prod mode: ${isProd}`);
     }
 
-    res.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax', // 'none' is required for cross-domain Railway subdomains
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: '/',
-    });
+    res.cookie('access_token', access_token, this.getCookieOptions(isProd, true));
+    this.setCsrfCookie(res, isProd);
 
     if (!isProd) {
       this.logger.log(
@@ -69,23 +96,24 @@ export class AuthController {
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
     const isProd = process.env.NODE_ENV === 'production';
+    const cookieOptions = this.getCookieOptions(isProd, true);
+    const csrfCookieOptions = this.getCsrfCookieOptions(isProd);
     if (!isProd) {
       this.logger.log('[AuthController] Logout called');
     }
 
     // Clear the cookie with identical options to how it was set
-    res.clearCookie('access_token', {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: 'lax',
-      path: '/',
-    });
+    res.clearCookie('access_token', cookieOptions);
+    res.clearCookie('csrf_token', csrfCookieOptions);
 
     // Also set it to an empty value and expired date for maximum compatibility
     res.cookie('access_token', '', {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: 'lax',
+      ...cookieOptions,
+      path: '/',
+      expires: new Date(0),
+    });
+    res.cookie('csrf_token', '', {
+      ...csrfCookieOptions,
       path: '/',
       expires: new Date(0),
     });
@@ -96,6 +124,10 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   getProfile(@Request() req, @Res({ passthrough: true }) res: Response) {
+    const isProd = process.env.NODE_ENV === 'production';
+    if (!req.cookies?.csrf_token) {
+      this.setCsrfCookie(res, isProd);
+    }
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
@@ -105,6 +137,10 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async getMe(@Request() req, @Res({ passthrough: true }) res: Response) {
+    const isProd = process.env.NODE_ENV === 'production';
+    if (!req.cookies?.csrf_token) {
+      this.setCsrfCookie(res, isProd);
+    }
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
