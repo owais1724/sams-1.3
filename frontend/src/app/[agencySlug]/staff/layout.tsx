@@ -180,26 +180,7 @@ export default function StaffLayout({
         const verifyStaffAccess = async () => {
             try {
                 const normalizedCurrentPath = normalizeStaffPath(pathname, currentAgencySlug)
-                const verifiedStaffPath = sessionStorage.getItem(STAFF_VERIFIED_PATH_KEY)
                 const navIntentPath = sessionStorage.getItem(STAFF_NAV_INTENT_KEY)
-                
-                // Only block if there's a verified path, current path is different, 
-                // AND there's no navigation intent (meaning it was a manual paste/copy)
-                const hasManualProtectedNavigation =
-                    Boolean(verifiedStaffPath) &&
-                    verifiedStaffPath !== normalizedCurrentPath &&
-                    !navIntentPath
-
-                if (hasManualProtectedNavigation) {
-                    console.warn("[StaffLayout] Manual protected-route navigation detected", {
-                        verifiedStaffPath,
-                        navIntentPath,
-                        normalizedCurrentPath,
-                    })
-                    toast.error("Copied or manually pasted protected URLs are not allowed. Please sign in again.")
-                    void forceLogout()
-                    return
-                }
 
                 const response = await api.get("/auth/me")
                 const userData = response.data
