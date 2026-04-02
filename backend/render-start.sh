@@ -2,5 +2,5 @@
 # exit on error
 set -o errexit
 
-npx prisma migrate deploy
+# Start the application
 npm run start:prod
