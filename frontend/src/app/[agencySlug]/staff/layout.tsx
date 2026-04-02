@@ -145,6 +145,26 @@ function hasTrustedStaffReferrer(agencySlug: string) {
     }
 }
 
+function isManualProtectedStaffDeepLink(pathname: string | null | undefined, agencySlug: string) {
+    if (typeof window === "undefined" || !agencySlug) {
+        return false
+    }
+
+    const normalizedCurrentPath = normalizeStaffPath(pathname, agencySlug)
+    const verifiedStaffPath = sessionStorage.getItem(STAFF_VERIFIED_PATH_KEY)
+    const navIntent = getRecentStaffNavigationIntent()
+    const navIntentPath = navIntent?.path || null
+    const trustedReferrer = hasTrustedStaffReferrer(agencySlug)
+
+    return (
+        Boolean(verifiedStaffPath) &&
+        verifiedStaffPath !== normalizedCurrentPath &&
+        navIntentPath !== normalizedCurrentPath &&
+        !navIntent &&
+        !trustedReferrer
+    )
+}
+
 export default function StaffLayout({
     children,
 }: {
@@ -209,16 +229,7 @@ export default function StaffLayout({
         
         try {
             const normalizedCurrentPath = normalizeStaffPath(pathname, currentAgencySlug)
-            const verifiedStaffPath = sessionStorage.getItem(STAFF_VERIFIED_PATH_KEY)
-            const navIntent = getRecentStaffNavigationIntent()
-            const navIntentPath = navIntent?.path || null
-            const trustedReferrer = hasTrustedStaffReferrer(currentAgencySlug)
-            const isManualProtectedDeepLink =
-                Boolean(verifiedStaffPath) &&
-                verifiedStaffPath !== normalizedCurrentPath &&
-                navIntentPath !== normalizedCurrentPath &&
-                !navIntent &&
-                !trustedReferrer
+            const isManualProtectedDeepLink = isManualProtectedStaffDeepLink(pathname, currentAgencySlug)
 
             if (isManualProtectedDeepLink) {
                 console.warn(`[StaffLayout] Manual protected URL detected for ${pathname}`)
@@ -373,6 +384,14 @@ export default function StaffLayout({
         if (!isAuthenticated) {
             verifyStaffAccess()
         } else {
+            const isManualProtectedDeepLink = isManualProtectedStaffDeepLink(pathname, currentAgencySlug)
+            if (isManualProtectedDeepLink) {
+                console.warn(`[StaffLayout] Manual protected URL detected for ${pathname}`)
+                toast.error("Copied or pasted protected staff URLs are not allowed. Please sign in again.")
+                void forceLogout()
+                return
+            }
+
             // On subsequent navigations, just check tab user key locally (no API call)
             const tabUserKey = getTabSessionUserKey()
             const currentUserKey = buildSessionUserKey(user)
@@ -395,6 +414,9 @@ export default function StaffLayout({
                 window.location.href = `/${currentAgencySlug}/staff/my-schedule`
                 return
             }
+
+            sessionStorage.setItem(STAFF_VERIFIED_PATH_KEY, normalizeStaffPath(pathname, currentAgencySlug))
+            sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
             
             setIsLoading(false)
         }
