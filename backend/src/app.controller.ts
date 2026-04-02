@@ -23,7 +23,7 @@ export class AppController {
     return { status: 'ok', timestamp: new Date().toISOString() };
   }
 
-  @Post('init-database')
+  @Get('init-database')
   async initDatabase() {
     try {
       // Run db push to create tables
@@ -48,7 +48,7 @@ export class AppController {
     }
   }
 
-  @Post('seed-database')
+  @Get('seed-database')
   async seedDatabase() {
     try {
       const { stdout, stderr } = await execAsync('npm run script:seed');
