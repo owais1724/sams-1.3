@@ -55,13 +55,27 @@ export default function AdminLayout({
     const activeUserKey = typeof window !== 'undefined' ? getActiveSessionUserKey() : null
     const hasTabSessionMismatch = !isLoginPage && hasSessionConflict(expectedUserKey, activeUserKey)
 
+    const forceLogout = async (targetPath = '/admin/login') => {
+        if (typeof window === 'undefined') {
+            return
+        }
+
+        try {
+            await api.post('/auth/logout')
+        } catch {
+            // Ignore logout API failures and still clear local auth state.
+        }
+
+        clearLocalAuth()
+        window.location.replace(targetPath)
+    }
+
     useEffect(() => {
         let isActive = true;
 
         if (hasTabSessionMismatch) {
-            clearLocalAuth();
             toast.error("Session changed in another tab. Please sign in again.");
-            window.location.href = getPortalLoginPath(pathname || "/", null, tabPortalType);
+            void forceLogout(getPortalLoginPath(pathname || "/", null, tabPortalType));
             return;
         }
 
@@ -70,8 +84,7 @@ export default function AdminLayout({
         // we block automatic cookie-based login to prevent session leakage across tabs
         // when a URL is copy-pasted.
         if (!isLoginPage && tabPortalType !== 'admin') {
-            clearLocalAuth();
-            window.location.href = '/admin/login';
+            void forceLogout('/admin/login');
             return;
         }
 
@@ -91,8 +104,7 @@ export default function AdminLayout({
                 if (hasStoredUserMismatch) {
                     toast.error("Session conflict detected. Please sign in again with appropriate credentials.");
                     isActive = false;
-                    clearLocalAuth();
-                    window.location.href = '/admin/login';
+                    void forceLogout('/admin/login');
                     return;
                 }
 
@@ -100,8 +112,7 @@ export default function AdminLayout({
                     // Explicitly clear session if role mismatch
                     toast.error("Unauthorized access. You have been logged out.");
                     isActive = false;
-                    clearLocalAuth();
-                    window.location.href = '/admin/login';
+                    void forceLogout('/admin/login');
                     return;
                 }
 
@@ -111,9 +122,8 @@ export default function AdminLayout({
             } catch (error) {
                 console.error("Session verification failed", error);
                 isActive = false;
-                clearLocalAuth();
                 if (!isLoginPage) {
-                    window.location.href = '/admin/login';
+                    void forceLogout('/admin/login');
                 }
             } finally {
                 if (isActive) {
@@ -137,7 +147,7 @@ export default function AdminLayout({
 
         window.addEventListener('pageshow', handlePageShow);
         return () => window.removeEventListener('pageshow', handlePageShow);
-    }, [clearLocalAuth, hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
+    }, [hasTabSessionMismatch, isLoginPage, login, pathname, tabPortalType]);
 
     if (verifying || hasTabSessionMismatch) {
         return (

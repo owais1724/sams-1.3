@@ -129,6 +129,21 @@ export default function AgencyLayout({
     const activeUserKey = typeof window !== 'undefined' ? getActiveSessionUserKey() : null
     const hasTabSessionMismatch = !isLoginPage && !isStaffPath && hasSessionConflict(expectedUserKey, activeUserKey)
 
+    const forceLogout = async (targetPath: string) => {
+        if (typeof window === 'undefined') {
+            return
+        }
+
+        try {
+            await api.post('/auth/logout')
+        } catch {
+            // Ignore logout API failures and still clear local tab state.
+        }
+
+        clearLocalAuth()
+        window.location.replace(targetPath)
+    }
+
     // Initialize auth from cookies on mount
     useEffect(() => {
         initialize()
@@ -149,17 +164,15 @@ export default function AgencyLayout({
         }
 
         if (hasTabSessionMismatch) {
-            clearLocalAuth();
             toast.error("Session changed in another tab. Please sign in again.");
-            window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+            void forceLogout(getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType));
             return;
         }
 
         // ── Per-tab Session Isolation ──
         // Only check portal type if it's explicitly set (not null/undefined)
-        if (tabPortalType && tabPortalType !== 'agency' && tabPortalType !== 'staff') {
-            clearLocalAuth();
-            window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+        if (tabPortalType && tabPortalType !== 'agency') {
+            void forceLogout(getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType));
             return;
         }
 
@@ -180,9 +193,8 @@ export default function AgencyLayout({
                     console.warn(`Got: ${currentUserKey}`)
                     toast.error('Unauthorized access. You have been logged out.')
                     isActive = false;
-                    clearLocalAuth();
                     if (!isLoginPage) {
-                        window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                        void forceLogout(getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType));
                     }
                     return;
                 }
@@ -219,9 +231,8 @@ export default function AgencyLayout({
                     console.warn(`[AgencyLayout] Super admin blocked from agency portal`)
                     toast.error("Unauthorized access. You have been logged out.")
                     isActive = false;
-                    clearLocalAuth();
                     if (!isLoginPage) {
-                        window.location.href = '/admin/login';
+                        void forceLogout('/admin/login');
                     }
                     return;
                 }
@@ -231,9 +242,8 @@ export default function AgencyLayout({
                     console.warn(`[AgencyLayout] Agency mismatch: ${userAgency} !== ${currentAgency}`)
                     toast.error("Unauthorized access. Wrong agency.")
                     isActive = false;
-                    clearLocalAuth();
                     if (!isLoginPage) {
-                        window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                        void forceLogout(getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType));
                     }
                     return;
                 }
@@ -243,9 +253,8 @@ export default function AgencyLayout({
                     console.warn(`[AgencyLayout] Session mismatch detected`)
                     toast.error("Session conflict detected. Please sign in again.")
                     isActive = false;
-                    clearLocalAuth();
                     if (!isLoginPage) {
-                        window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                        void forceLogout(getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType));
                     }
                     return;
                 }
@@ -257,9 +266,8 @@ export default function AgencyLayout({
                     console.warn(`[AgencyLayout] Staff user blocked - has employeeId: ${userData.employeeId}`)
                     toast.error("Unauthorized access to Agency Admin portal.")
                     isActive = false;
-                    clearLocalAuth();
                     if (!isLoginPage) {
-                        window.location.href = `/${currentAgencySlug}/staff-login`;
+                        void forceLogout(`/${currentAgencySlug}/staff-login`);
                     }
                     return;
                 }
@@ -288,9 +296,8 @@ export default function AgencyLayout({
             } catch (error) {
                 console.error("Agency session verification failed", error);
                 isActive = false;
-                clearLocalAuth();
                 if (!isLoginPage) {
-                    window.location.href = getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType);
+                    void forceLogout(getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType));
                 }
             } finally {
                 if (isActive) {
@@ -325,7 +332,7 @@ export default function AgencyLayout({
             window.removeEventListener('pageshow', handlePageShow)
             clearInterval(cookieCheckInterval)
         }
-    }, [clearLocalAuth, currentAgencySlug, hasTabSessionMismatch, isLoginPage, isStaffPath, login, pathname, tabPortalType]);
+    }, [currentAgencySlug, hasTabSessionMismatch, isLoginPage, isStaffPath, login, pathname, tabPortalType]);
 
     // ✅ Show spinner while verifying (only for agency admin pages)
     if (verifying || hasTabSessionMismatch) {
