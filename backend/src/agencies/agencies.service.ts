@@ -121,6 +121,11 @@ export class AgenciesService {
       email: string;
       phoneNumber?: string | null;
     },
+    profile: {
+      designationId: string | null;
+      basicSalary: number;
+      salaryCurrency: string;
+    },
   ) {
     const baseCode = `ADM-${user.id.slice(-8).toUpperCase()}`;
     let employeeCode = baseCode;
@@ -153,11 +158,76 @@ export class AgenciesService {
         email: user.email,
         phoneNumber: user.phoneNumber || null,
         employeeCode,
+        designationId: profile.designationId,
+        basicSalary: profile.basicSalary,
+        salaryCurrency: profile.salaryCurrency,
       },
       select: { id: true },
     });
 
     return employee.id;
+  }
+
+  private async resolveDemotionEmployeeProfile(
+    tx: Parameters<Parameters<PrismaService['$transaction']>[0]>[0],
+    agencyId: string,
+    roleName?: string | null,
+  ) {
+    const normalizedRole = this.normalizeRoleName(roleName);
+    if (!normalizedRole || this.isAgencyAdminRole(roleName)) {
+      return {
+        designationId: null,
+        basicSalary: 0,
+        salaryCurrency: 'USD',
+      };
+    }
+
+    const cleanRoleName = (roleName || '').trim();
+
+    let designation = await tx.designation.findFirst({
+      where: {
+        agencyId,
+        name: {
+          equals: cleanRoleName,
+          mode: 'insensitive',
+        },
+      },
+      select: { id: true },
+    });
+
+    if (!designation) {
+      designation = await tx.designation.create({
+        data: {
+          agencyId,
+          name: cleanRoleName,
+          description: `Auto-created designation for role ${cleanRoleName}`,
+        },
+        select: { id: true },
+      });
+    }
+
+    const salaryTemplate = await tx.employee.findFirst({
+      where: {
+        agencyId,
+        designationId: designation.id,
+        basicSalary: {
+          gt: 0,
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      select: {
+        basicSalary: true,
+        salaryCurrency: true,
+      },
+    });
+
+    return {
+      designationId: designation.id,
+      basicSalary: salaryTemplate?.basicSalary || 0,
+      salaryCurrency: salaryTemplate?.salaryCurrency || 'USD',
+    };
   }
 
   async createAgency(data: {
@@ -541,10 +611,17 @@ export class AgenciesService {
       };
 
       if (switchingToStaffPortal) {
+        const employeeProfile = await this.resolveDemotionEmployeeProfile(
+          tx,
+          agencyId,
+          roleToAssign.name,
+        );
+
         let restoredEmployeeId = user.employeeId || user.previousEmployeeId;
+        let existingLinkedEmployee: { id: string } | null = null;
 
         if (restoredEmployeeId) {
-          const linkedEmployee = await tx.employee.findFirst({
+          existingLinkedEmployee = await tx.employee.findFirst({
             where: {
               id: restoredEmployeeId,
               agencyId,
@@ -552,7 +629,7 @@ export class AgenciesService {
             select: { id: true },
           });
 
-          if (!linkedEmployee) {
+          if (!existingLinkedEmployee) {
             restoredEmployeeId = null;
           }
         }
@@ -563,6 +640,15 @@ export class AgenciesService {
             fullName: user.fullName,
             email: user.email,
             phoneNumber: user.phoneNumber,
+          }, employeeProfile);
+        } else {
+          await tx.employee.update({
+            where: { id: restoredEmployeeId },
+            data: {
+              designationId: employeeProfile.designationId,
+              basicSalary: employeeProfile.basicSalary,
+              salaryCurrency: employeeProfile.salaryCurrency,
+            },
           });
         }
 
