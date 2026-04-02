@@ -112,6 +112,54 @@ export class AgenciesService {
     });
   }
 
+  private async ensureDemotionEmployeeLink(
+    tx: Parameters<Parameters<PrismaService['$transaction']>[0]>[0],
+    agencyId: string,
+    user: {
+      id: string;
+      fullName: string;
+      email: string;
+      phoneNumber?: string | null;
+    },
+  ) {
+    const baseCode = `ADM-${user.id.slice(-8).toUpperCase()}`;
+    let employeeCode = baseCode;
+    let attempt = 0;
+
+    // Generate a deterministic but collision-safe code for migrated admin accounts.
+    while (true) {
+      const exists = await tx.employee.findUnique({
+        where: {
+          agencyId_employeeCode: {
+            agencyId,
+            employeeCode,
+          },
+        },
+        select: { id: true },
+      });
+
+      if (!exists) {
+        break;
+      }
+
+      attempt += 1;
+      employeeCode = `${baseCode}-${attempt}`;
+    }
+
+    const employee = await tx.employee.create({
+      data: {
+        agencyId,
+        fullName: user.fullName || user.email,
+        email: user.email,
+        phoneNumber: user.phoneNumber || null,
+        employeeCode,
+      },
+      select: { id: true },
+    });
+
+    return employee.id;
+  }
+
   async createAgency(data: {
     name: string;
     slug: string;
@@ -493,9 +541,29 @@ export class AgenciesService {
       };
 
       if (switchingToStaffPortal) {
-        const restoredEmployeeId = user.employeeId || user.previousEmployeeId;
+        let restoredEmployeeId = user.employeeId || user.previousEmployeeId;
+
+        if (restoredEmployeeId) {
+          const linkedEmployee = await tx.employee.findFirst({
+            where: {
+              id: restoredEmployeeId,
+              agencyId,
+            },
+            select: { id: true },
+          });
+
+          if (!linkedEmployee) {
+            restoredEmployeeId = null;
+          }
+        }
+
         if (!restoredEmployeeId) {
-          throw new BadRequestException('Cannot demote this admin to staff because no linked employee was found');
+          restoredEmployeeId = await this.ensureDemotionEmployeeLink(tx, agencyId, {
+            id: user.id,
+            fullName: user.fullName,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
+          });
         }
 
         updateData.employeeId = restoredEmployeeId;
