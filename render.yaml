@@ -1,0 +1,39 @@
+services:
+  # Backend API (NestJS)
+  - type: web
+    name: sams-backend
+    runtime: node
+    region: ohio
+    plan: free
+    rootDir: backend
+    buildCommand: bash render-build.sh
+    startCommand: bash render-start.sh
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    autoDeploy: true
+
+  # Frontend (Next.js)
+  - type: web
+    name: sams-frontend
+    runtime: node
+    region: ohio
+    plan: free
+    rootDir: frontend
+    buildCommand: bash render-build.sh
+    startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
