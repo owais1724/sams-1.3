@@ -139,13 +139,14 @@ export default function IncidentsPage() {
     const isSupervisor = user?.role?.toLowerCase().includes('supervisor')
     const isGuard = user?.role?.toLowerCase().includes('guard') || user?.role?.toLowerCase().includes('staff')
     const canManage = isAdmin || isSupervisor || user?.permissions?.includes('manage_incidents')
+    const canView = isAdmin || isSupervisor || user?.permissions?.includes('view_incidents') || user?.permissions?.includes('manage_incidents')
     const canReport = isAdmin || isSupervisor || user?.permissions?.includes('report_incident')
 
     const fetchData = async () => {
         setLoading(true)
         try {
             const [incRes, depRes] = await Promise.allSettled([
-                canManage ? api.get(`/incidents?page=${currentPage}&limit=${pageSize}`) : api.get("/incidents/my-incidents"),
+                canView ? api.get(`/incidents?page=${currentPage}&limit=${pageSize}`) : api.get("/incidents/my-incidents"),
                 isAdmin ? api.get("/deployments") : api.get("/deployments/my-schedule"),
             ])
             if (incRes.status === "fulfilled") {
