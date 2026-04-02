@@ -40,16 +40,6 @@ const knownCountries = [
     { name: "South Africa", code: "+27", iso: "ZA", flag: "🇿🇦", length: 9 },
 ]
 
-const currencies = [
-    { label: "USD ($)", value: "USD", symbol: "$" },
-    { label: "INR (₹)", value: "INR", symbol: "₹" },
-    { label: "GBP (£)", value: "GBP", symbol: "£" },
-    { label: "EUR (€)", value: "EUR", symbol: "€" },
-    { label: "KES (KSh)", value: "KES", symbol: "KSh" },
-    { label: "NGN (₦)", value: "NGN", symbol: "₦" },
-    { label: "ZAR (R)", value: "ZAR", symbol: "R" },
-]
-
 const baseSchema = z.object({
     fullName: z.string().min(2, "Name is required"),
     email: z.string().email("Invalid email"),
@@ -111,7 +101,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
             designationId: "",
             phone: { countryCode: "+91", phoneNumber: "" },
             basicSalary: "0",
-            salaryCurrency: "USD"
+            salaryCurrency: "INR"
         },
     })
 
@@ -137,7 +127,7 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                 designationId: initialData.designationId || "",
                 phone: { countryCode, phoneNumber },
                 basicSalary: initialData.basicSalary?.toString() || "0",
-                salaryCurrency: initialData.salaryCurrency || "USD",
+                salaryCurrency: "INR",
                 status: initialData.status
             })
         }
@@ -194,7 +184,8 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
             const payload: any = {
                 ...apiValues,
                 phoneNumber: `${phone.countryCode}${phone.phoneNumber}`,
-                basicSalary: Number(pendingValues.basicSalary) || 0
+                basicSalary: Number(pendingValues.basicSalary) || 0,
+                salaryCurrency: "INR",
             }
 
             if (initialData) {
@@ -306,20 +297,14 @@ export function EmployeeForm({ designations, refetchDesignations, onSuccess, ini
                     />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <FormField
-                            control={form.control}
-                            name="salaryCurrency"
-                            render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                    <FormLabelBase label="Currency" />
-                                    <SelectInput value={field.value} onValueChange={field.onChange} className={selectVariants}>
-                                        {currencies.map(c => (
-                                            <SelectOption key={c.value} value={c.value}>{c.label}</SelectOption>
-                                        ))}
-                                    </SelectInput>
-                                </FormItem>
-                            )}
-                        />
+                        <FormItem className="space-y-0">
+                            <FormLabelBase label="Currency" />
+                            <Input
+                                value="INR"
+                                readOnly
+                                className={cn(inputVariants, "bg-slate-50 text-slate-600 cursor-not-allowed font-black")}
+                            />
+                        </FormItem>
                         <FormField
                             control={form.control}
                             name="basicSalary"

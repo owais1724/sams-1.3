@@ -35,6 +35,9 @@ export default function ProjectsPage() {
     const [open, setOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [editingProject, setEditingProject] = useState<any>(null)
+    const [showFilters, setShowFilters] = useState(false)
+    const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
+    const [staffFilter, setStaffFilter] = useState<"all" | "with-staff" | "without-staff">("all")
     const [deleteModal, setDeleteModal] = useState<{ open: boolean, id: string, name: string }>({
         open: false,
         id: "",
@@ -80,10 +83,25 @@ export default function ProjectsPage() {
         }
     }
 
-    const filteredProjects = projects.filter(p =>
-        p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.location?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const filteredProjects = projects
+        .filter((p) =>
+            p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.location?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .filter((p) => {
+            if (statusFilter === "active") return Boolean(p.isActive)
+            if (statusFilter === "inactive") return !p.isActive
+            return true
+        })
+        .filter((p) => {
+            const assigned = p._count?.assignedEmployees || 0
+            if (staffFilter === "with-staff") return assigned > 0
+            if (staffFilter === "without-staff") return assigned === 0
+            return true
+        })
+
+    const activeFilterCount = (statusFilter !== "all" ? 1 : 0) + (staffFilter !== "all" ? 1 : 0)
+    const filterButtonActive = showFilters || activeFilterCount > 0
 
     const activeProjectCount = projects.filter(p => p.isActive).length
 
@@ -116,7 +134,84 @@ export default function ProjectsPage() {
 
             <ControlPanel count={projects.length} totalLabel="Registered Projects">
                 <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search project by name or location..." className="bg-white border border-border text-slate-900 placeholder:text-slate-400" />
+                <Button
+                    variant="outline"
+                    className={`shrink-0 transition-colors ${
+                        filterButtonActive
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                    }`}
+                    onClick={() => setShowFilters((prev) => !prev)}
+                >
+                    <Filter className="h-4 w-4 mr-2" />
+                    <span className="text-[14px] font-medium">Filter</span>
+                    {activeFilterCount > 0 && (
+                        <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-cyan-100 px-1.5 text-[11px] font-bold text-cyan-700">
+                            {activeFilterCount}
+                        </span>
+                    )}
+                </Button>
             </ControlPanel>
+
+            {showFilters && (
+                <div className="rounded-2xl border border-border bg-white p-3 flex flex-wrap items-center gap-2">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={statusFilter === "all"
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                        }
+                        onClick={() => setStatusFilter("all")}
+                    >
+                        All Status
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={statusFilter === "active"
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                        }
+                        onClick={() => setStatusFilter("active")}
+                    >
+                        Active Projects
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={statusFilter === "inactive"
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                        }
+                        onClick={() => setStatusFilter("inactive")}
+                    >
+                        Inactive Projects
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={staffFilter === "with-staff"
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                        }
+                        onClick={() => setStaffFilter("with-staff")}
+                    >
+                        With Staff
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={staffFilter === "without-staff"
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                        }
+                        onClick={() => setStaffFilter("without-staff")}
+                    >
+                        Without Staff
+                    </Button>
+                </div>
+            )}
 
             <DataTable columns={['Project Name', 'Client', 'Location', 'Assigned Staff', 'Status', 'Actions']}>
                 <AnimatePresence mode="popLayout">

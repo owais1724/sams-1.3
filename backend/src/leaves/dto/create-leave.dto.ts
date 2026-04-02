@@ -8,7 +8,7 @@ import {
 import { LeaveType } from '../leave.entity';
 
 export class CreateLeaveRequestDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   employeeId: string;
 

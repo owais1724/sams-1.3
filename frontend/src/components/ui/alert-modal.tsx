@@ -96,11 +96,18 @@ export function AlertModal({
     loading,
     title,
     description,
-    variant = "danger",
+    variant = "primary",
     confirmText = "Confirm",
     cancelText = "Cancel",
 }: AlertModalProps) {
-    const activeVariant = variants[variant]
+    const actionContext = `${title} ${confirmText}`.toLowerCase()
+    const isDestructiveAction = /(delete|remove|terminate|demote|deactivate|suspend|sign\s*out|logout|revoke|purge|expunge|discard)/.test(actionContext)
+
+    const resolvedVariant = variant === "primary"
+        ? (isDestructiveAction ? "danger" : "success")
+        : variant
+
+    const activeVariant = variants[resolvedVariant]
     const Icon = activeVariant.icon
     const isPlainDescription = typeof description === "string" || typeof description === "number"
 
@@ -127,22 +134,22 @@ export function AlertModal({
                         <Icon className={cn("h-10 w-10 stroke-[2.5]", activeVariant.color)} />
                     </div>
 
-                    <DialogHeader className="w-full max-w-[320px] !space-y-0 gap-1 text-left mx-auto">
+                    <DialogHeader className="w-full max-w-[380px] !space-y-0 gap-1 text-center items-center mx-auto">
                         <DialogTitle className="text-2xl font-black text-[#0f172a] tracking-tight leading-tight m-0">
                             {title}
                         </DialogTitle>
                         {isPlainDescription ? (
-                            <DialogDescription className="text-sm font-bold text-[#64748b] leading-tight !mt-0">
+                            <DialogDescription className="text-sm font-bold text-[#64748b] leading-snug !mt-0 text-center mx-auto">
                                 {description}
                             </DialogDescription>
                         ) : (
-                            <div className="text-sm font-bold text-[#64748b] leading-tight !mt-0">
+                            <div className="text-sm font-bold text-[#64748b] leading-snug !mt-0 text-center mx-auto">
                                 {description}
                             </div>
                         )}
                     </DialogHeader>
 
-                    <DialogFooter className="w-full flex-col sm:flex-row gap-3 mt-8">
+                    <DialogFooter className="w-full sm:max-w-[420px] mx-auto flex-col sm:flex-row gap-3 mt-8 sm:justify-center sm:space-x-0">
                         <Button
                             type="button"
                             variant="outline"

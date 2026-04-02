@@ -30,6 +30,8 @@ export default function ClientsPage() {
     const [open, setOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [editingClient, setEditingClient] = useState<any | null>(null)
+    const [showFilters, setShowFilters] = useState(false)
+    const [projectFilter, setProjectFilter] = useState<"all" | "with-projects" | "without-projects">("all")
 
     const { deleteModal, openDelete, closeDelete, handleDelete, isDeleting } = useDeleteConfirm({
         endpoint: '/clients',
@@ -38,10 +40,19 @@ export default function ClientsPage() {
         errorMessage: 'Failed to delete client',
     })
 
-    const filteredClients = clients.filter(client =>
-        client.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        client.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const filterButtonActive = showFilters || projectFilter !== "all"
+
+    const filteredClients = clients
+        .filter(client =>
+            client.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            client.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .filter((client) => {
+            const projectCount = client.projects?.length || 0
+            if (projectFilter === "with-projects") return projectCount > 0
+            if (projectFilter === "without-projects") return projectCount === 0
+            return true
+        })
 
     if (loading) return <PageLoading message="Synchronizing Client Intelligence..." />
 
@@ -64,11 +75,62 @@ export default function ClientsPage() {
 
             <ControlPanel count={clients.length} totalLabel="Active Clients">
                 <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Find client..." className="bg-white border border-border text-slate-900 placeholder:text-slate-400" />
-                <Button variant="outline" className="shrink-0">
+                <Button
+                    variant="outline"
+                    className={`shrink-0 transition-colors ${
+                        filterButtonActive
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                    }`}
+                    onClick={() => setShowFilters((prev) => !prev)}
+                >
                     <Filter className="h-4 w-4 mr-2" />
                     <span className="text-[14px] font-medium">Filter</span>
+                    {projectFilter !== "all" && (
+                        <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-cyan-100 px-1.5 text-[11px] font-bold text-cyan-700">
+                            1
+                        </span>
+                    )}
                 </Button>
             </ControlPanel>
+
+            {showFilters && (
+                <div className="rounded-2xl border border-border bg-white p-3 flex flex-wrap items-center gap-2">
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={projectFilter === "all"
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                        }
+                        onClick={() => setProjectFilter("all")}
+                    >
+                        All Clients
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={projectFilter === "with-projects"
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                        }
+                        onClick={() => setProjectFilter("with-projects")}
+                    >
+                        With Projects
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className={projectFilter === "without-projects"
+                            ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
+                            : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
+                        }
+                        onClick={() => setProjectFilter("without-projects")}
+                    >
+                        Without Projects
+                    </Button>
+                </div>
+            )}
 
             {filteredClients.length === 0 ? (
                 <EmptyState
@@ -117,9 +179,25 @@ export default function ClientsPage() {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge className="bg-white/5 border border-white/10 text-white font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-xl">
-                                        {client.projects?.length || 0} Projects
-                                    </Badge>
+                                    {Array.isArray(client.projects) && client.projects.length > 0 ? (
+                                        <div className="space-y-1.5">
+                                            {client.projects.slice(0, 2).map((project: any) => (
+                                                <p
+                                                    key={project.id}
+                                                    className="text-base font-bold text-slate-900 leading-tight"
+                                                >
+                                                    {project.name}
+                                                </p>
+                                            ))}
+                                            {client.projects.length > 2 && (
+                                                <p className="text-sm font-semibold text-slate-600">
+                                                    +{client.projects.length - 2} more assigned
+                                                </p>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <span className="text-sm font-medium text-slate-500">No project assigned</span>
+                                    )}
                                 </TableCell>
                                 <TableCell className="text-right px-4 sm:px-8">
                                     <div className="flex justify-end gap-2">

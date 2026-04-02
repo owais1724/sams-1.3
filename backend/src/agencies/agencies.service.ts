@@ -178,7 +178,7 @@ export class AgenciesService {
       return {
         designationId: null,
         basicSalary: 0,
-        salaryCurrency: 'USD',
+        salaryCurrency: 'INR',
       };
     }
 
@@ -226,7 +226,7 @@ export class AgenciesService {
     return {
       designationId: designation.id,
       basicSalary: salaryTemplate?.basicSalary || 0,
-      salaryCurrency: salaryTemplate?.salaryCurrency || 'USD',
+      salaryCurrency: salaryTemplate?.salaryCurrency || 'INR',
     };
   }
 

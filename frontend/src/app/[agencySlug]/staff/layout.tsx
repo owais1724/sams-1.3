@@ -39,7 +39,6 @@ const routeAccessRules: RouteAccessRule[] = [
     { pattern: /^\/deployments$/, anyPermissions: ["view_deployments", "manage_deployments"] },
     { pattern: /^\/incidents$/, anyPermissions: ["view_incidents", "report_incident", "manage_incidents"] },
     { pattern: /^\/leaves$/, anyPermissions: ["view_leaves", "apply_leave", "approve_leave"] },
-    { pattern: /^\/payroll$/, anyPermissions: ["view_payroll", "manage_payroll"] },
 ]
 
 const STAFF_NAV_INTENT_TTL_MS = 5000

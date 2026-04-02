@@ -1,5 +1,6 @@
 import {
   Injectable,
+  BadRequestException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,96 +13,251 @@ import { LeaveApprovalDto } from './dto/approve-leave.dto';
 export class LeavesService {
   constructor(private prisma: PrismaService) { }
 
+  private readonly APPLY_ALLOWED_TYPES = [
+    LeaveType.CASUAL,
+    LeaveType.SICK,
+    LeaveType.EARNED,
+    LeaveType.LOSS_OF_PAY,
+  ] as const;
+
+  private readonly LEAVE_LIMITS: Record<string, number> = {
+    [LeaveType.CASUAL]: 12,
+    [LeaveType.SICK]: 7,
+    [LeaveType.EARNED]: 15,
+  };
+
+  private normalizeApplyLeaveType(leaveType: string): LeaveType {
+    const normalized = (leaveType || '').toUpperCase().trim();
+
+    // Legacy compatibility: keep old clients working while moving to new naming.
+    if (normalized === LeaveType.ANNUAL) {
+      return LeaveType.EARNED;
+    }
+    if (normalized === LeaveType.EMERGENCY) {
+      return LeaveType.LOSS_OF_PAY;
+    }
+
+    return normalized as LeaveType;
+  }
+
+  private getDateRangeDays(startDate: Date, endDate: Date): number {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    const diffMs = end.getTime() - start.getTime();
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+  }
+
+  private async resolveEmployeeForUser(agencyId: string, userId: string, employeeIdHint?: string | null) {
+    if (!userId) {
+      throw new ForbiddenException('Invalid user context');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        agencyId: true,
+        employeeId: true,
+      },
+    });
+
+    if (!user || user.agencyId !== agencyId) {
+      throw new ForbiddenException('Invalid user context for this agency');
+    }
+
+    const scopedEmployeeId = user.employeeId || employeeIdHint || null;
+    if (!scopedEmployeeId) {
+      throw new ForbiddenException('Only employees can apply for leave');
+    }
+
+    const employee = await this.prisma.employee.findUnique({
+      where: { id: scopedEmployeeId },
+      select: { id: true, agencyId: true },
+    });
+
+    if (!employee || employee.agencyId !== agencyId) {
+      throw new ForbiddenException('Employee profile not found in this agency');
+    }
+
+    return employee;
+  }
+
   async createLeaveRequest(
     createLeaveDto: CreateLeaveRequestDto,
     agencyId: string,
     userRole?: string,
     userId?: string,
+    employeeId?: string,
   ): Promise<LeaveRequest> {
-    const exists = await this.prisma.employee.findUnique({
-      where: { id: createLeaveDto.employeeId },
-    });
-
-    if (!exists) throw new NotFoundException('Employee record not found');
-    if (exists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
-    const employee = exists;
-
-    const isEmergency =
-      createLeaveDto.leaveType?.toString().toUpperCase() === 'EMERGENCY';
-
     const startDate = new Date(createLeaveDto.startDate);
     const endDate = new Date(createLeaveDto.endDate);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      throw new BadRequestException('Invalid leave date range');
+    }
+
+    if (endDate < startDate) {
+      throw new BadRequestException('End date must be on or after start date');
+    }
+
+    const scopedEmployee = await this.resolveEmployeeForUser(agencyId, userId || '', employeeId);
+
+    const leaveType = this.normalizeApplyLeaveType(String(createLeaveDto.leaveType));
+    const isAllowedLeaveType = this.APPLY_ALLOWED_TYPES.some((type) => type === leaveType);
+    if (!isAllowedLeaveType) {
+      throw new BadRequestException(
+        `leaveType must be one of: ${this.APPLY_ALLOWED_TYPES.join(', ')}`,
+      );
+    }
 
     // ── OVERLAP PROTECTION: Check if leave already exists for these dates ──────
     const overlappingLeave = await this.prisma.leave.findFirst({
       where: {
-        employeeId: createLeaveDto.employeeId,
+        agencyId,
+        employeeId: scopedEmployee.id,
         status: { in: [LeaveStatus.PENDING, LeaveStatus.SUPERVISOR_APPROVED, LeaveStatus.HR_APPROVED, LeaveStatus.AGENCY_APPROVED] },
-        OR: [
-          {
-            // New startDate is between existing leave dates
-            startDate: { lte: startDate },
-            endDate: { gte: startDate },
-          },
-          {
-            // New endDate is between existing leave dates
-            startDate: { lte: endDate },
-            endDate: { gte: endDate },
-          },
-          {
-            // Existing leave is completely inside new leave dates
-            startDate: { gte: startDate },
-            endDate: { lte: endDate },
-          },
-        ],
+        startDate: { lte: endDate },
+        endDate: { gte: startDate },
       },
     });
 
     if (overlappingLeave) {
-      throw new ForbiddenException(
-        `Leave already requested for part of this timeframe (${new Date(overlappingLeave.startDate).toLocaleDateString()} to ${new Date(overlappingLeave.endDate).toLocaleDateString()}). Status: ${overlappingLeave.status}`,
+      throw new BadRequestException(
+        'You already have a leave request for these dates.',
       );
     }
 
-    // Default to PENDING for regular flow
-    let status = LeaveStatus.PENDING;
-    const approvalData: any = {};
-    const role = userRole?.toLowerCase() || '';
+    if (leaveType !== LeaveType.LOSS_OF_PAY) {
+      const yearlyLimit = this.LEAVE_LIMITS[leaveType] || 0;
+      const currentYear = new Date().getFullYear();
+      const yearStart = new Date(currentYear, 0, 1);
+      const yearEnd = new Date(currentYear, 11, 31, 23, 59, 59, 999);
 
-    if (isEmergency) {
-      status = LeaveStatus.AGENCY_APPROVED;
-      approvalData.agencyApprovedAt = new Date();
-      approvalData.agencyApprovedBy = 'SYSTEM_AUTO_EMERGENCY';
-    } else if (role.includes('admin')) {
-      // Admins are their own authority, but we still mark it final
-      status = LeaveStatus.AGENCY_APPROVED;
-      approvalData.agencyApprovedAt = new Date();
-      approvalData.agencyApprovedBy = userId;
-      approvalData.hrApprovedAt = new Date();
-      approvalData.hrApprovedBy = userId;
-      approvalData.supervisorApprovedAt = new Date();
-      approvalData.supervisorApprovedBy = userId;
+      const approvedLeaves = await this.prisma.leave.findMany({
+        where: {
+          agencyId,
+          employeeId: scopedEmployee.id,
+          leaveType,
+          status: LeaveStatus.AGENCY_APPROVED,
+          startDate: { gte: yearStart, lte: yearEnd },
+        },
+        select: {
+          startDate: true,
+          endDate: true,
+        },
+      });
+
+      const usedLeaveDays = approvedLeaves.reduce((sum, leave) => {
+        return sum + this.getDateRangeDays(leave.startDate, leave.endDate);
+      }, 0);
+
+      const remaining = Math.max(0, yearlyLimit - usedLeaveDays);
+      const requestedDays = this.getDateRangeDays(startDate, endDate);
+
+      if (remaining <= 0 || requestedDays > remaining) {
+        throw new BadRequestException(
+          'Insufficient leave balance. This will be Loss of Pay — please select Loss of Pay as leave type.',
+        );
+      }
     }
 
     const leaveRequest = await this.prisma.leave.create({
       data: {
-        employeeId: createLeaveDto.employeeId,
-        leaveType: createLeaveDto.leaveType,
-        startDate: new Date(createLeaveDto.startDate),
-        endDate: new Date(createLeaveDto.endDate),
+        employeeId: scopedEmployee.id,
+        leaveType,
+        startDate,
+        endDate,
         reason: createLeaveDto.reason,
-        status,
-        agencyId: employee.agencyId,
-        ...approvalData,
+        status: LeaveStatus.PENDING,
+        agencyId,
       },
       include: {
         employee: {
-          include: { designation: true },
+          include: {
+            designation: true,
+            user: { include: { role: true } },
+          },
         },
       },
     });
 
     return this.formatLeaveRequest(leaveRequest);
+  }
+
+  async getMyLeaves(agencyId: string, userId: string, employeeId?: string): Promise<LeaveRequest[]> {
+    const scopedEmployee = await this.resolveEmployeeForUser(agencyId, userId, employeeId);
+
+    const leaveRequests = await this.prisma.leave.findMany({
+      where: {
+        agencyId,
+        employeeId: scopedEmployee.id,
+      },
+      include: {
+        employee: {
+          include: {
+            designation: true,
+            user: { include: { role: true } },
+          },
+        },
+      },
+      orderBy: {
+        appliedAt: 'desc',
+      },
+    });
+
+    return leaveRequests.map((leave) => this.formatLeaveRequest(leave));
+  }
+
+  async getLeaveBalance(agencyId: string, userId: string, employeeId?: string) {
+    const scopedEmployee = await this.resolveEmployeeForUser(agencyId, userId, employeeId);
+    const currentYear = new Date().getFullYear();
+    const yearStart = new Date(currentYear, 0, 1);
+    const yearEnd = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+
+    const approvedLeaves = await this.prisma.leave.findMany({
+      where: {
+        agencyId,
+        employeeId: scopedEmployee.id,
+        status: LeaveStatus.AGENCY_APPROVED,
+        startDate: { gte: yearStart, lte: yearEnd },
+      },
+      select: {
+        leaveType: true,
+        startDate: true,
+        endDate: true,
+      },
+    });
+
+    const usedByType = approvedLeaves.reduce<Record<string, number>>((acc, leave) => {
+      const key = this.normalizeApplyLeaveType(String(leave.leaveType));
+      acc[key] = (acc[key] || 0) + this.getDateRangeDays(leave.startDate, leave.endDate);
+      return acc;
+    }, {});
+
+    return {
+      CASUAL: {
+        total: this.LEAVE_LIMITS[LeaveType.CASUAL],
+        used: usedByType[LeaveType.CASUAL] || 0,
+        remaining: Math.max(0, this.LEAVE_LIMITS[LeaveType.CASUAL] - (usedByType[LeaveType.CASUAL] || 0)),
+      },
+      SICK: {
+        total: this.LEAVE_LIMITS[LeaveType.SICK],
+        used: usedByType[LeaveType.SICK] || 0,
+        remaining: Math.max(0, this.LEAVE_LIMITS[LeaveType.SICK] - (usedByType[LeaveType.SICK] || 0)),
+      },
+      EARNED: {
+        total: this.LEAVE_LIMITS[LeaveType.EARNED],
+        used: usedByType[LeaveType.EARNED] || 0,
+        remaining: Math.max(0, this.LEAVE_LIMITS[LeaveType.EARNED] - (usedByType[LeaveType.EARNED] || 0)),
+      },
+      LOSS_OF_PAY: {
+        total: null,
+        used: usedByType[LeaveType.LOSS_OF_PAY] || 0,
+        remaining: null,
+      },
+    };
   }
 
   async getLeaveRequests(

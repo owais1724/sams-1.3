@@ -9,6 +9,8 @@ export enum LeaveStatus {
 export enum LeaveType {
   SICK = 'SICK',
   CASUAL = 'CASUAL',
+  EARNED = 'EARNED',
+  LOSS_OF_PAY = 'LOSS_OF_PAY',
   ANNUAL = 'ANNUAL',
   EMERGENCY = 'EMERGENCY',
 }

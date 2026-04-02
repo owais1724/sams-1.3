@@ -3,23 +3,154 @@
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import {
-  StatCard,
   PageLoading
 } from "@/components/ui/design-system"
 import { Badge } from "@/components/ui/badge"
 import {
   CalendarDays,
   Users,
-  ShieldCheck,
   Activity,
   Zap,
-  Target
+  Target,
+  Clock,
+  MapPin,
+  Shield,
+  ClipboardCheck,
+  AlertTriangle,
+  LogIn,
+  LogOut,
 } from "lucide-react"
 import api from "@/lib/api"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuthStore } from "@/store/authStore"
+
+type LeaveType = "CASUAL" | "SICK" | "EARNED" | "LOSS_OF_PAY"
+
+type LeaveBalanceItem = {
+  total: number | null
+  used: number
+  remaining: number | null
+}
+
+type LeaveBalanceResponse = Record<LeaveType, LeaveBalanceItem>
+
+type LeaveHistoryItem = {
+  id: string
+  leaveType: string
+  startDate: string
+  endDate: string
+  status: string
+  employeeId?: string
+  employee?: {
+    id?: string
+  }
+}
+
+const EMPTY_LEAVE_BALANCE: LeaveBalanceResponse = {
+  CASUAL: { total: 12, used: 0, remaining: 12 },
+  SICK: { total: 7, used: 0, remaining: 7 },
+  EARNED: { total: 15, used: 0, remaining: 15 },
+  LOSS_OF_PAY: { total: null, used: 0, remaining: null },
+}
+
+const getDays = (start: string, end: string) => {
+  if (!start || !end) return 0
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+  startDate.setHours(0, 0, 0, 0)
+  endDate.setHours(0, 0, 0, 0)
+  if (endDate < startDate) return 0
+  const diff = endDate.getTime() - startDate.getTime()
+  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1
+}
+
+const normalizeStatus = (status: string) => {
+  const normalized = (status || "").toUpperCase().trim()
+  if (normalized === "REJECTED") return "REJECTED"
+  if (normalized === "APPROVED" || normalized === "AGENCY_APPROVED") return "APPROVED"
+  if (normalized === "HR_APPROVED" || normalized === "SUPERVISOR_APPROVED") return "PENDING"
+  return "PENDING"
+}
+
+const normalizeLeaveType = (leaveType: string): LeaveType => {
+  const normalized = (leaveType || "").toUpperCase().trim()
+  if (normalized === "ANNUAL") return "EARNED"
+  if (normalized === "EMERGENCY") return "LOSS_OF_PAY"
+  if (normalized === "CASUAL" || normalized === "SICK" || normalized === "EARNED" || normalized === "LOSS_OF_PAY") {
+    return normalized
+  }
+  return "LOSS_OF_PAY"
+}
+
+const computeBalanceFromHistory = (history: LeaveHistoryItem[]): LeaveBalanceResponse => {
+  const limits = {
+    CASUAL: 12,
+    SICK: 7,
+    EARNED: 15,
+  }
+
+  const approved = history.filter((item) => normalizeStatus(item.status) === "APPROVED")
+  const usedByType = approved.reduce<Record<LeaveType, number>>(
+    (acc, item) => {
+      const type = normalizeLeaveType(item.leaveType)
+      acc[type] += getDays(item.startDate, item.endDate)
+      return acc
+    },
+    { CASUAL: 0, SICK: 0, EARNED: 0, LOSS_OF_PAY: 0 },
+  )
+
+  return {
+    CASUAL: {
+      total: limits.CASUAL,
+      used: usedByType.CASUAL,
+      remaining: Math.max(0, limits.CASUAL - usedByType.CASUAL),
+    },
+    SICK: {
+      total: limits.SICK,
+      used: usedByType.SICK,
+      remaining: Math.max(0, limits.SICK - usedByType.SICK),
+    },
+    EARNED: {
+      total: limits.EARNED,
+      used: usedByType.EARNED,
+      remaining: Math.max(0, limits.EARNED - usedByType.EARNED),
+    },
+    LOSS_OF_PAY: {
+      total: null,
+      used: usedByType.LOSS_OF_PAY,
+      remaining: null,
+    },
+  }
+}
+
+const safeGetJson = async (path: string) => {
+  try {
+    const response = await fetch(`/api${path}`, {
+      method: "GET",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    })
+    if (!response.ok) return null
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
+const isActiveLeaveToday = (item: LeaveHistoryItem) => {
+  if (normalizeStatus(item.status) !== "APPROVED") return false
+
+  const start = new Date(item.startDate)
+  const end = new Date(item.endDate)
+  const now = new Date()
+
+  start.setHours(0, 0, 0, 0)
+  end.setHours(23, 59, 59, 999)
+
+  return now >= start && now <= end
+}
 
 export default function StaffDashboard() {
   const router = useRouter()
@@ -32,11 +163,13 @@ export default function StaffDashboard() {
     activeProjects: 0,
     completedTasks: 0
   })
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalanceResponse>(EMPTY_LEAVE_BALANCE)
+  const [pendingLeavesCount, setPendingLeavesCount] = useState(0)
   const [recentActivities, setRecentActivities] = useState([])
   const [topPerformers, setTopPerformers] = useState([])
-  const [userPermissions, setUserPermissions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState<any>(null)
+  const [isClockedIn, setIsClockedIn] = useState(false)
   const { login } = useAuthStore()
 
   const fetchDashboardData = async () => {
@@ -49,7 +182,6 @@ export default function StaffDashboard() {
       login(user)
 
       const perms = user.permissions || []
-      setUserPermissions(perms)
 
       console.log('[Staff Dashboard] Permission check:', {
         role: user.role,
@@ -69,18 +201,54 @@ export default function StaffDashboard() {
 
       // Check which data user can view based on permissions
       const isAdmin = ['Agency Admin', 'Supervisor'].includes(user?.role)
+      const canApplyLeave = perms.includes('apply_leave')
+      const canViewAllLeaves = isAdmin || perms.includes('view_leaves') || perms.includes('approve_leave')
       
-      const [empRes, attRes, projRes, leaveRes] = await Promise.allSettled([
+      const [empRes, attRes, projRes] = await Promise.allSettled([
         (isAdmin || perms.includes('view_employee')) ? api.get('/employees') : Promise.reject('No permission'),
         (isAdmin || perms.includes('view_attendance')) ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'),
         (isAdmin || perms.includes('view_projects')) ? api.get('/projects') : Promise.reject('No permission'),
-        (isAdmin || perms.includes('view_leaves')) ? api.get('/leaves') : Promise.reject('No permission')
       ])
 
       const employees = empRes.status === 'fulfilled' ? empRes.value.data : []
       const attendance = attRes.status === 'fulfilled' ? attRes.value.data : []
       const projects = projRes.status === 'fulfilled' ? projRes.value.data : []
-      const leaves = leaveRes.status === 'fulfilled' ? leaveRes.value.data : []
+
+      let leaves: LeaveHistoryItem[] = []
+      let resolvedLeaveBalance: LeaveBalanceResponse = EMPTY_LEAVE_BALANCE
+
+      if (canViewAllLeaves) {
+        const allLeaves = await api.get('/leaves').then((res) => res.data).catch(() => [])
+        leaves = Array.isArray(allLeaves) ? allLeaves : []
+      } else if (canApplyLeave) {
+        const [balanceData, myLeavesData] = await Promise.all([
+          safeGetJson('/leaves/balance'),
+          safeGetJson('/leaves/my-leaves'),
+        ])
+
+        if (balanceData) {
+          resolvedLeaveBalance = balanceData as LeaveBalanceResponse
+        }
+
+        if (Array.isArray(myLeavesData)) {
+          leaves = myLeavesData as LeaveHistoryItem[]
+        } else {
+          // Compatibility fallback for environments still on old leave routes.
+          const legacyLeaves = await api.get('/leaves').then((res) => res.data).catch(() => [])
+          const scopedLegacy = Array.isArray(legacyLeaves)
+            ? legacyLeaves.filter((item: LeaveHistoryItem) =>
+              user?.employeeId
+                ? item?.employee?.id === user.employeeId || item?.employeeId === user.employeeId
+                : true,
+            )
+            : []
+          leaves = scopedLegacy
+        }
+
+        if (!balanceData) {
+          resolvedLeaveBalance = computeBalanceFromHistory(leaves)
+        }
+      }
 
       // Deduplicate attendance by employee — use worst status per employee
       const employeeStatusMap = new Map<string, string>()
@@ -99,15 +267,19 @@ export default function StaffDashboard() {
       const presentToday = uniqueStatuses.filter(s => s === 'PRESENT').length
       const absentToday = uniqueStatuses.filter(s => s === 'ABSENT').length
       const activeProjectsCount = projects.filter((p: any) => p.status === 'ACTIVE' || p.isActive).length
+      const onLeaveTodayCount = leaves.filter(isActiveLeaveToday).length
+      const pendingCount = leaves.filter((leave) => normalizeStatus(leave.status) === 'PENDING').length
 
       setUserStats({
         totalStaff: employees.length,
         presentToday,
         absentToday,
-        onLeave: leaves.length,
+        onLeave: onLeaveTodayCount,
         activeProjects: activeProjectsCount,
         completedTasks: 0
       })
+      setLeaveBalance(resolvedLeaveBalance)
+      setPendingLeavesCount(pendingCount)
 
       setRecentActivities(attendance.slice(0, 5).map((record: any) => ({
         type: record.status === 'PRESENT' ? 'checkin' : 'absent',
@@ -135,106 +307,272 @@ export default function StaffDashboard() {
 
   if (loading) return <PageLoading message="Synchronizing HUD..." />
 
+  const currentAgencySlug = Array.isArray(agencySlug) ? agencySlug[0] : agencySlug
+  const permissions: string[] = userData?.permissions || []
+  const isPrivileged = ["Agency Admin", "Supervisor"].includes(userData?.role)
+  const hasPermission = (permission: string) => isPrivileged || permissions.includes(permission)
+
+  const now = new Date()
+  const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 18 ? "Good afternoon" : "Good evening"
+  const todayLabel = now.toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+
+  const statCards = [
+    {
+      key: "staff",
+      title: "Personnel count",
+      value: userStats.totalStaff,
+      subtitle: "Total staff members",
+      borderColor: "border-t-[#06b6d4]",
+      visible: hasPermission("view_employee"),
+    },
+    {
+      key: "present",
+      title: "Present today",
+      value: userStats.presentToday,
+      subtitle: "Attendance marked",
+      borderColor: "border-t-[#22c55e]",
+      visible: hasPermission("view_attendance"),
+    },
+    {
+      key: "projects",
+      title: "Active projects",
+      value: userStats.activeProjects,
+      subtitle: "Sites currently active",
+      borderColor: "border-t-[#f59e0b]",
+      visible: hasPermission("view_projects"),
+    },
+    {
+      key: "leave",
+      title: "On leave",
+      value: userStats.onLeave,
+      subtitle: "Staff currently on leave",
+      borderColor: "border-t-[#f43f5e]",
+      visible: hasPermission("view_leaves") || hasPermission("apply_leave"),
+    },
+  ].filter((card) => card.visible)
+
+  const quickActions = [
+    {
+      key: "attendance",
+      label: "Mark attendance",
+      icon: <ClipboardCheck className="h-4 w-4 text-[#06b6d4]" />,
+      href: `/${currentAgencySlug}/staff/attendance`,
+      visible: hasPermission("record_attendance") || hasPermission("view_attendance"),
+    },
+    {
+      key: "incident",
+      label: "Report incident",
+      icon: <AlertTriangle className="h-4 w-4 text-[#06b6d4]" />,
+      href: `/${currentAgencySlug}/staff/incidents`,
+      visible: hasPermission("report_incident") || hasPermission("view_incidents"),
+    },
+    {
+      key: "leave",
+      label: "Apply for leave",
+      icon: <CalendarDays className="h-4 w-4 text-[#06b6d4]" />,
+      href: `/${currentAgencySlug}/staff/leaves`,
+      visible: hasPermission("apply_leave") || hasPermission("view_leaves"),
+    },
+    {
+      key: "schedule",
+      label: "View my schedule",
+      icon: <Clock className="h-4 w-4 text-[#06b6d4]" />,
+      href: `/${currentAgencySlug}/staff/my-schedule`,
+      visible: true,
+    },
+  ].filter((action) => action.visible)
+
   return (
-    <div className="space-y-10 pb-20 font-inter">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-4">
-            <Badge variant="secondary">Staff portal</Badge>
-            <Badge className="bg-cyan-50 text-[#06b6d4] border border-cyan-100">Online</Badge>
-          </div>
-          <h1 className="text-[28px] font-bold text-slate-900 tracking-tight leading-none">
-            Staff Dashboard
+    <div className="min-h-full bg-[#f8fafc] space-y-6 pb-10">
+      <section className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="space-y-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#06b6d4]">Staff portal · Online</p>
+          <h1 className="text-3xl md:text-4xl font-black text-[#0f172a] tracking-tight">
+            {greeting}, {userData?.fullName?.split(" ")?.[0] || "Staff"}
           </h1>
-          <p className="text-slate-600 text-sm mt-3 max-w-lg leading-relaxed">
-            Real-time interface for <span className="text-slate-900 font-semibold">{userData?.agencyName || 'your agency'}</span>.
+          <p className="text-sm text-[#64748b]">
+            {todayLabel} · {userData?.agencyName || "Agency"}
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-white p-4 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-          <Avatar className="h-12 w-12 rounded-xl border border-border bg-white">
-            <AvatarFallback className="bg-slate-100 text-slate-700 font-semibold">{userData?.fullName?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="text-[12px] font-medium text-slate-500">Signed in as</div>
-            <div className="text-[14px] font-semibold text-slate-900 leading-tight">{userData?.fullName}</div>
-            <div className="text-[12px] text-slate-500 mt-0.5">{userData?.role || 'Staff'}</div>
+        <div className="w-full max-w-[360px] rounded-xl border-[0.5px] border-[#e2e8f0] bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#0f172a]">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#22c55e]" />
+                {isClockedIn ? "Clocked in" : "Clocked out"}
+              </div>
+              <p className="mt-1 text-xs text-[#64748b]">Use this to start or end your shift.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsClockedIn((prev) => !prev)}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#06b6d4] px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-600 transition-colors"
+            >
+              {isClockedIn ? <LogOut className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+              {isClockedIn ? "Clock Out" : "Clock In"}
+            </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="grid gap-4 grid-cols-2 sm:gap-6 md:grid-cols-4">
-        <StatCard title="Personnel Count" value={userStats.totalStaff} icon={<Users className="text-teal-700" />} color="teal" />
-        <StatCard title="Present Today" value={userStats.presentToday} icon={<Zap className="text-green-700" />} color="emerald" />
-        <StatCard title="Active Projects" value={userStats.activeProjects} icon={<Target className="text-sky-700" />} color="blue" />
-        <StatCard title="On Leave" value={userStats.onLeave} icon={<CalendarDays className="text-orange-700" />} color="orange" />
-      </div>
+      {statCards.length > 0 && (
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {statCards.map((card) => (
+            <article
+              key={card.key}
+              className={cn(
+                "rounded-[12px] border-[0.5px] border-[#e2e8f0] border-t-[3px] bg-white p-4",
+                card.borderColor,
+              )}
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">{card.title}</p>
+              <p className="mt-2 text-4xl font-black text-[#0f172a] leading-none">{card.value}</p>
+              <p className="mt-2 text-xs text-[#64748b]">{card.subtitle}</p>
+            </article>
+          ))}
+        </section>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
-        <div className="lg:col-span-2 space-y-10">
-          <div className="bg-white p-6 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[20px] font-semibold text-slate-900">Permissions</h3>
-              <ShieldCheck className="h-5 w-5 text-primary" />
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        {hasPermission("view_shifts") || hasPermission("view_deployments") ? (
+          <article className="rounded-[12px] border-[0.5px] border-[#e2e8f0] bg-white p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[#0f172a]">Today's shift</h2>
+              <Badge className="bg-green-50 text-green-700 border border-green-200">Scheduled</Badge>
             </div>
-            <div>
-              <div className="flex flex-wrap gap-2">
-                {userPermissions.map(p => (
-                  <Badge key={p} variant="secondary">
-                    {p.replaceAll('_', ' ')}
-                  </Badge>
-                ))}
-                {userPermissions.length === 0 && <span className="text-sm text-slate-500">No permissions assigned.</span>}
+
+            <div className="rounded-lg bg-[#f8fafc] border-[0.5px] border-[#e2e8f0] p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-cyan-50 border border-cyan-100 flex items-center justify-center text-[#06b6d4]">
+                <Clock className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-[#0f172a]">Morning Security Shift</p>
+                <p className="text-xs text-[#64748b]">08:00 AM - 04:00 PM</p>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="space-y-10">
-          <div>
-            <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-[20px] font-semibold text-slate-900">Recent activity</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-lg bg-[#f8fafc] border-[0.5px] border-[#e2e8f0] p-3">
+                <p className="text-[11px] text-[#64748b] mb-1 flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Site</p>
+                <p className="text-sm font-semibold text-[#0f172a] truncate">{userData?.agencyName || "Main Site"}</p>
+              </div>
+              <div className="rounded-lg bg-[#f8fafc] border-[0.5px] border-[#e2e8f0] p-3">
+                <p className="text-[11px] text-[#64748b] mb-1 flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> Role</p>
+                <p className="text-sm font-semibold text-[#0f172a] truncate">{userData?.role || "Staff"}</p>
+              </div>
             </div>
-            <div className="space-y-4">
-              {recentActivities.map((activity: any, idx) => (
-                <div key={idx} className="bg-white p-4 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)] flex items-center gap-4">
-                  <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border", activity.color === 'emerald' ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200")}>
-                    <Activity className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-medium text-slate-900 leading-tight truncate">{activity.title}</p>
-                    <p className="text-[12px] text-slate-500 mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-              {recentActivities.length === 0 && <p className="text-center py-10 text-sm text-slate-500">No recent activity.</p>}
-            </div>
-          </div>
+          </article>
+        ) : null}
 
-          <div>
-            <div className="flex items-center justify-between mb-8 px-2">
-              <h2 className="text-[20px] font-semibold text-slate-900">Team members</h2>
+        {hasPermission("view_leaves") || hasPermission("apply_leave") || hasPermission("approve_leave") ? (
+          <article className="rounded-[12px] border-[0.5px] border-[#e2e8f0] bg-white p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[#0f172a]">Leave balance</h2>
+              <button
+                type="button"
+                onClick={() => router.push(`/${currentAgencySlug}/staff/leaves`)}
+                className="text-sm font-semibold text-[#06b6d4] hover:text-cyan-700"
+              >
+                Apply leave
+              </button>
             </div>
-            <div className="space-y-4">
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-lg border border-green-100 bg-green-50 p-3 text-center">
+                <p className="text-2xl font-black text-green-700">{leaveBalance.CASUAL.remaining ?? "-"}</p>
+                <p className="text-xs font-medium text-green-700/80">Casual</p>
+              </div>
+              <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-center">
+                <p className="text-2xl font-black text-blue-700">{leaveBalance.SICK.remaining ?? "-"}</p>
+                <p className="text-xs font-medium text-blue-700/80">Sick</p>
+              </div>
+              <div className="rounded-lg border border-yellow-100 bg-yellow-50 p-3 text-center">
+                <p className="text-2xl font-black text-yellow-700">{leaveBalance.EARNED.remaining ?? "-"}</p>
+                <p className="text-xs font-medium text-yellow-700/80">Earned</p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-lg border-[0.5px] border-amber-200 bg-amber-50 px-3 py-2 flex items-center justify-between">
+              <span className="text-xs text-amber-700">Pending approval</span>
+              <span className="text-sm font-bold text-amber-700">{pendingLeavesCount}</span>
+            </div>
+          </article>
+        ) : null}
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        {hasPermission("view_employee") ? (
+          <article className="rounded-[12px] border-[0.5px] border-[#e2e8f0] bg-white p-5">
+            <h2 className="text-lg font-bold text-[#0f172a] mb-4">Team members</h2>
+
+            <div className="space-y-3">
               {topPerformers.map((performer: any, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-white p-4 rounded-xl border border-border shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 rounded-xl border border-border">
-                      <AvatarFallback className="bg-slate-100 text-slate-700 font-semibold text-xs">{performer.initials}</AvatarFallback>
+                <div key={idx} className="flex items-center justify-between rounded-lg border-[0.5px] border-[#e2e8f0] bg-white px-3 py-2.5">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="h-9 w-9 rounded-full border border-[#e2e8f0]">
+                      <AvatarFallback className="bg-cyan-50 text-[#0f172a] text-xs font-semibold">{performer.initials}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <div className="text-sm font-medium text-slate-900 leading-tight">{performer.name}</div>
-                      <div className="text-[12px] text-slate-500">{performer.designation}</div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#0f172a]">{performer.name}</p>
+                      <p className="truncate text-xs text-[#64748b]">{performer.designation}</p>
                     </div>
                   </div>
-                  <div className="h-2 w-2 rounded-full bg-green-500" />
+                  <span className={cn("h-2.5 w-2.5 rounded-full", idx % 2 === 0 ? "bg-green-500" : "bg-slate-300")} />
                 </div>
               ))}
-              {topPerformers.length === 0 && <p className="text-center py-10 text-sm text-slate-500">No team members found.</p>}
+
+              {topPerformers.length === 0 && (
+                <p className="text-sm text-[#64748b]">No team members found.</p>
+              )}
             </div>
+          </article>
+        ) : null}
+
+        {quickActions.length > 0 ? (
+          <article className="rounded-[12px] border-[0.5px] border-[#e2e8f0] bg-white p-5">
+            <h2 className="text-lg font-bold text-[#0f172a] mb-4">Quick actions</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {quickActions.map((action) => (
+                <button
+                  key={action.key}
+                  type="button"
+                  onClick={() => router.push(action.href)}
+                  className="rounded-lg border-[0.5px] border-[#e2e8f0] bg-[#f8fafc] px-3 py-3 text-left flex items-center gap-2.5 hover:border-cyan-300 hover:bg-cyan-50/40 transition-colors"
+                >
+                  {action.icon}
+                  <span className="text-sm font-semibold text-[#0f172a]">{action.label}</span>
+                </button>
+              ))}
+            </div>
+          </article>
+        ) : null}
+      </section>
+
+      {hasPermission("view_attendance") && (
+        <section className="rounded-[12px] border-[0.5px] border-[#e2e8f0] bg-white p-5">
+          <h2 className="text-lg font-bold text-[#0f172a] mb-4">Recent activity</h2>
+          <div className="space-y-3">
+            {recentActivities.map((activity: any, idx) => (
+              <div key={idx} className="bg-[#f8fafc] border-[0.5px] border-[#e2e8f0] rounded-lg p-3 flex items-center gap-3">
+                <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center border", activity.color === 'emerald' ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200")}>
+                  <Activity className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[#0f172a]">{activity.title}</p>
+                  <p className="text-xs text-[#64748b] mt-0.5">{activity.time}</p>
+                </div>
+              </div>
+            ))}
+            {recentActivities.length === 0 && <p className="text-sm text-[#64748b]">No recent activity.</p>}
           </div>
-        </div>
-      </div>
+        </section>
+      )}
     </div>
   )
 }

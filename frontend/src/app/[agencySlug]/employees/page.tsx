@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, usePathname, useRouter } from "next/navigation"
 import api from "@/lib/api"
 import {
     PageHeader,
@@ -52,13 +51,61 @@ import { AssignProjectDialog } from "@/components/agency/AssignProjectDialog"
 import { DesignationManager } from "@/components/agency/DesignationManager"
 import { SearchBar } from "@/components/common/SearchBar"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+const ROLE_RANK: Record<string, number> = {
+    "agency admin": 4,
+    "hr": 3,
+    "supervisor": 2,
+    "guard": 1,
+    "cleaner": 1,
+}
+
+const ROLE_DISPLAY_ORDER: Record<string, number> = {
+    "agency admin": 5,
+    "hr": 4,
+    "supervisor": 3,
+    "guard": 2,
+    "cleaner": 1,
+}
+
+const ROLE_ALIASES: Record<string, string> = {
+    "agency admin": "agency admin",
+    "hr": "hr",
+    "human resources": "hr",
+    "supervisor": "supervisor",
+    "guard": "guard",
+    "guards": "guard",
+    "cleaner": "cleaner",
+    "cleaners": "cleaner",
+}
+
+const normalizeRoleName = (name?: string | null) =>
+    (name || "")
+        .toLowerCase()
+        .replace(/[^a-z\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+
+const getCanonicalRoleName = (name?: string | null) => {
+    const normalized = normalizeRoleName(name)
+    if (!normalized) return ""
+
+    if (ROLE_ALIASES[normalized]) return ROLE_ALIASES[normalized]
+
+    if (normalized.includes("agency") && normalized.includes("admin")) return "agency admin"
+    if (normalized.includes("human resource") || /(^|\s)hr(\s|$)/.test(normalized)) return "hr"
+    if (normalized.includes("supervisor")) return "supervisor"
+    if (normalized.includes("guard")) return "guard"
+    if (normalized.includes("cleaner") || normalized.includes("janitor") || normalized.includes("housekeeping")) return "cleaner"
+
+    return normalized
+}
+
+const getRoleRank = (name?: string | null) => ROLE_RANK[getCanonicalRoleName(name)] ?? 0
+const getRoleDisplayOrder = (name?: string | null) => ROLE_DISPLAY_ORDER[getCanonicalRoleName(name)] ?? 0
 
 export default function EmployeesPage() {
-    const router = useRouter()
-    const pathname = usePathname()
-    const params = useParams<{ agencySlug?: string | string[] }>()
-    const agencySlug = Array.isArray(params?.agencySlug) ? params.agencySlug[0] : params?.agencySlug
-    const isStaffPortal = pathname?.includes("/staff/")
     const { user } = useAuthStore()
     const [employees, setEmployees] = useState<any[]>([])
     const [designations, setDesignations] = useState<any[]>([])
@@ -75,6 +122,15 @@ export default function EmployeesPage() {
 
     const [deleting, setDeleting] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [roleActionLoading, setRoleActionLoading] = useState<"promote" | "demote" | null>(null)
+    const [roleActionConfirm, setRoleActionConfirm] = useState<{ open: boolean, action: "promote" | "demote" | null, roleId: string }>({
+        open: false,
+        action: null,
+        roleId: "",
+    })
+    const [roles, setRoles] = useState<any[]>([])
+    const [selectedPromoteRoleId, setSelectedPromoteRoleId] = useState("")
+    const [selectedDemoteRoleId, setSelectedDemoteRoleId] = useState("")
     
     // Assignment Dialog State
     const [assignDialog, setAssignDialog] = useState<{ open: boolean, employee: any | null }>({
@@ -87,13 +143,15 @@ export default function EmployeesPage() {
     const fetchData = async () => {
         if (!user) return
         try {
-            const [empRes, desRes] = await Promise.allSettled([
+            const [empRes, desRes, rolesRes] = await Promise.allSettled([
                 hasPermission('view_employee') ? api.get("/employees") : Promise.resolve({ data: [] }),
-                hasPermission(['view_employee', 'create_employee', 'edit_employee', 'manage_roles']) ? api.get("/designations") : Promise.resolve({ data: [] })
+                hasPermission(['view_employee', 'create_employee', 'edit_employee', 'manage_roles']) ? api.get("/designations") : Promise.resolve({ data: [] }),
+                hasPermission('manage_roles') ? api.get("/roles") : Promise.resolve({ data: [] })
             ])
 
             if (empRes.status === 'fulfilled') setEmployees(empRes.value.data)
             if (desRes.status === 'fulfilled') setDesignations(desRes.value.data)
+            if (rolesRes.status === 'fulfilled') setRoles(rolesRes.value.data)
         } catch (error) {
             toast.error("Failed to load operational roster.")
         } finally {
@@ -130,7 +188,106 @@ export default function EmployeesPage() {
         }
     }
 
+    const handleRoleAction = async (action: "promote" | "demote", roleId: string) => {
+        if (!profileDialog.employee) return
+        if (!roleId) {
+            toast.error(`Please select a role to ${action}.`)
+            return
+        }
+
+        setRoleActionLoading(action)
+        try {
+            const response = await api.patch(`/employees/${profileDialog.employee.id}/${action}`, { roleId })
+            const actionLabel = action === "promote" ? "promoted" : "demoted"
+            toast.success(response?.data?.message || `Employee ${actionLabel} successfully.`)
+
+            const updatedUser = response?.data?.user
+            if (updatedUser) {
+                setProfileDialog((prev) => ({
+                    open: true,
+                    employee: prev.employee
+                        ? {
+                            ...prev.employee,
+                            user: updatedUser,
+                        }
+                        : prev.employee,
+                }))
+            }
+
+            await fetchData()
+        } catch (error: any) {
+            const backendMessage = error?.response?.data?.message
+            const message = Array.isArray(backendMessage)
+                ? backendMessage.join(", ")
+                : backendMessage || error?.message || `Failed to ${action} employee.`
+            toast.error(message)
+        } finally {
+            setRoleActionLoading(null)
+        }
+    }
+
+    const openRoleActionConfirm = (action: "promote" | "demote", roleId: string) => {
+        if (!roleId) {
+            toast.error(`Please select a role to ${action}.`)
+            return
+        }
+
+        setRoleActionConfirm({
+            open: true,
+            action,
+            roleId,
+        })
+    }
+
     const visibleEmployees = employees.filter((emp: any) => Boolean(emp.user))
+    const userRoleName = getCanonicalRoleName(profileDialog.employee?.user?.role?.name)
+    const designationRoleName = getCanonicalRoleName(profileDialog.employee?.designation?.name)
+    const currentRoleName = getRoleRank(userRoleName) > 0 ? userRoleName : designationRoleName || userRoleName
+    const currentRoleRank = getRoleRank(currentRoleName)
+    const currentRoleId = profileDialog.employee?.user?.role?.id
+
+    const roleCandidates = roles.filter((role) => {
+        const roleKey = getCanonicalRoleName(role.name)
+        if (!(roleKey in ROLE_RANK)) return false
+        if (currentRoleId && role.id === currentRoleId) return false
+        if (!currentRoleId && roleKey === currentRoleName) return false
+        return true
+    })
+
+    const promotableRoles = roleCandidates
+        .filter((role) => getRoleRank(role.name) > currentRoleRank)
+        .sort((a, b) => {
+            const rankDiff = getRoleRank(a.name) - getRoleRank(b.name)
+            if (rankDiff !== 0) return rankDiff
+            const orderDiff = getRoleDisplayOrder(a.name) - getRoleDisplayOrder(b.name)
+            if (orderDiff !== 0) return orderDiff
+            return a.name.localeCompare(b.name)
+        })
+
+    const demotableRoles = roleCandidates
+        .filter((role) => getRoleRank(role.name) < currentRoleRank)
+        .sort((a, b) => {
+            const rankDiff = getRoleRank(b.name) - getRoleRank(a.name)
+            if (rankDiff !== 0) return rankDiff
+            const orderDiff = getRoleDisplayOrder(b.name) - getRoleDisplayOrder(a.name)
+            if (orderDiff !== 0) return orderDiff
+            return a.name.localeCompare(b.name)
+        })
+
+    const confirmedTargetRole = roles.find((role) => role.id === roleActionConfirm.roleId)
+    const confirmedTargetRoleName = confirmedTargetRole?.name || "the selected role"
+
+    useEffect(() => {
+        if (!profileDialog.open) return
+
+        if (!promotableRoles.some((role) => role.id === selectedPromoteRoleId)) {
+            setSelectedPromoteRoleId(promotableRoles[0]?.id || "")
+        }
+
+        if (!demotableRoles.some((role) => role.id === selectedDemoteRoleId)) {
+            setSelectedDemoteRoleId(demotableRoles[0]?.id || "")
+        }
+    }, [profileDialog.open, promotableRoles, demotableRoles, selectedPromoteRoleId, selectedDemoteRoleId])
 
     const filteredEmployees = visibleEmployees.filter((emp: any) =>
         emp.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -236,13 +393,7 @@ export default function EmployeesPage() {
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <RowViewButton
-                                                    onClick={() => {
-                                                        if (isStaffPortal) {
-                                                            setProfileDialog({ open: true, employee: emp })
-                                                            return
-                                                        }
-                                                        router.push(`/${agencySlug}/employees/${emp.id}`)
-                                                    }}
+                                                    onClick={() => setProfileDialog({ open: true, employee: emp })}
                                                 />
                                                 <PermissionGuard permission="edit_project">
                                                     <Button
@@ -298,13 +449,13 @@ export default function EmployeesPage() {
 
             {/* Employee Profile Dialog */}
             <Dialog open={profileDialog.open} onOpenChange={(v) => !v && setProfileDialog({ open: false, employee: null })}>
-                <DialogContent className="sm:max-w-[640px] border-none rounded-[40px] p-0 overflow-hidden shadow-2xl bg-white focus:outline-none">
+                <DialogContent className="sm:max-w-[640px] border-none rounded-[32px] p-0 shadow-2xl bg-white focus:outline-none max-h-[92vh] overflow-y-auto">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Employee Profile - {profileDialog.employee?.fullName}</DialogTitle>
                         <DialogDescription>Full employee profile and management center.</DialogDescription>
                     </DialogHeader>
 
-                    <div className="bg-white p-5 sm:p-10 text-slate-900 relative overflow-hidden border-b border-slate-100">
+                    <div className="bg-white p-5 sm:p-8 text-slate-900 relative overflow-hidden border-b border-slate-100">
                         <div className="relative flex items-center gap-4 sm:gap-6">
                             <Avatar className="h-16 w-16 sm:h-24 sm:w-24 border-4 border-slate-100 shadow-2xl rounded-[24px] sm:rounded-[32px] overflow-hidden shrink-0">
                                 <AvatarFallback className="bg-primary text-white text-xl sm:text-3xl font-black uppercase">
@@ -319,8 +470,8 @@ export default function EmployeesPage() {
                         </div>
                     </div>
 
-                    <div className="p-5 sm:p-10 space-y-10 bg-white">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
+                    <div className="p-5 sm:p-8 space-y-7 bg-white">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                             {[
                                 { icon: <ShieldCheck />, label: 'Designation', value: profileDialog.employee?.designation?.name || "UNSET" },
                                 { icon: <Wallet />, label: 'Monthly Salary', value: `${profileDialog.employee?.salaryCurrency} ${profileDialog.employee?.basicSalary?.toLocaleString()}` },
@@ -352,22 +503,77 @@ export default function EmployeesPage() {
                             </div>
                         </div>
 
-                        <div className="pt-10 border-t border-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="pt-6 border-t border-slate-50 flex flex-col gap-4">
                             <div className="flex flex-col">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Management</p>
                                 <p className="text-[11px] text-slate-400 font-medium font-italic">Record deletion requires confirmation.</p>
                             </div>
-                            <PermissionGuard permission="delete_employee">
-                                <Button
-                                    variant="destructive"
-                                    disabled={deleting}
-                                    onClick={handleDeleteEmployee}
-                                    className="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-none rounded-2xl font-black text-[10px] px-8 h-12 shadow-xl shadow-rose-100 transition-all active:scale-95"
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    {deleting ? "DELETING..." : "DELETE RECORD"}
-                                </Button>
-                            </PermissionGuard>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <PermissionGuard permission="manage_roles">
+                                    <div className="space-y-2 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-3">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Promote To</p>
+                                        <Select value={selectedPromoteRoleId} onValueChange={setSelectedPromoteRoleId}>
+                                            <SelectTrigger className="h-10 bg-white border-emerald-200 text-slate-900">
+                                                <SelectValue placeholder={promotableRoles.length ? "Select role" : "No higher role available"} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {promotableRoles.map((role) => (
+                                                    <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button
+                                            variant="outline"
+                                            disabled={roleActionLoading !== null || !selectedPromoteRoleId}
+                                            onClick={() => openRoleActionConfirm("promote", selectedPromoteRoleId)}
+                                            className="w-full rounded-xl border-emerald-300 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-400 font-semibold"
+                                        >
+                                            {roleActionLoading === "promote" ? "Promoting..." : "Promote"}
+                                        </Button>
+                                    </div>
+                                </PermissionGuard>
+
+                                <PermissionGuard permission="manage_roles">
+                                    <div className="space-y-2 rounded-2xl border border-amber-100 bg-amber-50/40 p-3">
+                                        <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Demote To</p>
+                                        <Select value={selectedDemoteRoleId} onValueChange={setSelectedDemoteRoleId}>
+                                            <SelectTrigger className="h-10 bg-white border-amber-200 text-slate-900">
+                                                <SelectValue placeholder={demotableRoles.length ? "Select role" : "No lower role available"} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {demotableRoles.map((role) => (
+                                                    <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button
+                                            variant="outline"
+                                            disabled={roleActionLoading !== null || !selectedDemoteRoleId}
+                                            onClick={() => openRoleActionConfirm("demote", selectedDemoteRoleId)}
+                                            className="w-full rounded-xl border-amber-300 text-amber-700 hover:bg-amber-100 hover:border-amber-400 font-semibold"
+                                        >
+                                            {roleActionLoading === "demote" ? "Demoting..." : "Demote"}
+                                        </Button>
+                                    </div>
+                                </PermissionGuard>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                <div className="text-[11px] text-slate-500">
+                                    Roles are fetched from your configured role/designation list.
+                                </div>
+                                <PermissionGuard permission="delete_employee">
+                                    <Button
+                                        variant="destructive"
+                                        disabled={deleting}
+                                        onClick={handleDeleteEmployee}
+                                        className="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border-none rounded-2xl font-black text-[10px] px-8 h-12 shadow-xl shadow-rose-100 transition-all active:scale-95"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        {deleting ? "DELETING..." : "DELETE RECORD"}
+                                    </Button>
+                                </PermissionGuard>
+                            </div>
                         </div>
                     </div>
                 </DialogContent>
@@ -382,6 +588,25 @@ export default function EmployeesPage() {
                 variant="danger"
                 description={`Are you sure you want to delete ${profileDialog.employee?.fullName}? This action is irreversible and will remove all employment history.`}
                 confirmText="Delete Record"
+            />
+
+            <AlertModal
+                isOpen={roleActionConfirm.open}
+                onClose={() => setRoleActionConfirm({ open: false, action: null, roleId: "" })}
+                onConfirm={async () => {
+                    if (!roleActionConfirm.action || !roleActionConfirm.roleId) return
+                    await handleRoleAction(roleActionConfirm.action, roleActionConfirm.roleId)
+                    setRoleActionConfirm({ open: false, action: null, roleId: "" })
+                }}
+                loading={roleActionLoading !== null}
+                title={roleActionConfirm.action === "demote" ? "CONFIRM DEMOTION" : "CONFIRM PROMOTION"}
+                variant={roleActionConfirm.action === "demote" ? "danger" : "success"}
+                description={
+                    roleActionConfirm.action === "demote"
+                        ? `Are you sure you want to demote ${profileDialog.employee?.fullName} to ${confirmedTargetRoleName}?`
+                        : `Are you sure you want to promote ${profileDialog.employee?.fullName} to ${confirmedTargetRoleName}?`
+                }
+                confirmText={roleActionConfirm.action === "demote" ? "Confirm Demotion" : "Confirm Promotion"}
             />
 
             {/* Assign Project Dialog */}

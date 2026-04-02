@@ -17,7 +17,6 @@ import {
     Shield,
     ShieldCheck,
     Users,
-    Wallet,
 } from "lucide-react"
 
 import api from "@/lib/api"
@@ -117,12 +116,6 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
             href: isStaff ? `/${agencySlug}/staff/incidents` : `/${agencySlug}/incidents`,
             icon: AlertTriangle,
             permissions: ["view_incidents", "report_incident", "manage_incidents"],
-        },
-        {
-            name: "Payroll",
-            href: isStaff ? `/${agencySlug}/staff/payroll` : `/${agencySlug}/payroll`,
-            icon: Wallet,
-            permissions: ["view_payroll", "manage_payroll"],
         },
         {
             name: "Leaves",

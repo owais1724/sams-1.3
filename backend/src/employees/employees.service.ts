@@ -247,7 +247,7 @@ export class EmployeesService {
             phoneNumber: data.phoneNumber,
             status: 'ACTIVE',
             basicSalary: data.basicSalary || 0,
-            salaryCurrency: data.salaryCurrency || 'USD',
+            salaryCurrency: 'INR',
             agencyId: agencyId,
             designationId: data.designationId,
           },
@@ -312,7 +312,7 @@ export class EmployeesService {
           phoneNumber: data.phoneNumber,
           status: data.status,
           basicSalary: data.basicSalary,
-          salaryCurrency: data.salaryCurrency,
+          salaryCurrency: 'INR',
           designationId: data.designationId,
         };
 

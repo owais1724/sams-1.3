@@ -29,12 +29,32 @@ export class LeavesController {
     @Request() req,
   ) {
     const agencyId = requireAgencyContext(req);
-    return this.leavesService.createLeaveRequest(
+    const leave = await this.leavesService.createLeaveRequest(
       createLeaveDto,
       agencyId,
       req.user.role,
       req.user.userId,
+      req.user.employeeId,
     );
+
+    return {
+      message: 'Leave request submitted successfully',
+      leave,
+    };
+  }
+
+  @Get('my-leaves')
+  @Permissions('apply_leave')
+  async getMyLeaves(@Request() req) {
+    const agencyId = requireAgencyContext(req);
+    return this.leavesService.getMyLeaves(agencyId, req.user.userId, req.user.employeeId);
+  }
+
+  @Get('balance')
+  @Permissions('apply_leave')
+  async getLeaveBalance(@Request() req) {
+    const agencyId = requireAgencyContext(req);
+    return this.leavesService.getLeaveBalance(agencyId, req.user.userId, req.user.employeeId);
   }
 
   @Get()
