@@ -6,6 +6,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  HttpException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -598,6 +599,32 @@ export class EmployeesService {
       const employee = exists;
 
       await this.prisma.$transaction(async (tx) => {
+        const linkedUsers = await tx.user.findMany({
+          where: {
+            agencyId,
+            OR: [
+              { employeeId: id },
+              { previousEmployeeId: id },
+            ],
+          },
+          select: { id: true },
+        });
+
+        const linkedUserIds = linkedUsers.map((u) => u.id);
+
+        if (linkedUserIds.length > 0) {
+          // Explicitly remove deployment assignments so active/planned deployments
+          // do not block termination of a linked user account.
+          await tx.deploymentGuard.deleteMany({
+            where: {
+              agencyId,
+              userId: {
+                in: linkedUserIds,
+              },
+            },
+          });
+        }
+
         await tx.user.deleteMany({
           where: {
             agencyId,
@@ -609,7 +636,7 @@ export class EmployeesService {
         });
 
         await tx.employee.delete({
-          where: { id, agencyId },
+          where: { id },
         });
       });
 
@@ -630,9 +657,17 @@ export class EmployeesService {
         success: true,
         message: 'Employee and linked user deleted successfully',
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Remove Employee Error:', error);
-      if (error instanceof ConflictException) throw error;
+
+      if (error instanceof HttpException) throw error;
+
+      if (error?.code === 'P2003') {
+        throw new ConflictException(
+          'Cannot delete this employee because related assignment records still exist. Please clear assignments and try again.',
+        );
+      }
+
       throw new InternalServerErrorException(
         `Failed to terminate employee record. Please check for active assignments.`,
       );

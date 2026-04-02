@@ -118,8 +118,12 @@ export default function EmployeesPage() {
             toast.success("Employee record deleted.")
             setProfileDialog({ open: false, employee: null })
             fetchData()
-        } catch (error) {
-            toast.error("Termination failed. Active deployment detected.")
+        } catch (error: any) {
+            const backendMessage = error?.response?.data?.message
+            const message = Array.isArray(backendMessage)
+                ? backendMessage.join(", ")
+                : backendMessage || error?.message || "Termination failed."
+            toast.error(message)
         } finally {
             setDeleting(false)
             setShowDeleteModal(false)
