@@ -22,6 +22,7 @@ import {
 import { SearchBar } from "@/components/common/SearchBar"
 import { FormModal } from "@/components/common/FormModal"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useApiData } from "@/hooks/useApiData"
 import { useDeleteConfirm } from "@/hooks/useDeleteConfirm"
 
@@ -32,6 +33,7 @@ export default function ClientsPage() {
     const [editingClient, setEditingClient] = useState<any | null>(null)
     const [showFilters, setShowFilters] = useState(false)
     const [projectFilter, setProjectFilter] = useState<"all" | "with-projects" | "without-projects">("all")
+    const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "newest" | "oldest">("newest")
 
     const { deleteModal, openDelete, closeDelete, handleDelete, isDeleting } = useDeleteConfirm({
         endpoint: '/clients',
@@ -53,6 +55,15 @@ export default function ClientsPage() {
             if (projectFilter === "without-projects") return projectCount === 0
             return true
         })
+
+    const sortedClients = [...filteredClients].sort((a, b) => {
+        if (sortBy === "name-asc") return (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })
+        if (sortBy === "name-desc") return (b.name || "").localeCompare(a.name || "", undefined, { sensitivity: "base" })
+
+        const aCreated = new Date(a.createdAt || 0).getTime()
+        const bCreated = new Date(b.createdAt || 0).getTime()
+        return sortBy === "oldest" ? aCreated - bCreated : bCreated - aCreated
+    })
 
     if (loading) return <PageLoading message="Synchronizing Client Intelligence..." />
 
@@ -114,7 +125,7 @@ export default function ClientsPage() {
                             ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
                             : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
                         }
-                        onClick={() => setProjectFilter("with-projects")}
+                        onClick={() => setProjectFilter((prev) => prev === "with-projects" ? "all" : "with-projects")}
                     >
                         With Projects
                     </Button>
@@ -125,14 +136,29 @@ export default function ClientsPage() {
                             ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
                             : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
                         }
-                        onClick={() => setProjectFilter("without-projects")}
+                        onClick={() => setProjectFilter((prev) => prev === "without-projects" ? "all" : "without-projects")}
                     >
                         Without Projects
                     </Button>
+                    <Select value={sortBy} onValueChange={(value) => setSortBy(value as "name-asc" | "name-desc" | "newest" | "oldest")}>
+                        <SelectTrigger className="h-9 min-w-[190px] rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm font-medium text-slate-700">
+                            <div className="flex items-center gap-2 truncate">
+                                <span className="text-slate-500">Sort by</span>
+                                <span className="text-slate-300">|</span>
+                                <SelectValue />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="name-asc">A → Z</SelectItem>
+                            <SelectItem value="name-desc">Z → A</SelectItem>
+                            <SelectItem value="newest">Newest first</SelectItem>
+                            <SelectItem value="oldest">Oldest first</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             )}
 
-            {filteredClients.length === 0 ? (
+            {sortedClients.length === 0 ? (
                 <EmptyState
                     icon={<Building className="h-10 w-10" />}
                     title="No Records Found"
@@ -146,7 +172,7 @@ export default function ClientsPage() {
             ) : (
                 <DataTable columns={['Client', 'Contact Info', 'Assigned Projects', 'Actions']}>
                     <AnimatePresence mode="popLayout">
-                        {filteredClients.map((client, idx) => (
+                        {sortedClients.map((client, idx) => (
                             <motion.tr
                                 key={client.id}
                                 initial={{ opacity: 0, scale: 0.98 }}

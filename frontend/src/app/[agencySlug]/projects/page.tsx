@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { PermissionGuard } from "@/components/common/PermissionGuard"
 import { AlertModal } from "@/components/ui/alert-modal"
 import { SearchBar } from "@/components/common/SearchBar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ProjectsPage() {
     const { user: authUser } = useAuthStore()
@@ -38,6 +39,7 @@ export default function ProjectsPage() {
     const [showFilters, setShowFilters] = useState(false)
     const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
     const [staffFilter, setStaffFilter] = useState<"all" | "with-staff" | "without-staff">("all")
+    const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "newest" | "oldest">("newest")
     const [deleteModal, setDeleteModal] = useState<{ open: boolean, id: string, name: string }>({
         open: false,
         id: "",
@@ -99,6 +101,15 @@ export default function ProjectsPage() {
             if (staffFilter === "without-staff") return assigned === 0
             return true
         })
+
+    const sortedProjects = [...filteredProjects].sort((a, b) => {
+        if (sortBy === "name-asc") return (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })
+        if (sortBy === "name-desc") return (b.name || "").localeCompare(a.name || "", undefined, { sensitivity: "base" })
+
+        const aCreated = new Date(a.createdAt || 0).getTime()
+        const bCreated = new Date(b.createdAt || 0).getTime()
+        return sortBy === "oldest" ? aCreated - bCreated : bCreated - aCreated
+    })
 
     const activeFilterCount = (statusFilter !== "all" ? 1 : 0) + (staffFilter !== "all" ? 1 : 0)
     const filterButtonActive = showFilters || activeFilterCount > 0
@@ -173,7 +184,7 @@ export default function ProjectsPage() {
                             ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
                             : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
                         }
-                        onClick={() => setStatusFilter("active")}
+                        onClick={() => setStatusFilter((prev) => prev === "active" ? "all" : "active")}
                     >
                         Active Projects
                     </Button>
@@ -184,7 +195,7 @@ export default function ProjectsPage() {
                             ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
                             : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
                         }
-                        onClick={() => setStatusFilter("inactive")}
+                        onClick={() => setStatusFilter((prev) => prev === "inactive" ? "all" : "inactive")}
                     >
                         Inactive Projects
                     </Button>
@@ -195,7 +206,7 @@ export default function ProjectsPage() {
                             ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
                             : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
                         }
-                        onClick={() => setStaffFilter("with-staff")}
+                        onClick={() => setStaffFilter((prev) => prev === "with-staff" ? "all" : "with-staff")}
                     >
                         With Staff
                     </Button>
@@ -206,16 +217,31 @@ export default function ProjectsPage() {
                             ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 hover:border-cyan-600"
                             : "hover:bg-cyan-50 hover:border-cyan-300 hover:text-cyan-700"
                         }
-                        onClick={() => setStaffFilter("without-staff")}
+                        onClick={() => setStaffFilter((prev) => prev === "without-staff" ? "all" : "without-staff")}
                     >
                         Without Staff
                     </Button>
+                    <Select value={sortBy} onValueChange={(value) => setSortBy(value as "name-asc" | "name-desc" | "newest" | "oldest")}>
+                        <SelectTrigger className="h-9 min-w-[190px] rounded-lg border border-[#e2e8f0] bg-white px-3 text-sm font-medium text-slate-700">
+                            <div className="flex items-center gap-2 truncate">
+                                <span className="text-slate-500">Sort by</span>
+                                <span className="text-slate-300">|</span>
+                                <SelectValue />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="name-asc">A → Z</SelectItem>
+                            <SelectItem value="name-desc">Z → A</SelectItem>
+                            <SelectItem value="newest">Newest first</SelectItem>
+                            <SelectItem value="oldest">Oldest first</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             )}
 
             <DataTable columns={['Project Name', 'Client', 'Location', 'Assigned Staff', 'Status', 'Actions']}>
                 <AnimatePresence mode="popLayout">
-                    {filteredProjects.length === 0 ? (
+                    {sortedProjects.length === 0 ? (
                         <TableRowEmpty
                             colSpan={6}
                             icon={<Briefcase className="h-10 w-10 text-slate-300" />}
@@ -223,7 +249,7 @@ export default function ProjectsPage() {
                             description="No projects match your current search parameters."
                         />
                     ) : (
-                        filteredProjects.map((project, idx) => (
+                        sortedProjects.map((project, idx) => (
                             <motion.tr
                                 key={project.id}
                                 initial={{ opacity: 0, scale: 0.98 }}
