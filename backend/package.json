@@ -24,20 +24,18 @@
     "render:build": "npm install && npx prisma generate && npx prisma migrate deploy || npx prisma db push --accept-data-loss --skip-generate && npm run script:seed || echo 'Seed skipped' && npm run build"
   },
   "dependencies": {
-    "@nestjs/cli": "^11.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/schematics": "^11.0.0",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "^6.3.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/qrcode": "^1.5.6",
     "axios": "^1.13.5",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
@@ -49,13 +47,14 @@
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.0",
@@ -75,8 +74,18 @@
     "prisma": "^6.3.1",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
+    "ts-loader": "^9.5.2",
     "ts-jest": "^29.2.5",
     "typescript-eslint": "^8.56.0"
+  },
+  "overrides": {
+    "path-to-regexp": "^8.4.0",
+    "multer": "^2.1.1",
+    "lodash": "^4.17.24",
+    "effect": "^3.20.0",
+    "ajv": "^8.18.0",
+    "picomatch": "^4.0.4",
+    "serialize-javascript": "^7.0.5"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

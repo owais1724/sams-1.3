@@ -36,6 +36,7 @@ export class DeploymentsController {
   }
 
   @Get('my-schedule')
+  @Permissions('view_deployments')
   async mySchedule(@Request() req) {
     const agencyId = requireAgencyContext(req);
     return this.deploymentsService.findByGuard(agencyId, req.user.userId);

@@ -47,6 +47,7 @@ export class IncidentsController {
   }
 
   @Get('my-incidents')
+  @Permissions('view_incidents', 'report_incident')
   async myIncidents(@Request() req) {
     const agencyId = requireAgencyContext(req);
     return this.incidentsService.findByReporter(agencyId, req.user.userId);

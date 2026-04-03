@@ -21,6 +21,7 @@ export class AgenciesController {
   constructor(private readonly agenciesService: AgenciesService) { }
 
   @Get('slug/:slug')
+  @RequirePermissions('manage_agencies')
   async getBySlug(@Param('slug') slug: string) {
     return this.agenciesService.findBySlug(slug);
   }

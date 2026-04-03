@@ -1,10 +1,12 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, ForbiddenException, Req } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
+import type { Request } from 'express';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 @Controller()
 export class AppController {
@@ -19,17 +21,45 @@ export class AppController {
   }
 
   @Get('health')
+  @SkipThrottle()
   getHealth() {
     return { status: 'ok', timestamp: new Date().toISOString() };
   }
 
-  @Get('init-database')
-  async initDatabase() {
+  private assertMaintenanceAccess(req: Request) {
+    const enabled = process.env.ENABLE_MAINTENANCE_ENDPOINTS === 'true';
+    if (!enabled) {
+      throw new ForbiddenException('Maintenance endpoints are disabled');
+    }
+
+    const expectedToken = process.env.MAINTENANCE_TOKEN;
+    if (!expectedToken) {
+      throw new ForbiddenException('Maintenance token is not configured');
+    }
+
+    const providedHeader = req.headers['x-maintenance-token'];
+    const providedToken = Array.isArray(providedHeader)
+      ? providedHeader[0]
+      : providedHeader;
+
+    if (!providedToken || providedToken !== expectedToken) {
+      throw new ForbiddenException('Invalid maintenance token');
+    }
+  }
+
+  @Post('init-database')
+  async initDatabase(@Req() req: Request) {
+    this.assertMaintenanceAccess(req);
+
     try {
       // Run db push to create tables
-      const { stdout, stderr } = await execAsync(
-        'npx prisma db push --accept-data-loss --skip-generate',
-      );
+      const { stdout, stderr } = await execFileAsync('npx', [
+        'prisma',
+        'db',
+        'push',
+        '--accept-data-loss',
+        '--skip-generate',
+      ]);
 
       return {
         success: true,
@@ -48,10 +78,12 @@ export class AppController {
     }
   }
 
-  @Get('seed-database')
-  async seedDatabase() {
+  @Post('seed-database')
+  async seedDatabase(@Req() req: Request) {
+    this.assertMaintenanceAccess(req);
+
     try {
-      const { stdout, stderr } = await execAsync('npm run script:seed');
+      const { stdout, stderr } = await execFileAsync('npm', ['run', 'script:seed']);
 
       return {
         success: true,

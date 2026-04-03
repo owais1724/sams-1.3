@@ -364,50 +364,22 @@ export class AgenciesService {
 
     // Use raw SQL to delete in correct FK dependency order inside a transaction
     await this.prisma.$transaction(async (tx) => {
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "AuditLog" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Attendance" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Leave" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Payroll" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Visitor" WHERE "agencyId" = $1`, id
-      );
+      await tx.$executeRaw`DELETE FROM "AuditLog" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Attendance" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Leave" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Payroll" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Visitor" WHERE "agencyId" = ${id}`;
       // Delete checkpoints for all projects of this agency
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Checkpoint" WHERE "projectId" IN (SELECT id FROM "Project" WHERE "agencyId" = $1)`, id
-      );
+      await tx.$executeRaw`DELETE FROM "Checkpoint" WHERE "projectId" IN (SELECT id FROM "Project" WHERE "agencyId" = ${id})`;
       // Delete the many-to-many join table _EmployeeToProject
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "_EmployeeToProject" WHERE "B" IN (SELECT id FROM "Project" WHERE "agencyId" = $1)`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Project" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Client" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "User" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Employee" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Designation" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Role" WHERE "agencyId" = $1`, id
-      );
-      await tx.$executeRawUnsafe(
-        `DELETE FROM "Agency" WHERE id = $1`, id
-      );
+      await tx.$executeRaw`DELETE FROM "_EmployeeToProject" WHERE "B" IN (SELECT id FROM "Project" WHERE "agencyId" = ${id})`;
+      await tx.$executeRaw`DELETE FROM "Project" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Client" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "User" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Employee" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Designation" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Role" WHERE "agencyId" = ${id}`;
+      await tx.$executeRaw`DELETE FROM "Agency" WHERE id = ${id}`;
     });
 
     return { success: true, id };
