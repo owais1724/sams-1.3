@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { LeaveStatus, LeaveType, LeaveRequest } from './leave.entity';
 import { CreateLeaveRequestDto } from './dto/create-leave.dto';
@@ -51,6 +52,15 @@ export class LeavesService {
     supervisor: 2,
     guard: 3,
   };
+
+  private isMissingLeavePolicyTableError(error: unknown) {
+    return (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2021' &&
+      typeof error.meta?.table === 'string' &&
+      error.meta.table.includes('LeavePolicy')
+    );
+  }
 
   private mapLeavePolicy(
     policy: any | null,
@@ -168,14 +178,22 @@ export class LeavesService {
       return this.mapLeavePolicy(null, agencyId, null, roleName ?? null);
     }
 
-    const policy = await this.prisma.leavePolicy.findUnique({
-      where: {
-        agencyId_roleId: {
-          agencyId,
-          roleId,
+    let policy = null;
+
+    try {
+      policy = await this.prisma.leavePolicy.findUnique({
+        where: {
+          agencyId_roleId: {
+            agencyId,
+            roleId,
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      if (!this.isMissingLeavePolicyTableError(error)) {
+        throw error;
+      }
+    }
 
     return this.mapLeavePolicy(policy, agencyId, roleId, roleName ?? null);
   }
@@ -207,16 +225,24 @@ export class LeavesService {
     this.ensurePolicyEditor(userRole);
 
     const roles = await this.getAgencyRolesForPolicy(agencyId);
-    const policies = roles.length > 0
-      ? await this.prisma.leavePolicy.findMany({
-        where: {
-          agencyId,
-          roleId: {
-            in: roles.map((role) => role.id),
+    let policies: Array<{ roleId: string }> = [];
+
+    if (roles.length > 0) {
+      try {
+        policies = await this.prisma.leavePolicy.findMany({
+          where: {
+            agencyId,
+            roleId: {
+              in: roles.map((role) => role.id),
+            },
           },
-        },
-      })
-      : [];
+        });
+      } catch (error) {
+        if (!this.isMissingLeavePolicyTableError(error)) {
+          throw error;
+        }
+      }
+    }
 
     const policyMap = new Map(policies.map((policy) => [policy.roleId, policy]));
 
@@ -287,34 +313,44 @@ export class LeavesService {
       }
     }
 
-    await this.prisma.$transaction(
-      policyData.map((policy) => {
-        const roleId = String(policy.roleId);
+    try {
+      await this.prisma.$transaction(
+        policyData.map((policy) => {
+          const roleId = String(policy.roleId);
 
-        return this.prisma.leavePolicy.upsert({
-          where: {
-            agencyId_roleId: {
+          return this.prisma.leavePolicy.upsert({
+            where: {
+              agencyId_roleId: {
+                agencyId,
+                roleId,
+              },
+            },
+            update: {
+              workingDaysPerWeek: Number(policy.workingDaysPerWeek),
+              casualLeaveDays: Number(policy.casualLeaveDays),
+              sickLeaveDays: Number(policy.sickLeaveDays),
+              earnedLeaveDays: Number(policy.earnedLeaveDays),
+            },
+            create: {
               agencyId,
               roleId,
+              workingDaysPerWeek: Number(policy.workingDaysPerWeek),
+              casualLeaveDays: Number(policy.casualLeaveDays),
+              sickLeaveDays: Number(policy.sickLeaveDays),
+              earnedLeaveDays: Number(policy.earnedLeaveDays),
             },
-          },
-          update: {
-            workingDaysPerWeek: Number(policy.workingDaysPerWeek),
-            casualLeaveDays: Number(policy.casualLeaveDays),
-            sickLeaveDays: Number(policy.sickLeaveDays),
-            earnedLeaveDays: Number(policy.earnedLeaveDays),
-          },
-          create: {
-            agencyId,
-            roleId,
-            workingDaysPerWeek: Number(policy.workingDaysPerWeek),
-            casualLeaveDays: Number(policy.casualLeaveDays),
-            sickLeaveDays: Number(policy.sickLeaveDays),
-            earnedLeaveDays: Number(policy.earnedLeaveDays),
-          },
-        });
-      }),
-    );
+          });
+        }),
+      );
+    } catch (error) {
+      if (this.isMissingLeavePolicyTableError(error)) {
+        throw new BadRequestException(
+          'Leave policy storage is not ready yet. Run the latest database migration and try again.',
+        );
+      }
+
+      throw error;
+    }
 
     return this.getLeavePolicy(agencyId, userRole);
   }
