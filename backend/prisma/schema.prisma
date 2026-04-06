@@ -33,8 +33,26 @@ model Agency {
   deployments       Deployment[]
   deploymentGuards  DeploymentGuard[]
   incidents         Incident[]
+  leavePolicies     LeavePolicy[]
 
   @@index([slug])
+}
+
+model LeavePolicy {
+  id                 String   @id @default(cuid())
+  agencyId           String
+  roleId             String   @unique
+  workingDaysPerWeek Int      @default(5)
+  casualLeaveDays    Int      @default(12)
+  sickLeaveDays      Int      @default(7)
+  earnedLeaveDays    Int      @default(12)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  agency             Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  role               Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([agencyId, roleId])
+  @@index([agencyId])
 }
 
 model User {
@@ -69,6 +87,7 @@ model Role {
   updatedAt   DateTime     @updatedAt
   agencyId    String?
   agency      Agency?      @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  leavePolicy LeavePolicy?
   users       User[]
   permissions Permission[] @relation("PermissionToRole")
 

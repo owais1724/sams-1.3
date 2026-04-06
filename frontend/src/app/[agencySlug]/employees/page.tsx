@@ -58,7 +58,6 @@ const ROLE_RANK: Record<string, number> = {
     "hr": 3,
     "supervisor": 2,
     "guard": 1,
-    "cleaner": 1,
 }
 
 const ROLE_DISPLAY_ORDER: Record<string, number> = {
@@ -66,7 +65,6 @@ const ROLE_DISPLAY_ORDER: Record<string, number> = {
     "hr": 4,
     "supervisor": 3,
     "guard": 2,
-    "cleaner": 1,
 }
 
 const ROLE_ALIASES: Record<string, string> = {
@@ -76,8 +74,6 @@ const ROLE_ALIASES: Record<string, string> = {
     "supervisor": "supervisor",
     "guard": "guard",
     "guards": "guard",
-    "cleaner": "cleaner",
-    "cleaners": "cleaner",
 }
 
 const normalizeRoleName = (name?: string | null) =>
@@ -97,7 +93,6 @@ const getCanonicalRoleName = (name?: string | null) => {
     if (normalized.includes("human resource") || /(^|\s)hr(\s|$)/.test(normalized)) return "hr"
     if (normalized.includes("supervisor")) return "supervisor"
     if (normalized.includes("guard")) return "guard"
-    if (normalized.includes("cleaner") || normalized.includes("janitor") || normalized.includes("housekeeping")) return "cleaner"
 
     return normalized
 }

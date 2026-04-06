@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
 import {
   PageHeader,
   CreateButton,
@@ -20,11 +19,33 @@ import {
 import { AlertModal } from "@/components/ui/alert-modal"
 import { useAuthStore } from "@/store/authStore"
 import { usePermission } from "@/hooks/usePermission"
-import { PermissionGuard } from "@/components/common/PermissionGuard"
 import { toast } from "@/components/ui/sonner"
 import api from "@/lib/api"
-import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
+import {
+  Plus,
+  CalendarDays,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  FileText,
+  User,
+  ChevronDown,
+  Settings2
+} from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { TableCell } from "@/components/ui/table"
 
 const formatDate = (date: string | Date, options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short' }) => {
   return new Intl.DateTimeFormat('en-GB', options).format(new Date(date))
@@ -33,22 +54,6 @@ const formatDate = (date: string | Date, options: Intl.DateTimeFormatOptions = {
 const formatYear = (date: string | Date) => {
   return new Date(date).getFullYear().toString()
 }
-
-import { Plus, CalendarDays, CheckCircle2, XCircle, Clock, FileText, User, Filter, MoreHorizontal, History, Briefcase, ShieldCheck } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogDescription
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TableCell, TableRow } from "@/components/ui/table"
 
 interface LeaveRequest {
   id: string
@@ -68,11 +73,37 @@ interface LeaveRequest {
   }
 }
 
+interface RoleLeavePolicyFormState {
+  roleId: string
+  roleName: string
+  workingDaysPerWeek: 5 | 6
+  casualLeaveDays: string
+  sickLeaveDays: string
+  earnedLeaveDays: string
+}
+
+type LeavePolicyValidationResult =
+  | { error: string }
+  | {
+      data: Array<{
+        roleId: string
+        workingDaysPerWeek: 5 | 6
+        casualLeaveDays: number
+        sickLeaveDays: number
+        earnedLeaveDays: number
+      }>
+    }
+
 export default function LeavesPage() {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([])
   const { user } = useAuthStore()
-  const { hasPermission } = usePermission()
+  const { isAdmin, hasPermission } = usePermission()
+  const canManageRolePolicies = isAdmin && hasPermission('manage_roles')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isPolicyExpanded, setIsPolicyExpanded] = useState(false)
+  const [policyLoading, setPolicyLoading] = useState(false)
+  const [savingPolicy, setSavingPolicy] = useState(false)
+  const [rolePolicies, setRolePolicies] = useState<RoleLeavePolicyFormState[]>([])
   const [formData, setFormData] = useState({
     leaveType: "",
     startDate: "",
@@ -96,8 +127,14 @@ export default function LeavesPage() {
     new Date(formData.endDate) >= new Date(formData.startDate)
 
   useEffect(() => {
-    if (user) fetchLeaveRequests()
-  }, [user])
+    if (!user) return
+
+    fetchLeaveRequests()
+
+    if (canManageRolePolicies) {
+      fetchLeavePolicy()
+    }
+  }, [user, canManageRolePolicies])
 
   const fetchLeaveRequests = async () => {
     try {
@@ -107,6 +144,108 @@ export default function LeavesPage() {
       toast.error('Failed to synchronize leave protocols')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchLeavePolicy = async () => {
+    setPolicyLoading(true)
+
+    try {
+      const response = await api.get('/leaves/policy')
+      const policies = Array.isArray(response.data) ? response.data : []
+
+      setRolePolicies(
+        policies.map((policy) => ({
+          roleId: String(policy.roleId),
+          roleName: String(policy.roleName),
+          workingDaysPerWeek: policy.workingDaysPerWeek === 6 ? 6 : 5,
+          casualLeaveDays: String(policy.casualLeaveDays ?? 12),
+          sickLeaveDays: String(policy.sickLeaveDays ?? 7),
+          earnedLeaveDays: String(policy.earnedLeaveDays ?? 12),
+        })),
+      )
+    } catch (error) {
+      toast.error('Failed to load leave policy')
+    } finally {
+      setPolicyLoading(false)
+    }
+  }
+
+  const validatePolicyForm = (): LeavePolicyValidationResult => {
+    for (const policy of rolePolicies) {
+      const casualLeaveDays = Number(policy.casualLeaveDays)
+      const sickLeaveDays = Number(policy.sickLeaveDays)
+      const earnedLeaveDays = Number(policy.earnedLeaveDays)
+
+      if (![5, 6].includes(policy.workingDaysPerWeek)) {
+        return { error: `Working days per week must be 5 or 6 for ${policy.roleName}` }
+      }
+
+      for (const [label, value] of [
+        ['Casual Leave', casualLeaveDays],
+        ['Sick Leave', sickLeaveDays],
+        ['Earned Leave', earnedLeaveDays],
+      ] as const) {
+        if (!Number.isInteger(value) || value < 1 || value > 60) {
+          return { error: `${label} must be between 1 and 60 for ${policy.roleName}` }
+        }
+      }
+    }
+
+    return {
+      data: rolePolicies.map((policy) => ({
+        roleId: policy.roleId,
+        workingDaysPerWeek: policy.workingDaysPerWeek,
+        casualLeaveDays: Number(policy.casualLeaveDays),
+        sickLeaveDays: Number(policy.sickLeaveDays),
+        earnedLeaveDays: Number(policy.earnedLeaveDays),
+      })),
+    }
+  }
+
+  const updateRolePolicy = (
+    roleId: string,
+    updates: Partial<Omit<RoleLeavePolicyFormState, 'roleId' | 'roleName'>>,
+  ) => {
+    setRolePolicies((current) =>
+      current.map((policy) =>
+        policy.roleId === roleId
+          ? { ...policy, ...updates }
+          : policy,
+      ),
+    )
+  }
+
+  const handlePolicySave = async () => {
+    const validation = validatePolicyForm()
+
+    if ('error' in validation) {
+      toast.error(validation.error)
+      return
+    }
+
+    setSavingPolicy(true)
+
+    try {
+      const response = await api.put('/leaves/policy', validation.data)
+      const policies = Array.isArray(response.data) ? response.data : []
+
+      setRolePolicies(
+        policies.map((policy) => ({
+          roleId: String(policy.roleId),
+          roleName: String(policy.roleName),
+          workingDaysPerWeek: policy.workingDaysPerWeek === 6 ? 6 : 5,
+          casualLeaveDays: String(policy.casualLeaveDays),
+          sickLeaveDays: String(policy.sickLeaveDays),
+          earnedLeaveDays: String(policy.earnedLeaveDays),
+        })),
+      )
+      toast.success('Leave policy updated')
+      setIsPolicyExpanded(false)
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to update leave policy')
+    } finally {
+      setSavingPolicy(false)
     }
   }
 
@@ -363,6 +502,148 @@ export default function LeavesPage() {
           )
         }
       />
+
+      {canManageRolePolicies && (
+        <div className="rounded-[12px] border border-[#e2e8f0] bg-white">
+          <button
+            type="button"
+            onClick={() => setIsPolicyExpanded((current) => !current)}
+            className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-cyan-50 text-[#06b6d4]">
+                <Settings2 className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-[#0f172a]">Leave Policy</h2>
+                <p className="text-sm text-[#64748b]">Configure working days and yearly leave entitlements.</p>
+              </div>
+            </div>
+            <ChevronDown
+              className={`h-5 w-5 text-[#64748b] transition-transform duration-200 ${isPolicyExpanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          <AnimatePresence initial={false}>
+            {isPolicyExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden border-t border-[#e2e8f0]"
+              >
+                <div className="space-y-6 px-6 py-6">
+                  {policyLoading ? (
+                    <p className="text-sm text-[#64748b]">Loading role policies...</p>
+                  ) : rolePolicies.length === 0 ? (
+                    <p className="text-sm text-[#64748b]">No agency roles available for leave policy configuration yet.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {rolePolicies.map((policy) => (
+                        <div
+                          key={policy.roleId}
+                          className="rounded-[8px] border border-[#e2e8f0] bg-[#f8fafc] p-5"
+                        >
+                          <h3 className="text-base font-semibold text-[#0f172a]">{policy.roleName}</h3>
+
+                          <div className="mt-4 space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-[#0f172a]">Working days</p>
+                              <div className="mt-2 flex flex-wrap gap-3">
+                                {[
+                                  { value: 5 as const, label: 'Mon-Fri' },
+                                  { value: 6 as const, label: 'Mon-Sat' },
+                                ].map((option) => {
+                                  const isActive = policy.workingDaysPerWeek === option.value
+
+                                  return (
+                                    <button
+                                      key={option.value}
+                                      type="button"
+                                      onClick={() => updateRolePolicy(policy.roleId, { workingDaysPerWeek: option.value })}
+                                      disabled={savingPolicy}
+                                      className={`inline-flex items-center justify-center rounded-[8px] border px-4 py-2 text-sm font-medium transition-colors ${
+                                        isActive
+                                          ? 'border-[#06b6d4] bg-[#06b6d4] text-white'
+                                          : 'border-[#e2e8f0] bg-white text-[#64748b]'
+                                      } disabled:cursor-not-allowed disabled:opacity-70`}
+                                    >
+                                      {option.label}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                              <div>
+                                <label className="mb-2 block text-sm font-medium text-[#0f172a]">Casual</label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="60"
+                                  step="1"
+                                  value={policy.casualLeaveDays}
+                                  onChange={(e) => updateRolePolicy(policy.roleId, { casualLeaveDays: e.target.value })}
+                                  className="h-11 w-20 rounded-[8px] border-[#e2e8f0] bg-white text-[#0f172a] focus:border-[#06b6d4] focus:bg-white"
+                                  disabled={savingPolicy}
+                                />
+                                <p className="mt-2 text-xs text-[#64748b]">Yearly casual leave allowance.</p>
+                              </div>
+
+                              <div>
+                                <label className="mb-2 block text-sm font-medium text-[#0f172a]">Sick</label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="60"
+                                  step="1"
+                                  value={policy.sickLeaveDays}
+                                  onChange={(e) => updateRolePolicy(policy.roleId, { sickLeaveDays: e.target.value })}
+                                  className="h-11 w-20 rounded-[8px] border-[#e2e8f0] bg-white text-[#0f172a] focus:border-[#06b6d4] focus:bg-white"
+                                  disabled={savingPolicy}
+                                />
+                                <p className="mt-2 text-xs text-[#64748b]">Yearly sick leave allowance.</p>
+                              </div>
+
+                              <div>
+                                <label className="mb-2 block text-sm font-medium text-[#0f172a]">Earned</label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  max="60"
+                                  step="1"
+                                  value={policy.earnedLeaveDays}
+                                  onChange={(e) => updateRolePolicy(policy.roleId, { earnedLeaveDays: e.target.value })}
+                                  className="h-11 w-20 rounded-[8px] border-[#e2e8f0] bg-white text-[#0f172a] focus:border-[#06b6d4] focus:bg-white"
+                                  disabled={savingPolicy}
+                                />
+                                <p className="mt-2 text-xs text-[#64748b]">Yearly earned leave allowance.</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      onClick={handlePolicySave}
+                      disabled={policyLoading || savingPolicy || rolePolicies.length === 0}
+                      className="rounded-[8px] bg-[#06b6d4] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0891b2] disabled:bg-[#06b6d4]/60"
+                    >
+                      {savingPolicy ? 'Saving...' : 'Save Policy'}
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         <StatCard

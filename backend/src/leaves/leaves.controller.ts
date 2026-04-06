@@ -57,6 +57,30 @@ export class LeavesController {
     return this.leavesService.getLeaveBalance(agencyId, req.user.userId, req.user.employeeId);
   }
 
+  @Get('policy')
+  @Permissions('manage_roles')
+  async getLeavePolicy(@Request() req) {
+    const agencyId = requireAgencyContext(req);
+    return this.leavesService.getLeavePolicy(agencyId, req.user.role);
+  }
+
+  @Put('policy')
+  @Permissions('manage_roles')
+  async updateLeavePolicy(
+    @Body()
+    policyData: Array<{
+      roleId?: string;
+      workingDaysPerWeek?: number | string;
+      casualLeaveDays?: number | string;
+      sickLeaveDays?: number | string;
+      earnedLeaveDays?: number | string;
+    }>,
+    @Request() req,
+  ) {
+    const agencyId = requireAgencyContext(req);
+    return this.leavesService.updateLeavePolicy(agencyId, policyData, req.user.role);
+  }
+
   @Get()
   @Permissions('view_leaves', 'approve_leave', 'apply_leave')
   async getLeaveRequests(@Request() req) {

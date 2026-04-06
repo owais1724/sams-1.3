@@ -24,7 +24,6 @@ const ROLE_RANK: Record<string, number> = {
     "hr": 3,
     "supervisor": 2,
     "guard": 1,
-    "cleaner": 1,
 }
 
 const normalizeRoleName = (name?: string | null) => (name || "").toLowerCase().trim()

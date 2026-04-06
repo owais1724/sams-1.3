@@ -88,17 +88,6 @@ export class PermissionsSeedService implements OnModuleInit {
         'report_incident', 'view_incidents',
       ],
     },
-    {
-      name: 'Cleaner',
-      description: 'Cleaner operations role',
-      permissions: [
-        'view_shifts',
-        'view_deployments',
-        'apply_leave', 'view_leaves',
-        'record_attendance', 'view_attendance',
-        'report_incident', 'view_incidents',
-      ],
-    },
   ] as const;
 
   constructor(private prisma: PrismaService) { }
@@ -250,7 +239,7 @@ export class PermissionsSeedService implements OnModuleInit {
     }
 
     this.logger.log(
-      `Verified default HR/Supervisor/Guard/Cleaner roles for ${agencies.length} agencies.`,
+      `Verified default HR/Supervisor/Guard roles for ${agencies.length} agencies.`,
     );
   }
 

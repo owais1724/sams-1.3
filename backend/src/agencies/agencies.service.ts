@@ -263,7 +263,7 @@ export class AgenciesService {
       // 4. Create Agency Admin Role for this agency
       const adminRole = await this.ensureAgencyAdminRole(tx, agency.id);
 
-      // Seed default HR/Supervisor/Guard/Cleaner roles for every new agency.
+      // Seed default HR/Supervisor/Guard roles for every new agency.
       await this.permissionsSeedService.seedDefaultRolesForAgency(agency.id, tx);
 
       // 5. Create Admin User
@@ -443,20 +443,48 @@ export class AgenciesService {
     const roles = await this.prisma.$transaction(async (tx) => {
       await this.ensureDefaultStaffRole(tx, agencyId);
 
-      return tx.role.findMany({
+      const roles = await tx.role.findMany({
         where: {
           agencyId,
-          NOT: {
-            name: 'Agency Admin',
-          },
+          NOT: [
+            {
+              name: {
+                equals: 'Agency Admin',
+                mode: 'insensitive',
+              },
+            },
+            {
+              name: {
+                equals: 'Cleaner',
+                mode: 'insensitive',
+              },
+            },
+          ],
         },
         select: {
           id: true,
           name: true,
         },
-        orderBy: {
-          name: 'asc',
-        },
+      });
+
+      const roleOrder: Record<string, number> = {
+        hr: 1,
+        supervisor: 2,
+        staff: 3,
+        guard: 4,
+      };
+
+      return roles.sort((a, b) => {
+        const normalizedA = a.name.trim().toLowerCase();
+        const normalizedB = b.name.trim().toLowerCase();
+        const priorityA = roleOrder[normalizedA] ?? 100;
+        const priorityB = roleOrder[normalizedB] ?? 100;
+
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+
+        return a.name.localeCompare(b.name);
       });
     });
 

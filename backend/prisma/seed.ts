@@ -48,17 +48,6 @@ const DEFAULT_AGENCY_ROLE_TEMPLATES = [
             'report_incident', 'view_incidents',
         ],
     },
-    {
-        name: 'Cleaner',
-        description: 'Cleaner operations role',
-        permissions: [
-            'view_shifts',
-            'view_deployments',
-            'apply_leave', 'view_leaves',
-            'record_attendance', 'view_attendance',
-            'report_incident', 'view_incidents',
-        ],
-    },
 ] as const;
 
 async function seedDefaultAgencyRoles(agencyId: string) {

@@ -9,9 +9,29 @@ import { LeaveStatus, LeaveType, LeaveRequest } from './leave.entity';
 import { CreateLeaveRequestDto } from './dto/create-leave.dto';
 import { LeaveApprovalDto } from './dto/approve-leave.dto';
 
+type LeavePolicyConfig = {
+  id: string | null;
+  agencyId: string;
+  roleId: string | null;
+  roleName: string | null;
+  workingDaysPerWeek: number;
+  casualLeaveDays: number;
+  sickLeaveDays: number;
+  earnedLeaveDays: number;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+};
+
 @Injectable()
 export class LeavesService {
   constructor(private prisma: PrismaService) { }
+
+  private readonly DEFAULT_LEAVE_POLICY = {
+    workingDaysPerWeek: 5,
+    casualLeaveDays: 12,
+    sickLeaveDays: 7,
+    earnedLeaveDays: 12,
+  } as const;
 
   private readonly APPLY_ALLOWED_TYPES = [
     LeaveType.CASUAL,
@@ -20,11 +40,284 @@ export class LeavesService {
     LeaveType.LOSS_OF_PAY,
   ] as const;
 
-  private readonly LEAVE_LIMITS: Record<string, number> = {
-    [LeaveType.CASUAL]: 12,
-    [LeaveType.SICK]: 7,
-    [LeaveType.EARNED]: 15,
+  private readonly LEAVE_LIMIT_FIELDS = {
+    [LeaveType.CASUAL]: 'casualLeaveDays',
+    [LeaveType.SICK]: 'sickLeaveDays',
+    [LeaveType.EARNED]: 'earnedLeaveDays',
+  } as const;
+
+  private readonly DEFAULT_POLICY_ROLE_ORDER: Record<string, number> = {
+    hr: 1,
+    supervisor: 2,
+    guard: 3,
   };
+
+  private mapLeavePolicy(
+    policy: any | null,
+    agencyId: string,
+    roleId: string | null = null,
+    roleName: string | null = null,
+  ): LeavePolicyConfig {
+    return {
+      id: policy?.id ?? null,
+      agencyId,
+      roleId: policy?.roleId ?? roleId,
+      roleName,
+      workingDaysPerWeek:
+        policy?.workingDaysPerWeek ?? this.DEFAULT_LEAVE_POLICY.workingDaysPerWeek,
+      casualLeaveDays:
+        policy?.casualLeaveDays ?? this.DEFAULT_LEAVE_POLICY.casualLeaveDays,
+      sickLeaveDays:
+        policy?.sickLeaveDays ?? this.DEFAULT_LEAVE_POLICY.sickLeaveDays,
+      earnedLeaveDays:
+        policy?.earnedLeaveDays ?? this.DEFAULT_LEAVE_POLICY.earnedLeaveDays,
+      createdAt: policy?.createdAt ?? null,
+      updatedAt: policy?.updatedAt ?? null,
+    };
+  }
+
+  private getYearlyLeaveLimit(
+    leaveType: LeaveType,
+    leavePolicy: LeavePolicyConfig,
+  ): number | null {
+    const policyField = this.LEAVE_LIMIT_FIELDS[leaveType as keyof typeof this.LEAVE_LIMIT_FIELDS];
+
+    if (!policyField) {
+      return null;
+    }
+
+    return leavePolicy[policyField];
+  }
+
+  private ensurePolicyEditor(userRole?: string) {
+    const normalizedRole = (userRole || '').toLowerCase();
+
+    if (!normalizedRole.includes('admin')) {
+      throw new ForbiddenException('Only Agency Admin can update leave policy');
+    }
+  }
+
+  private normalizeRoleName(name?: string | null) {
+    return (name || '')
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private getCanonicalPolicyRoleName(name?: string | null) {
+    const normalized = this.normalizeRoleName(name);
+
+    if (!normalized) return '';
+    if (normalized.includes('human resource') || /(^|\s)hr(\s|$)/.test(normalized)) return 'hr';
+    if (normalized.includes('supervisor')) return 'supervisor';
+    if (normalized.includes('guard')) return 'guard';
+    if (normalized.includes('agency') && normalized.includes('admin')) return 'agency admin';
+    if (normalized === 'staff') return 'staff';
+    if (normalized === 'cleaner') return 'cleaner';
+
+    return normalized;
+  }
+
+  private async getAgencyRolesForPolicy(agencyId: string) {
+    const roles = await this.prisma.role.findMany({
+      where: {
+        agencyId,
+      },
+      select: {
+        id: true,
+        name: true,
+        isSystem: true,
+      },
+    });
+
+    return roles
+      .filter((role) => {
+        const canonical = this.getCanonicalPolicyRoleName(role.name);
+
+        if (!role.isSystem) {
+          return canonical !== 'agency admin' && canonical !== 'super admin';
+        }
+
+        return canonical === 'hr' || canonical === 'supervisor' || canonical === 'guard';
+      })
+      .sort((a, b) => {
+        const canonicalA = this.getCanonicalPolicyRoleName(a.name);
+        const canonicalB = this.getCanonicalPolicyRoleName(b.name);
+        const orderA = this.DEFAULT_POLICY_ROLE_ORDER[canonicalA] ?? 100;
+        const orderB = this.DEFAULT_POLICY_ROLE_ORDER[canonicalB] ?? 100;
+
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+
+        return a.name.localeCompare(b.name);
+      })
+      .map((role) => ({
+        id: role.id,
+        name: role.name,
+      }));
+  }
+
+  private async getResolvedLeavePolicyForRole(
+    agencyId: string,
+    roleId?: string | null,
+    roleName?: string | null,
+  ) {
+    if (!roleId) {
+      return this.mapLeavePolicy(null, agencyId, null, roleName ?? null);
+    }
+
+    const policy = await this.prisma.leavePolicy.findUnique({
+      where: {
+        agencyId_roleId: {
+          agencyId,
+          roleId,
+        },
+      },
+    });
+
+    return this.mapLeavePolicy(policy, agencyId, roleId, roleName ?? null);
+  }
+
+  private async getResolvedLeavePolicyForEmployee(agencyId: string, employeeId: string) {
+    const userWithRole = await this.prisma.user.findFirst({
+      where: {
+        agencyId,
+        employeeId,
+      },
+      select: {
+        roleId: true,
+        role: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return this.getResolvedLeavePolicyForRole(
+      agencyId,
+      userWithRole?.roleId ?? null,
+      userWithRole?.role?.name ?? null,
+    );
+  }
+
+  async getLeavePolicy(agencyId: string, userRole?: string) {
+    this.ensurePolicyEditor(userRole);
+
+    const roles = await this.getAgencyRolesForPolicy(agencyId);
+    const policies = roles.length > 0
+      ? await this.prisma.leavePolicy.findMany({
+        where: {
+          agencyId,
+          roleId: {
+            in: roles.map((role) => role.id),
+          },
+        },
+      })
+      : [];
+
+    const policyMap = new Map(policies.map((policy) => [policy.roleId, policy]));
+
+    return roles.map((role) => this.mapLeavePolicy(
+      policyMap.get(role.id) ?? null,
+      agencyId,
+      role.id,
+      role.name,
+    ));
+  }
+
+  async updateLeavePolicy(
+    agencyId: string,
+    policyData: Array<{
+      roleId?: string;
+      workingDaysPerWeek?: number | string;
+      casualLeaveDays?: number | string;
+      sickLeaveDays?: number | string;
+      earnedLeaveDays?: number | string;
+    }>,
+    userRole?: string,
+  ) {
+    this.ensurePolicyEditor(userRole);
+
+    if (!Array.isArray(policyData)) {
+      throw new BadRequestException('Leave policy payload must be an array');
+    }
+
+    const roles = await this.getAgencyRolesForPolicy(agencyId);
+    const roleMap = new Map(roles.map((role) => [role.id, role]));
+    const seenRoleIds = new Set<string>();
+
+    for (const policy of policyData) {
+      const roleId = String(policy?.roleId || '').trim();
+
+      if (!roleId) {
+        throw new BadRequestException('Each leave policy item must include a roleId');
+      }
+
+      if (seenRoleIds.has(roleId)) {
+        throw new BadRequestException(`Duplicate roleId detected: ${roleId}`);
+      }
+
+      seenRoleIds.add(roleId);
+
+      const role = roleMap.get(roleId);
+      if (!role) {
+        throw new BadRequestException(`Role does not belong to this agency: ${roleId}`);
+      }
+
+      const workingDaysPerWeek = Number(policy?.workingDaysPerWeek);
+      const casualLeaveDays = Number(policy?.casualLeaveDays);
+      const sickLeaveDays = Number(policy?.sickLeaveDays);
+      const earnedLeaveDays = Number(policy?.earnedLeaveDays);
+
+      if (![5, 6].includes(workingDaysPerWeek)) {
+        throw new BadRequestException(`Working days per week must be 5 or 6 for role ${role.name}`);
+      }
+
+      for (const [label, value] of [
+        ['Casual leave days', casualLeaveDays],
+        ['Sick leave days', sickLeaveDays],
+        ['Earned leave days', earnedLeaveDays],
+      ] as const) {
+        if (!Number.isInteger(value) || value < 1 || value > 60) {
+          throw new BadRequestException(`${label} must be between 1 and 60 for role ${role.name}`);
+        }
+      }
+    }
+
+    await this.prisma.$transaction(
+      policyData.map((policy) => {
+        const roleId = String(policy.roleId);
+
+        return this.prisma.leavePolicy.upsert({
+          where: {
+            agencyId_roleId: {
+              agencyId,
+              roleId,
+            },
+          },
+          update: {
+            workingDaysPerWeek: Number(policy.workingDaysPerWeek),
+            casualLeaveDays: Number(policy.casualLeaveDays),
+            sickLeaveDays: Number(policy.sickLeaveDays),
+            earnedLeaveDays: Number(policy.earnedLeaveDays),
+          },
+          create: {
+            agencyId,
+            roleId,
+            workingDaysPerWeek: Number(policy.workingDaysPerWeek),
+            casualLeaveDays: Number(policy.casualLeaveDays),
+            sickLeaveDays: Number(policy.sickLeaveDays),
+            earnedLeaveDays: Number(policy.earnedLeaveDays),
+          },
+        });
+      }),
+    );
+
+    return this.getLeavePolicy(agencyId, userRole);
+  }
 
   private normalizeApplyLeaveType(leaveType: string): LeaveType {
     const normalized = (leaveType || '').toUpperCase().trim();
@@ -103,6 +396,7 @@ export class LeavesService {
     }
 
     const scopedEmployee = await this.resolveEmployeeForUser(agencyId, userId || '', employeeId);
+    const leavePolicy = await this.getResolvedLeavePolicyForEmployee(agencyId, scopedEmployee.id);
 
     const leaveType = this.normalizeApplyLeaveType(String(createLeaveDto.leaveType));
     const isAllowedLeaveType = this.APPLY_ALLOWED_TYPES.some((type) => type === leaveType);
@@ -130,7 +424,7 @@ export class LeavesService {
     }
 
     if (leaveType !== LeaveType.LOSS_OF_PAY) {
-      const yearlyLimit = this.LEAVE_LIMITS[leaveType] || 0;
+      const yearlyLimit = this.getYearlyLeaveLimit(leaveType, leavePolicy) || 0;
       const currentYear = new Date().getFullYear();
       const yearStart = new Date(currentYear, 0, 1);
       const yearEnd = new Date(currentYear, 11, 31, 23, 59, 59, 999);
@@ -212,6 +506,7 @@ export class LeavesService {
 
   async getLeaveBalance(agencyId: string, userId: string, employeeId?: string) {
     const scopedEmployee = await this.resolveEmployeeForUser(agencyId, userId, employeeId);
+    const leavePolicy = await this.getResolvedLeavePolicyForEmployee(agencyId, scopedEmployee.id);
     const currentYear = new Date().getFullYear();
     const yearStart = new Date(currentYear, 0, 1);
     const yearEnd = new Date(currentYear, 11, 31, 23, 59, 59, 999);
@@ -238,19 +533,19 @@ export class LeavesService {
 
     return {
       CASUAL: {
-        total: this.LEAVE_LIMITS[LeaveType.CASUAL],
+        total: leavePolicy.casualLeaveDays,
         used: usedByType[LeaveType.CASUAL] || 0,
-        remaining: Math.max(0, this.LEAVE_LIMITS[LeaveType.CASUAL] - (usedByType[LeaveType.CASUAL] || 0)),
+        remaining: Math.max(0, leavePolicy.casualLeaveDays - (usedByType[LeaveType.CASUAL] || 0)),
       },
       SICK: {
-        total: this.LEAVE_LIMITS[LeaveType.SICK],
+        total: leavePolicy.sickLeaveDays,
         used: usedByType[LeaveType.SICK] || 0,
-        remaining: Math.max(0, this.LEAVE_LIMITS[LeaveType.SICK] - (usedByType[LeaveType.SICK] || 0)),
+        remaining: Math.max(0, leavePolicy.sickLeaveDays - (usedByType[LeaveType.SICK] || 0)),
       },
       EARNED: {
-        total: this.LEAVE_LIMITS[LeaveType.EARNED],
+        total: leavePolicy.earnedLeaveDays,
         used: usedByType[LeaveType.EARNED] || 0,
-        remaining: Math.max(0, this.LEAVE_LIMITS[LeaveType.EARNED] - (usedByType[LeaveType.EARNED] || 0)),
+        remaining: Math.max(0, leavePolicy.earnedLeaveDays - (usedByType[LeaveType.EARNED] || 0)),
       },
       LOSS_OF_PAY: {
         total: null,

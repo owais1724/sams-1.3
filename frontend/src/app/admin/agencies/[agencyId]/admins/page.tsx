@@ -136,9 +136,14 @@ export default function AgencyAdminsPage() {
         try {
             const response = await api.get(`/agencies/${agencyId}/staff-roles`, { params: { _t: Date.now() } })
             const roles = (response.data || []) as StaffRole[]
-            setDemoteRoles(roles)
-            if (!roles.some((role) => role.id === selectedDemoteRoleId)) {
-                setSelectedDemoteRoleId(roles[0]?.id || "")
+            const uniqueRoles = roles.filter((role, index, allRoles) => {
+                const normalizedRoleName = role.name.trim().toLowerCase()
+                return allRoles.findIndex((candidate) => candidate.name.trim().toLowerCase() === normalizedRoleName) === index
+            })
+
+            setDemoteRoles(uniqueRoles)
+            if (!uniqueRoles.some((role) => role.id === selectedDemoteRoleId)) {
+                setSelectedDemoteRoleId(uniqueRoles[0]?.id || "")
             }
         } catch {
             setDemoteRoles([])
