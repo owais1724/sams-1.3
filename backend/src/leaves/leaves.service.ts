@@ -62,6 +62,72 @@ export class LeavesService {
     );
   }
 
+  private async ensureLeavePolicyStorageReady() {
+    await this.prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "LeavePolicy" (
+        "id" TEXT NOT NULL,
+        "agencyId" TEXT NOT NULL,
+        "roleId" TEXT NOT NULL,
+        "workingDaysPerWeek" INTEGER NOT NULL DEFAULT 5,
+        "casualLeaveDays" INTEGER NOT NULL DEFAULT 12,
+        "sickLeaveDays" INTEGER NOT NULL DEFAULT 7,
+        "earnedLeaveDays" INTEGER NOT NULL DEFAULT 12,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "LeavePolicy_pkey" PRIMARY KEY ("id")
+      );
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "LeavePolicy_agencyId_idx"
+      ON "LeavePolicy"("agencyId");
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "LeavePolicy_roleId_key"
+      ON "LeavePolicy"("roleId");
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "LeavePolicy_agencyId_roleId_key"
+      ON "LeavePolicy"("agencyId", "roleId");
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'LeavePolicy_agencyId_fkey'
+        ) THEN
+          ALTER TABLE "LeavePolicy"
+          ADD CONSTRAINT "LeavePolicy_agencyId_fkey"
+          FOREIGN KEY ("agencyId") REFERENCES "Agency"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END
+      $$;
+    `);
+
+    await this.prisma.$executeRawUnsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'LeavePolicy_roleId_fkey'
+        ) THEN
+          ALTER TABLE "LeavePolicy"
+          ADD CONSTRAINT "LeavePolicy_roleId_fkey"
+          FOREIGN KEY ("roleId") REFERENCES "Role"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END
+      $$;
+    `);
+  }
+
   private mapLeavePolicy(
     policy: any | null,
     agencyId: string,
@@ -193,6 +259,16 @@ export class LeavesService {
       if (!this.isMissingLeavePolicyTableError(error)) {
         throw error;
       }
+
+      await this.ensureLeavePolicyStorageReady();
+      policy = await this.prisma.leavePolicy.findUnique({
+        where: {
+          agencyId_roleId: {
+            agencyId,
+            roleId,
+          },
+        },
+      });
     }
 
     return this.mapLeavePolicy(policy, agencyId, roleId, roleName ?? null);
@@ -241,6 +317,16 @@ export class LeavesService {
         if (!this.isMissingLeavePolicyTableError(error)) {
           throw error;
         }
+
+        await this.ensureLeavePolicyStorageReady();
+        policies = await this.prisma.leavePolicy.findMany({
+          where: {
+            agencyId,
+            roleId: {
+              in: roles.map((role) => role.id),
+            },
+          },
+        });
       }
     }
 
@@ -344,12 +430,39 @@ export class LeavesService {
       );
     } catch (error) {
       if (this.isMissingLeavePolicyTableError(error)) {
-        throw new BadRequestException(
-          'Leave policy storage is not ready yet. Run the latest database migration and try again.',
-        );
-      }
+        await this.ensureLeavePolicyStorageReady();
 
-      throw error;
+        await this.prisma.$transaction(
+          policyData.map((policy) => {
+            const roleId = String(policy.roleId);
+
+            return this.prisma.leavePolicy.upsert({
+              where: {
+                agencyId_roleId: {
+                  agencyId,
+                  roleId,
+                },
+              },
+              update: {
+                workingDaysPerWeek: Number(policy.workingDaysPerWeek),
+                casualLeaveDays: Number(policy.casualLeaveDays),
+                sickLeaveDays: Number(policy.sickLeaveDays),
+                earnedLeaveDays: Number(policy.earnedLeaveDays),
+              },
+              create: {
+                agencyId,
+                roleId,
+                workingDaysPerWeek: Number(policy.workingDaysPerWeek),
+                casualLeaveDays: Number(policy.casualLeaveDays),
+                sickLeaveDays: Number(policy.sickLeaveDays),
+                earnedLeaveDays: Number(policy.earnedLeaveDays),
+              },
+            });
+          }),
+        );
+      } else {
+        throw error;
+      }
     }
 
     return this.getLeavePolicy(agencyId, userRole);
