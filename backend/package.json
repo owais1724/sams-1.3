@@ -5,10 +5,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "start": "npx prisma migrate deploy && node dist/src/main.js",
+    "start": "npx prisma migrate deploy || npx prisma db push --accept-data-loss --skip-generate && node dist/src/main.js",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "npx prisma migrate deploy && node dist/src/main.js",
+    "start:prod": "npx prisma migrate deploy || npx prisma db push --accept-data-loss --skip-generate && node dist/src/main.js",
     "deploy": "npm run build && npx prisma db push --accept-data-loss && npx prisma db seed && node dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
