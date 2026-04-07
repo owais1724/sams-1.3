@@ -216,11 +216,13 @@ export default function StaffDashboard() {
 
       let leaves: LeaveHistoryItem[] = []
       let resolvedLeaveBalance: LeaveBalanceResponse = EMPTY_LEAVE_BALANCE
+      let hasLiveBalance = false
 
       if (canApplyLeave) {
         const balanceData = await safeGetJson('/leaves/balance')
         if (balanceData) {
           resolvedLeaveBalance = balanceData as LeaveBalanceResponse
+          hasLiveBalance = true
         }
       }
 
@@ -245,7 +247,7 @@ export default function StaffDashboard() {
           leaves = scopedLegacy
         }
 
-        if (!balanceData) {
+        if (!hasLiveBalance) {
           resolvedLeaveBalance = computeBalanceFromHistory(leaves)
         }
       }
