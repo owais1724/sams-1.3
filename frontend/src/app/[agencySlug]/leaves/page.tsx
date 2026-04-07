@@ -55,6 +55,14 @@ const formatYear = (date: string | Date) => {
   return new Date(date).getFullYear().toString()
 }
 
+const getNextDate = (dateValue: string) => {
+  if (!dateValue) return ""
+  const date = new Date(dateValue)
+  if (Number.isNaN(date.getTime())) return ""
+  date.setDate(date.getDate() + 1)
+  return date.toISOString().split('T')[0]
+}
+
 interface LeaveRequest {
   id: string
   leaveType: string
@@ -124,7 +132,7 @@ export default function LeavesPage() {
     Boolean(formData.startDate) &&
     Boolean(formData.endDate) &&
     Boolean(formData.reason.trim()) &&
-    new Date(formData.endDate) >= new Date(formData.startDate)
+    new Date(formData.endDate) > new Date(formData.startDate)
 
   useEffect(() => {
     if (!user) return
@@ -263,8 +271,8 @@ export default function LeavesPage() {
       return
     }
 
-    if (new Date(formData.endDate) < new Date(formData.startDate)) {
-      toast.error('End date must be on or after start date')
+    if (new Date(formData.endDate) <= new Date(formData.startDate)) {
+      toast.error('End date must be after start date')
       return
     }
 
@@ -438,8 +446,8 @@ export default function LeavesPage() {
                             
                             setFormData({ ...formData, startDate: selectedDate })
                             
-                            // If end date is before new start date, clear it
-                            if (formData.endDate && selectedDate > formData.endDate) {
+                            // End date must be strictly after start date.
+                            if (formData.endDate && selectedDate >= formData.endDate) {
                               setFormData({ ...formData, startDate: selectedDate, endDate: "" })
                             }
                           }}
@@ -451,7 +459,7 @@ export default function LeavesPage() {
                         <FormLabelBase label="To Date" required />
                         <Input
                           type="date"
-                          min={formData.startDate || new Date().toISOString().split('T')[0]}
+                          min={formData.startDate ? getNextDate(formData.startDate) : new Date().toISOString().split('T')[0]}
                           value={formData.endDate}
                           onChange={(e) => {
                             const selectedDate = e.target.value
@@ -462,8 +470,8 @@ export default function LeavesPage() {
                               return
                             }
                             
-                            if (formData.startDate && selectedDate < formData.startDate) {
-                              toast.error("End date cannot be before start date")
+                            if (formData.startDate && selectedDate <= formData.startDate) {
+                              toast.error("End date must be after start date")
                               return
                             }
                             

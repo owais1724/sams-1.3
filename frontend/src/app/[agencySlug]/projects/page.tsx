@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import api from "@/lib/api"
 import { TableCell } from "@/components/ui/table"
-import { Plus, Briefcase, MapPin, Activity, Globe, Shield, Clock, Search, Filter, Users } from "lucide-react"
+import { Plus, Briefcase, MapPin, Activity, Globe, Shield, Clock, Search, Filter, Users, Power } from "lucide-react"
 import { ProjectForm } from "@/components/agency/ProjectForm"
 import { Button } from "@/components/ui/button"
 import {
@@ -46,6 +46,13 @@ export default function ProjectsPage() {
         name: ""
     })
     const [isDeleting, setIsDeleting] = useState(false)
+    const [toggleModal, setToggleModal] = useState<{ open: boolean, id: string, name: string, isActive: boolean }>({
+        open: false,
+        id: "",
+        name: "",
+        isActive: false,
+    })
+    const [isToggling, setIsToggling] = useState(false)
 
     const canViewClients = authUser?.role === 'Super Admin' || authUser?.role?.toLowerCase().includes('admin') || authUser?.permissions?.includes('view_clients') || authUser?.permissions?.includes('edit_project') || authUser?.permissions?.includes('create_project')
     const canViewEmployees = authUser?.role === 'Super Admin' || authUser?.role?.toLowerCase().includes('admin') || authUser?.permissions?.includes('view_employee') || authUser?.permissions?.includes('edit_project') || authUser?.permissions?.includes('create_project')
@@ -82,6 +89,23 @@ export default function ProjectsPage() {
             toast.error(error.response?.data?.message || "Failed to delete project")
         } finally {
             setIsDeleting(false)
+        }
+    }
+
+    const handleToggleActive = async () => {
+        if (!toggleModal.id) return
+        setIsToggling(true)
+        try {
+            await api.patch(`/projects/${toggleModal.id}`, {
+                isActive: !toggleModal.isActive,
+            })
+            toast.success(`Project ${toggleModal.isActive ? "deactivated" : "activated"} successfully`)
+            setToggleModal({ open: false, id: "", name: "", isActive: false })
+            fetchData()
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to update project status")
+        } finally {
+            setIsToggling(false)
         }
     }
 
@@ -306,6 +330,25 @@ export default function ProjectsPage() {
                                 <TableCell className="text-right px-4 sm:px-8">
                                     <div className="flex items-center justify-end gap-2">
                                         <PermissionGuard permission="edit_project">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setToggleModal({
+                                                    open: true,
+                                                    id: project.id,
+                                                    name: project.name,
+                                                    isActive: Boolean(project.isActive),
+                                                })}
+                                                className={`h-9 px-3 rounded-xl text-[11px] font-bold ${project.isActive
+                                                    ? "text-amber-600 hover:bg-amber-50"
+                                                    : "text-emerald-600 hover:bg-emerald-50"
+                                                    }`}
+                                            >
+                                                <Power className="h-3.5 w-3.5 mr-1.5" />
+                                                {project.isActive ? "Deactivate" : "Activate"}
+                                            </Button>
+                                        </PermissionGuard>
+                                        <PermissionGuard permission="edit_project">
                                             <RowEditButton onClick={() => { setEditingProject(project); setOpen(true) }} />
                                         </PermissionGuard>
                                         <PermissionGuard permission="delete_project">
@@ -345,6 +388,19 @@ export default function ProjectsPage() {
                 variant="danger"
                 description={`Are you sure you want to delete the project: ${deleteModal.name}? This action cannot be undone and will remove all associated data.`}
                 confirmText="Delete Project"
+            />
+
+            <AlertModal
+                isOpen={toggleModal.open}
+                onClose={() => setToggleModal({ ...toggleModal, open: false })}
+                onConfirm={handleToggleActive}
+                loading={isToggling}
+                title={toggleModal.isActive ? "DEACTIVATE PROJECT" : "ACTIVATE PROJECT"}
+                variant={toggleModal.isActive ? "warning" : "primary"}
+                description={toggleModal.isActive
+                    ? `Are you sure you want to deactivate the project: ${toggleModal.name}?`
+                    : `Are you sure you want to activate the project: ${toggleModal.name}?`}
+                confirmText={toggleModal.isActive ? "Deactivate Project" : "Activate Project"}
             />
         </div>
     )

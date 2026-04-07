@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { usePermission } from "@/hooks/usePermission"
 import { PageLoading } from "@/components/ui/design-system"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { AlertModal } from "@/components/ui/alert-modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -52,15 +53,23 @@ const EMPTY_BALANCE: LeaveBalanceResponse = {
 const formatDate = (value: string) =>
 	new Date(value).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
 
+const getNextDate = (dateValue: string) => {
+	if (!dateValue) return ""
+	const date = new Date(dateValue)
+	if (Number.isNaN(date.getTime())) return ""
+	date.setDate(date.getDate() + 1)
+	return date.toISOString().split("T")[0]
+}
+
 const getDays = (start: string, end: string) => {
 	if (!start || !end) return 0
 	const startDate = new Date(start)
 	const endDate = new Date(end)
 	startDate.setHours(0, 0, 0, 0)
 	endDate.setHours(0, 0, 0, 0)
-	if (endDate < startDate) return 0
+	if (endDate <= startDate) return 0
 	const diff = endDate.getTime() - startDate.getTime()
-	return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1
+	return Math.floor(diff / (1000 * 60 * 60 * 24))
 }
 
 const normalizeStatus = (status: string) => {
@@ -142,6 +151,7 @@ export default function StaffLeavesPage() {
 	const [loading, setLoading] = useState(true)
 	const [saving, setSaving] = useState(false)
 	const [isModalOpen, setIsModalOpen] = useState(false)
+	const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
 	const [leaveBalance, setLeaveBalance] = useState<LeaveBalanceResponse>(EMPTY_BALANCE)
 	const [history, setHistory] = useState<LeaveHistoryItem[]>([])
 	const [form, setForm] = useState({
@@ -213,6 +223,15 @@ export default function StaffLeavesPage() {
 		e.preventDefault()
 		if (submitDisabled) return
 
+		if (new Date(form.endDate) <= new Date(form.startDate)) {
+			toast.error("End date must be after start date")
+			return
+		}
+
+		setShowSubmitConfirm(true)
+	}
+
+	const confirmSubmit = async () => {
 		setSaving(true)
 		try {
 			await api.post("/leaves", {
@@ -223,6 +242,7 @@ export default function StaffLeavesPage() {
 			})
 
 			toast.success("Leave request submitted successfully")
+			setShowSubmitConfirm(false)
 			setIsModalOpen(false)
 			setForm({ leaveType: "", startDate: "", endDate: "", reason: "" })
 			await loadData()
@@ -267,7 +287,7 @@ export default function StaffLeavesPage() {
 
 						<form className="space-y-4" onSubmit={handleSubmit}>
 							<div className="space-y-2">
-								<label className="text-sm font-semibold text-[#0f172a]">Leave Type</label>
+								<label className="text-sm font-semibold text-[#0f172a]">Leave Type <span className="text-[#06b6d4]">*</span></label>
 								<Select value={form.leaveType} onValueChange={(value: LeaveType) => setForm((prev) => ({ ...prev, leaveType: value }))}>
 									<SelectTrigger className="border-[#e2e8f0] rounded-lg">
 										<SelectValue placeholder="Select leave type" />
@@ -282,23 +302,35 @@ export default function StaffLeavesPage() {
 
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 								<div className="space-y-2">
-									<label className="text-sm font-semibold text-[#0f172a]">Start Date</label>
+									<label className="text-sm font-semibold text-[#0f172a]">Start Date <span className="text-[#06b6d4]">*</span></label>
 									<Input
 										type="date"
 										min={today}
 										value={form.startDate}
-										onChange={(e) => setForm((prev) => ({ ...prev, startDate: e.target.value, endDate: prev.endDate && e.target.value > prev.endDate ? "" : prev.endDate }))}
+										onChange={(e) =>
+											setForm((prev) => ({
+												...prev,
+												startDate: e.target.value,
+												endDate: prev.endDate && e.target.value >= prev.endDate ? "" : prev.endDate,
+											}))
+										}
 										className="border-[#e2e8f0] rounded-lg"
 										required
 									/>
 								</div>
 								<div className="space-y-2">
-									<label className="text-sm font-semibold text-[#0f172a]">End Date</label>
+									<label className="text-sm font-semibold text-[#0f172a]">End Date <span className="text-[#06b6d4]">*</span></label>
 									<Input
 										type="date"
-										min={form.startDate || today}
+										min={form.startDate ? getNextDate(form.startDate) : today}
 										value={form.endDate}
-										onChange={(e) => setForm((prev) => ({ ...prev, endDate: e.target.value }))}
+										onChange={(e) => {
+											if (form.startDate && e.target.value <= form.startDate) {
+												toast.error("End date must be after start date")
+												return
+											}
+											setForm((prev) => ({ ...prev, endDate: e.target.value }))
+										}}
 										className="border-[#e2e8f0] rounded-lg"
 										required
 									/>
@@ -311,7 +343,7 @@ export default function StaffLeavesPage() {
 							</div>
 
 							<div className="space-y-2">
-								<label className="text-sm font-semibold text-[#0f172a]">Reason</label>
+								<label className="text-sm font-semibold text-[#0f172a]">Reason <span className="text-[#06b6d4]">*</span></label>
 								<Textarea
 									value={form.reason}
 									onChange={(e) => setForm((prev) => ({ ...prev, reason: e.target.value }))}
@@ -412,6 +444,18 @@ export default function StaffLeavesPage() {
 					</div>
 				)}
 			</section>
+
+			<AlertModal
+				isOpen={showSubmitConfirm}
+				onClose={() => setShowSubmitConfirm(false)}
+				onConfirm={confirmSubmit}
+				loading={saving}
+				title="Submit Leave Request?"
+				description={`Submit ${form.leaveType ? form.leaveType.replaceAll("_", " ").toLowerCase() : "leave"} request from ${form.startDate || "-"} to ${form.endDate || "-"} (${daysRequested} day${daysRequested === 1 ? "" : "s"}).`}
+				variant="primary"
+				confirmText="Submit Request"
+				cancelText="Cancel"
+			/>
 		</div>
 	)
 }

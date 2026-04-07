@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import api from "@/lib/api"
 import { Shield, Plus, Users, Lock, ShieldCheck, Database } from "lucide-react"
 import {
@@ -26,6 +26,12 @@ import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import { useDeleteConfirm } from "@/hooks/useDeleteConfirm"
 
+const HIDDEN_SYSTEM_ROLE_NAMES = new Set(["staff", "cleaner"])
+
+function normalizeRoleName(name: unknown) {
+    return String(name || "").trim().toLowerCase().replace(/\s+/g, " ")
+}
+
 export default function RBACPage() {
     const { user } = useAuthStore()
     const [roles, setRoles] = useState<any[]>([])
@@ -35,6 +41,36 @@ export default function RBACPage() {
     const [open, setOpen] = useState(false)
     const [selectedRole, setSelectedRole] = useState<any>(null)
     const visibleEmployees = employees.filter((emp: any) => Boolean(emp.user))
+    const visibleRoles = useMemo(() => {
+        const dedupedByName = new Map<string, any>()
+
+        for (const role of roles) {
+            const normalizedName = normalizeRoleName(role?.name)
+            if (!normalizedName) continue
+
+            // Keep core role table focused by hiding base system roles handled elsewhere.
+            if (role?.isSystem && HIDDEN_SYSTEM_ROLE_NAMES.has(normalizedName)) continue
+
+            const existing = dedupedByName.get(normalizedName)
+            if (!existing) {
+                dedupedByName.set(normalizedName, role)
+                continue
+            }
+
+            const existingUsers = Number(existing?._count?.users || 0)
+            const currentUsers = Number(role?._count?.users || 0)
+            const existingPermissions = Number(existing?.permissions?.length || 0)
+            const currentPermissions = Number(role?.permissions?.length || 0)
+            if (
+                currentUsers > existingUsers ||
+                (currentUsers === existingUsers && currentPermissions > existingPermissions)
+            ) {
+                dedupedByName.set(normalizedName, role)
+            }
+        }
+
+        return Array.from(dedupedByName.values())
+    }, [roles])
 
     const fetchData = async () => {
         if (!user) return
@@ -106,7 +142,7 @@ export default function RBACPage() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard title="Total Roles" value={roles.length} icon={<ShieldCheck />} color="blue" />
+                <StatCard title="Total Roles" value={visibleRoles.length} icon={<ShieldCheck />} color="blue" />
                 <StatCard title="Permissions" value={permissions.length} icon={<Database />} color="emerald" />
                 <StatCard title="Total Users" value={visibleEmployees.length} icon={<Users />} color="amber" />
             </div>
@@ -172,7 +208,7 @@ export default function RBACPage() {
                 <SectionHeading title="Roles & Permissions" />
                 <DataTable columns={['Role Name', 'Description', 'Permissions', 'Users Assigned', 'Actions']}>
                     <AnimatePresence mode="popLayout">
-                        {roles.map((role, idx) => (
+                        {visibleRoles.map((role, idx) => (
                             <motion.tr
                                 key={role.id}
                                 initial={{ opacity: 0, scale: 0.98 }}

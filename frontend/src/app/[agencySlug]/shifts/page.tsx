@@ -37,9 +37,6 @@ import {
   Sun,
   Moon,
   CalendarDays,
-  Trash2,
-  LogIn,
-  LogOut,
   UserPlus,
   Pencil,
   Power,
@@ -234,11 +231,16 @@ export default function ShiftsPage() {
     if (user) fetchAssignments()
   }, [filterDate, filterStatus])
 
+  useEffect(() => {
+    if (!assignDialogOpen || !user) return
+    void fetchEmployees()
+  }, [assignDialogOpen, user])
+
   const fetchAll = async () => {
     try {
       const [shiftsRes, empRes, projRes] = await Promise.allSettled([
         api.get("/shifts"),
-        api.get("/employees"),
+        api.get("/employees", { params: { _t: Date.now() } }),
         api.get("/projects"),
       ])
       if (shiftsRes.status === "fulfilled") setShifts(shiftsRes.value.data)
@@ -249,6 +251,15 @@ export default function ShiftsPage() {
       toast.error("Failed to load shift data")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await api.get("/employees", { params: { _t: Date.now() } })
+      setEmployees(Array.isArray(res.data) ? res.data : [])
+    } catch {
+      // Keep existing options if refresh fails.
     }
   }
 
@@ -305,35 +316,15 @@ export default function ShiftsPage() {
     setSubmitting(true)
     try {
       await api.post("/shift-assignments", assignForm)
-      toast.success("Guard assigned to shift")
+      toast.success("Employee assigned to shift")
       setAssignConfirmModal(false)
       setAssignDialogOpen(false)
       setAssignForm({ shiftId: "", employeeId: "", date: "", projectId: "" })
       fetchAssignments()
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to assign guard")
+      toast.error(err?.response?.data?.message || "Failed to assign employee")
     } finally {
       setSubmitting(false)
-    }
-  }
-
-  const handleCheckIn = async (assignmentId: string) => {
-    try {
-      await api.post(`/shift-assignments/${assignmentId}/check-in`)
-      toast.success("Shift check-in recorded")
-      fetchAssignments()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Check-in failed")
-    }
-  }
-
-  const handleCheckOut = async (assignmentId: string) => {
-    try {
-      await api.post(`/shift-assignments/${assignmentId}/check-out`)
-      toast.success("Shift check-out recorded")
-      fetchAssignments()
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Check-out failed")
     }
   }
 
@@ -439,13 +430,20 @@ export default function ShiftsPage() {
   const completedCount = assignments.filter((a) => a.status === "COMPLETED").length
   const lateCount = assignments.filter((a) => a.status === "LATE").length
   const missedCount = assignments.filter((a) => a.status === "MISSED").length
+  const assignableEmployees = employees.filter((e: any) => {
+    const status = String(e?.status || "").toUpperCase()
+    const employeeIsActive = !status || status === "ACTIVE"
+    const hasLinkedUser = Boolean(e?.user?.id)
+    const userIsActive = e?.user?.isActive === true
+    return employeeIsActive && hasLinkedUser && userIsActive
+  })
 
   return (
     <div className="space-y-12 pb-20">
       <PageHeader
         title="Shift"
         titleHighlight="Management"
-        subtitle="Create shifts, assign guards, and track shift timings."
+        subtitle="Create shifts, assign employees, and track shift timings."
         action={
           hasPermission("manage_shifts") && (
             <div className="flex items-center gap-3">
@@ -560,14 +558,14 @@ export default function ShiftsPage() {
                   <DialogTrigger asChild>
                     <Button variant="primary" className="h-11 px-6">
                       <UserPlus className="h-3.5 w-3.5 mr-2" />
-                      Assign Guard
+                      Assign Employee
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[640px] border-none rounded-[40px] shadow-2xl p-0 overflow-hidden bg-white">
                     <DialogHeader className="px-10 pr-16 pt-10 pb-4 bg-white text-slate-900 relative overflow-hidden border-b border-slate-200">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-50 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                      <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase italic text-slate-900">Assign Guard</DialogTitle>
-                      <DialogDescription className="text-slate-500 font-bold text-[10px] mt-2 uppercase tracking-[0.2em] z-10">Assign a security guard to a shift</DialogDescription>
+                      <DialogTitle className="text-3xl font-black tracking-tight leading-none z-10 uppercase italic text-slate-900">Assign Employee</DialogTitle>
+                      <DialogDescription className="text-slate-500 font-bold text-[10px] mt-2 uppercase tracking-[0.2em] z-10">Assign an employee to a shift</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleAssignGuard} className="px-10 pb-10 pt-4 space-y-6">
                       <div className="space-y-0">
@@ -584,13 +582,16 @@ export default function ShiftsPage() {
                         </Select>
                       </div>
                       <div className="space-y-0">
-                        <FormLabelBase label="Select Guard" required />
+                        <FormLabelBase label="Select Employee" required />
                         <Select value={assignForm.employeeId} onValueChange={(v) => setAssignForm({ ...assignForm, employeeId: v })}>
                           <SelectTrigger className={selectVariants}><SelectValue placeholder="Choose an employee" /></SelectTrigger>
                           <SelectContent className="rounded-2xl border-slate-100 p-2 max-h-60">
-                            {employees.map((e: any) => (
+                            {assignableEmployees.length === 0 && (
+                              <div className="px-3 py-2 text-xs font-bold text-slate-400">No active employees available</div>
+                            )}
+                            {assignableEmployees.map((e: any) => (
                               <SelectItem key={e.id} value={e.id} className="py-3 font-bold rounded-xl">
-                                {e.fullName} ({e.employeeCode})
+                                {e.fullName} ({e.employeeCode}){e.designation?.name ? ` - ${e.designation.name}` : ""}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -634,7 +635,7 @@ export default function ShiftsPage() {
                       <div className="pt-4 flex items-center justify-center gap-4">
                         <Button type="button" variant="ghost" className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-1 text-slate-600" onClick={() => setAssignDialogOpen(false)}>CANCEL</Button>
                         <Button type="submit" disabled={submitting} className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest flex-[2] bg-[#06b6d4] hover:bg-[#0891b2] text-white">
-                          {submitting ? "ASSIGNING..." : "ASSIGN GUARD"}
+                          {submitting ? "ASSIGNING..." : "ASSIGN EMPLOYEE"}
                         </Button>
                       </div>
                     </form>
@@ -644,9 +645,9 @@ export default function ShiftsPage() {
             )}
           </div>
 
-          <SectionHeading title="Guard Shift Assignments" />
+          <SectionHeading title="Employee Shift Assignments" />
 
-          <DataTable columns={["Guard", "Shift", "Project", "Timing", "Status", "Actions"]}>
+          <DataTable columns={["Employee", "Shift", "Project", "Timing", "Status", "Actions"]}>
             <AnimatePresence mode="popLayout">
               {assignments.length === 0 ? (
                 <TableRowEmpty colSpan={6} title="No Shift Assignments" icon={<CalendarDays />} />
@@ -702,33 +703,8 @@ export default function ShiftsPage() {
                       </TableCell>
                       <TableCell className="text-right px-4 sm:px-8">
                         <div className="flex items-center justify-end gap-2">
-                          {a.status === "SCHEDULED" && !a.checkIn && (
-                            <Button
-                              size="sm"
-                              className="h-9 px-4 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white border-none font-black text-[9px] uppercase tracking-widest transition-all"
-                              onClick={() => handleCheckIn(a.id)}
-                            >
-                              <LogIn className="h-3 w-3 mr-1.5" /> Check In
-                            </Button>
-                          )}
-                          {a.checkIn && !a.checkOut && (
-                            <Button
-                              size="sm"
-                              className="h-9 px-4 rounded-2xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border-none font-black text-[9px] uppercase tracking-widest transition-all"
-                              onClick={() => handleCheckOut(a.id)}
-                            >
-                              <LogOut className="h-3 w-3 mr-1.5" /> Check Out
-                            </Button>
-                          )}
                           {hasPermission("manage_shifts") && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-9 w-9 rounded-2xl text-slate-300 hover:text-rose-500 hover:bg-rose-50"
-                              onClick={() => setDeleteAssignmentModal({ open: true, id: a.id })}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+                            <RowDeleteButton onClick={() => setDeleteAssignmentModal({ open: true, id: a.id })} />
                           )}
                         </div>
                       </TableCell>
@@ -899,10 +875,10 @@ export default function ShiftsPage() {
         onClose={() => setAssignConfirmModal(false)}
         onConfirm={handleConfirmedAssignGuard}
         loading={submitting}
-        title="Assign Guard"
+        title="Assign Employee"
         description="Are you sure you want to assign this employee to the selected shift?"
         variant="primary"
-        confirmText="Assign Guard"
+        confirmText="Assign Employee"
         cancelText="Cancel"
       />
 

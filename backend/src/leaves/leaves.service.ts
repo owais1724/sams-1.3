@@ -488,7 +488,8 @@ export class LeavesService {
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
     const diffMs = end.getTime() - start.getTime();
-    return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    if (diffMs <= 0) return 0;
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   }
 
   private async resolveEmployeeForUser(agencyId: string, userId: string, employeeIdHint?: string | null) {
@@ -540,8 +541,8 @@ export class LeavesService {
       throw new BadRequestException('Invalid leave date range');
     }
 
-    if (endDate < startDate) {
-      throw new BadRequestException('End date must be on or after start date');
+    if (endDate <= startDate) {
+      throw new BadRequestException('End date must be after start date');
     }
 
     const scopedEmployee = await this.resolveEmployeeForUser(agencyId, userId || '', employeeId);
@@ -561,8 +562,8 @@ export class LeavesService {
         agencyId,
         employeeId: scopedEmployee.id,
         status: { in: [LeaveStatus.PENDING, LeaveStatus.SUPERVISOR_APPROVED, LeaveStatus.HR_APPROVED, LeaveStatus.AGENCY_APPROVED] },
-        startDate: { lte: endDate },
-        endDate: { gte: startDate },
+        startDate: { lt: endDate },
+        endDate: { gt: startDate },
       },
     });
 
@@ -1030,7 +1031,7 @@ export class LeavesService {
           employeeId: user.employeeId,
           status: LeaveStatus.AGENCY_APPROVED,
           startDate: { lte: today },
-          endDate: { gte: today },
+          endDate: { gt: today },
         },
       });
       if (!activeLeave) return true;

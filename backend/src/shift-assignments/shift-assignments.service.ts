@@ -60,6 +60,24 @@ export class ShiftAssignmentsService {
     const employeeExists = await this.prisma.employee.findUnique({ where: { id: data.employeeId } });
     if (!employeeExists) throw new NotFoundException('Employee not found');
     if (employeeExists.agencyId !== agencyId) throw new ForbiddenException('Access to this employee is forbidden');
+    if ((employeeExists.status || '').toUpperCase() !== 'ACTIVE') {
+      throw new ConflictException('Only active employees can be assigned to shifts');
+    }
+
+    const linkedUser = await this.prisma.user.findFirst({
+      where: {
+        agencyId,
+        employeeId: data.employeeId,
+      },
+      select: {
+        id: true,
+        isActive: true,
+      },
+    });
+
+    if (!linkedUser || !linkedUser.isActive) {
+      throw new ConflictException('Only employees with an active user account can be assigned to shifts');
+    }
 
     // Check for duplicate assignment (same employee, same shift, same date)
     const assignDate = new Date(data.date);
@@ -76,7 +94,7 @@ export class ShiftAssignmentsService {
       },
     });
     if (existing) {
-      throw new ConflictException('Guard is already assigned to this shift on this date');
+      throw new ConflictException('Employee is already assigned to this shift on this date');
     }
 
     return this.prisma.shiftAssignment.create({
@@ -118,7 +136,8 @@ export class ShiftAssignmentsService {
         });
         results.push({ employeeId, success: true, assignment });
       } catch (error) {
-        results.push({ employeeId, success: false, error: error.message });
+        const message = error instanceof Error ? error.message : 'Failed to assign employee';
+        results.push({ employeeId, success: false, error: message });
       }
     }
     return results;
