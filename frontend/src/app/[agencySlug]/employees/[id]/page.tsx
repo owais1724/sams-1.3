@@ -31,7 +31,7 @@ const normalizeRoleName = (name?: string | null) => (name || "").toLowerCase().t
 export default function EmployeeDetailPage() {
     const params = useParams<{ agencySlug?: string | string[]; id?: string | string[] }>()
     const router = useRouter()
-    const { hasPermission } = usePermission()
+    const { hasPermission, isAdmin } = usePermission()
 
     const agencySlug = useMemo(() => {
         const value = params?.agencySlug
@@ -56,6 +56,9 @@ export default function EmployeeDetailPage() {
     const [agencyAdminCount, setAgencyAdminCount] = useState(0)
 
     const canManageRoles = hasPermission("manage_roles")
+    const canPromoteEmployee = hasPermission("promote_employee") || isAdmin
+    const canDemoteEmployee = hasPermission("demote_employee") || isAdmin
+    const canAccessRoleActions = canManageRoles || canPromoteEmployee || canDemoteEmployee
 
     const fetchEmployee = async () => {
         if (!employeeId) {
@@ -76,7 +79,7 @@ export default function EmployeeDetailPage() {
     }
 
     const fetchAgencyAdminCount = async (agencyId?: string) => {
-        if (!agencyId || !canManageRoles) {
+        if (!agencyId || !canPromoteEmployee) {
             setAgencyAdminCount(0)
             return
         }
@@ -93,7 +96,7 @@ export default function EmployeeDetailPage() {
     }
 
     const fetchRoles = async () => {
-        if (!canManageRoles) {
+        if (!canAccessRoleActions) {
             return
         }
 
@@ -111,11 +114,11 @@ export default function EmployeeDetailPage() {
 
     useEffect(() => {
         fetchRoles()
-    }, [canManageRoles])
+    }, [canAccessRoleActions])
 
     useEffect(() => {
         fetchAgencyAdminCount(employee?.agencyId)
-    }, [employee?.agencyId, canManageRoles])
+    }, [employee?.agencyId, canPromoteEmployee])
 
     const roleName = employee?.user?.role?.name || "Staff"
     const normalizedRole = normalizeRoleName(roleName)
@@ -139,31 +142,35 @@ export default function EmployeeDetailPage() {
         return roleRank < currentRoleRank
     })
 
-    const selectedPromoteRole = promotableRoles.find((role) => role.id === selectedPromoteRoleId)
+    const availablePromotableRoles = canPromoteEmployee
+        ? promotableRoles.filter((role) => isAdmin || normalizeRoleName(role.name) !== "agency admin")
+        : []
+    const selectedPromoteRole = availablePromotableRoles.find((role) => role.id === selectedPromoteRoleId)
     const selectedDemoteRole = demotableRoles.find((role) => role.id === selectedDemoteRoleId)
     const hasReachedAdminLimit = agencyAdminCount >= 2
-    const hasPromotableAgencyAdminRole = promotableRoles.some(
+    const hasPromotableAgencyAdminRole = availablePromotableRoles.some(
         (role) => normalizeRoleName(role.name) === "agency admin",
     )
     const selectedPromoteRoleIsAgencyAdmin = normalizeRoleName(selectedPromoteRole?.name) === "agency admin"
-    const disablePromoteTrigger = hasReachedAdminLimit && hasPromotableAgencyAdminRole && promotableRoles.every(
+    const disablePromoteTrigger = hasReachedAdminLimit && hasPromotableAgencyAdminRole && availablePromotableRoles.every(
         (role) => normalizeRoleName(role.name) === "agency admin",
     )
+    const canDemoteCurrentEmployee = canDemoteEmployee && (isAdmin || !isAgencyAdmin)
 
     useEffect(() => {
         if (!showPromotePicker) {
             return
         }
 
-        if (!promotableRoles.length) {
+        if (!availablePromotableRoles.length) {
             setSelectedPromoteRoleId("")
             return
         }
 
-        if (!promotableRoles.some((role) => role.id === selectedPromoteRoleId)) {
-            setSelectedPromoteRoleId(promotableRoles[0].id)
+        if (!availablePromotableRoles.some((role) => role.id === selectedPromoteRoleId)) {
+            setSelectedPromoteRoleId(availablePromotableRoles[0].id)
         }
-    }, [showPromotePicker, promotableRoles, selectedPromoteRoleId])
+    }, [showPromotePicker, availablePromotableRoles, selectedPromoteRoleId])
 
     useEffect(() => {
         if (!showDemotePicker) {
@@ -364,11 +371,11 @@ export default function EmployeeDetailPage() {
                         </span>
                     </div>
 
-                    {canManageRoles && (
+                    {canAccessRoleActions && (
                         <div className="pt-6 border-t border-slate-200 space-y-4">
                             <h2 className="text-lg font-bold">Actions</h2>
                             <div className="flex flex-wrap gap-3">
-                                {!isAgencyAdmin && promotableRoles.length > 0 && (
+                                {!isAgencyAdmin && canPromoteEmployee && availablePromotableRoles.length > 0 && (
                                     <>
                                         <Button
                                             variant="outline"
@@ -390,7 +397,7 @@ export default function EmployeeDetailPage() {
                                                         <SelectValue placeholder="Select role" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {promotableRoles.map((role) => (
+                                                        {availablePromotableRoles.map((role) => (
                                                             <SelectItem
                                                                 key={role.id}
                                                                 value={role.id}
@@ -417,7 +424,7 @@ export default function EmployeeDetailPage() {
                                     </>
                                 )}
 
-                                {demotableRoles.length > 0 && (
+                                {canDemoteCurrentEmployee && demotableRoles.length > 0 && (
                                     <>
                                         <Button
                                             variant="outline"
@@ -457,26 +464,30 @@ export default function EmployeeDetailPage() {
                                     </>
                                 )}
 
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setConfirmAction(accountIsActive ? "suspend" : "activate")}
-                                    className={accountIsActive
-                                        ? "border-red-300 text-red-600 hover:bg-red-50"
-                                        : "border-[#06b6d4] text-[#06b6d4] hover:bg-cyan-50"
-                                    }
-                                >
-                                    {accountIsActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                                    {accountIsActive ? "Suspend Account" : "Activate Account"}
-                                </Button>
+                                {canManageRoles && (
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setConfirmAction(accountIsActive ? "suspend" : "activate")}
+                                            className={accountIsActive
+                                                ? "border-red-300 text-red-600 hover:bg-red-50"
+                                                : "border-[#06b6d4] text-[#06b6d4] hover:bg-cyan-50"
+                                            }
+                                        >
+                                            {accountIsActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                                            {accountIsActive ? "Suspend Account" : "Activate Account"}
+                                        </Button>
 
-                                <Button
-                                    variant="danger-solid"
-                                    onClick={() => setConfirmAction("delete")}
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                    Delete Employee
-                                </Button>
+                                        <Button
+                                            variant="danger-solid"
+                                            onClick={() => setConfirmAction("delete")}
+                                            className="bg-red-600 hover:bg-red-700 text-white"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                            Delete Employee
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}

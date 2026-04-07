@@ -51,7 +51,7 @@ type LeaveHistoryItem = {
 const EMPTY_LEAVE_BALANCE: LeaveBalanceResponse = {
   CASUAL: { total: 12, used: 0, remaining: 12 },
   SICK: { total: 7, used: 0, remaining: 7 },
-  EARNED: { total: 15, used: 0, remaining: 15 },
+  EARNED: { total: 12, used: 0, remaining: 12 },
   LOSS_OF_PAY: { total: null, used: 0, remaining: null },
 }
 
@@ -88,7 +88,7 @@ const computeBalanceFromHistory = (history: LeaveHistoryItem[]): LeaveBalanceRes
   const limits = {
     CASUAL: 12,
     SICK: 7,
-    EARNED: 15,
+    EARNED: 12,
   }
 
   const approved = history.filter((item) => normalizeStatus(item.status) === "APPROVED")
@@ -217,18 +217,18 @@ export default function StaffDashboard() {
       let leaves: LeaveHistoryItem[] = []
       let resolvedLeaveBalance: LeaveBalanceResponse = EMPTY_LEAVE_BALANCE
 
+      if (canApplyLeave) {
+        const balanceData = await safeGetJson('/leaves/balance')
+        if (balanceData) {
+          resolvedLeaveBalance = balanceData as LeaveBalanceResponse
+        }
+      }
+
       if (canViewAllLeaves) {
         const allLeaves = await api.get('/leaves').then((res) => res.data).catch(() => [])
         leaves = Array.isArray(allLeaves) ? allLeaves : []
       } else if (canApplyLeave) {
-        const [balanceData, myLeavesData] = await Promise.all([
-          safeGetJson('/leaves/balance'),
-          safeGetJson('/leaves/my-leaves'),
-        ])
-
-        if (balanceData) {
-          resolvedLeaveBalance = balanceData as LeaveBalanceResponse
-        }
+        const myLeavesData = await safeGetJson('/leaves/my-leaves')
 
         if (Array.isArray(myLeavesData)) {
           leaves = myLeavesData as LeaveHistoryItem[]

@@ -27,7 +27,8 @@ export class EmployeesService {
     'view_clients', 'create_client', 'edit_client', 'delete_client',
     'view_projects', 'create_project', 'edit_project', 'delete_project',
     'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
-    'manage_roles', 'assign_staff', 'view_attendance', 'record_attendance',
+    'manage_roles', 'promote_employee', 'demote_employee',
+    'assign_staff', 'view_attendance', 'record_attendance',
     'approve_leave', 'apply_leave', 'view_leaves', 'manage_payroll',
     'view_payroll', 'view_reports', 'view_shifts', 'manage_shifts',
     'view_deployments', 'manage_deployments', 'view_incidents',
@@ -444,7 +445,32 @@ export class EmployeesService {
     }
   }
 
-  async promoteToAgencyAdmin(agencyId: string, employeeId: string, targetRoleId?: string) {
+  async resolveTargetRoleNameForPromotion(agencyId: string, targetRoleId?: string) {
+    if (!targetRoleId) {
+      return 'Agency Admin';
+    }
+
+    const targetRole = await this.prisma.role.findUnique({
+      where: { id: targetRoleId },
+      select: {
+        agencyId: true,
+        name: true,
+      },
+    });
+
+    if (!targetRole || targetRole.agencyId !== agencyId) {
+      throw new ForbiddenException('Invalid target role for this agency');
+    }
+
+    return targetRole.name;
+  }
+
+  async resolveCurrentEmployeeRoleName(agencyId: string, employeeId: string) {
+    const { user } = await this.getEmployeeWithLinkedUser(agencyId, employeeId);
+    return user.role?.name;
+  }
+
+  async promoteToAgencyAdmin(agencyId: string, employeeId: string, targetRoleId?: string, requesterRole?: string) {
     const { employee, user } = await this.getEmployeeWithLinkedUser(agencyId, employeeId);
 
     let roleToAssign: { id: string; name?: string | null };
@@ -467,6 +493,11 @@ export class EmployeesService {
     } else {
       const adminRole = await this.ensureAgencyAdminRole(agencyId);
       roleToAssign = { id: adminRole.id, name: adminRole.name };
+    }
+
+    // If requester is not Agency Admin, target role cannot be Agency Admin
+    if (!this.isAgencyAdminRole(requesterRole) && this.isAgencyAdminRole(roleToAssign.name)) {
+      throw new ForbiddenException('Only Agency Admin can promote to Agency Admin role');
     }
 
     const promotingToAgencyAdmin = this.isAgencyAdminRole(roleToAssign.name);
@@ -515,8 +546,15 @@ export class EmployeesService {
     };
   }
 
-  async demoteToStaffRole(agencyId: string, employeeId: string, targetRoleId?: string) {
+  async demoteToStaffRole(agencyId: string, employeeId: string, targetRoleId?: string, requesterRole?: string) {
     const { employee, user } = await this.getEmployeeWithLinkedUser(agencyId, employeeId);
+
+    const currentRole = user.role;
+
+    // If requester is not Agency Admin, cannot demote an Agency Admin
+    if (!this.isAgencyAdminRole(requesterRole) && this.isAgencyAdminRole(currentRole?.name)) {
+      throw new ForbiddenException('Only Agency Admin can demote an Agency Admin');
+    }
 
     let roleToAssign: { id: string; name?: string | null };
 

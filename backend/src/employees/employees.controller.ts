@@ -8,6 +8,7 @@ import {
   Request,
   Delete,
   Param,
+  ForbiddenException,
 } from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { MigrationService } from './migration.service';
@@ -25,6 +26,15 @@ export class EmployeesController {
     private readonly employeesService: EmployeesService,
     private readonly migrationService: MigrationService,
   ) { }
+
+  private normalizeRoleName(roleName?: string | null) {
+    return (roleName || '').toLowerCase().trim();
+  }
+
+  private isAgencyAdminRole(roleName?: string | null) {
+    const normalized = this.normalizeRoleName(roleName);
+    return normalized === 'agency admin' || normalized === 'agencyadmin';
+  }
 
   @Get()
   @Permissions('view_employee', 'edit_project', 'create_project')
@@ -55,25 +65,53 @@ export class EmployeesController {
   }
 
   @Patch(':id/promote')
-  @Permissions('manage_roles')
-  promote(
+  @Permissions('promote_employee')
+  async promote(
     @Request() req,
     @Param('id') id: string,
     @Body() data?: { roleId?: string },
   ) {
     const agencyId = requireAgencyContext(req);
-    return this.employeesService.promoteToAgencyAdmin(agencyId, id, data?.roleId);
+    const requesterRole = req.user?.role;
+    const requesterIsAgencyAdmin = this.isAgencyAdminRole(requesterRole);
+
+    if (!requesterIsAgencyAdmin) {
+      const targetRoleName = await this.employeesService.resolveTargetRoleNameForPromotion(
+        agencyId,
+        data?.roleId,
+      );
+
+      if (this.isAgencyAdminRole(targetRoleName)) {
+        throw new ForbiddenException('Only Agency Admin can promote staff to Agency Admin role');
+      }
+    }
+
+    return this.employeesService.promoteToAgencyAdmin(agencyId, id, data?.roleId, requesterRole);
   }
 
   @Patch(':id/demote')
-  @Permissions('manage_roles')
-  demote(
+  @Permissions('demote_employee')
+  async demote(
     @Request() req,
     @Param('id') id: string,
     @Body() data?: { roleId?: string },
   ) {
     const agencyId = requireAgencyContext(req);
-    return this.employeesService.demoteToStaffRole(agencyId, id, data?.roleId);
+    const requesterRole = req.user?.role;
+    const requesterIsAgencyAdmin = this.isAgencyAdminRole(requesterRole);
+
+    if (!requesterIsAgencyAdmin) {
+      const employeeRoleName = await this.employeesService.resolveCurrentEmployeeRoleName(
+        agencyId,
+        id,
+      );
+
+      if (this.isAgencyAdminRole(employeeRoleName)) {
+        throw new ForbiddenException('Only Agency Admin can demote an Agency Admin');
+      }
+    }
+
+    return this.employeesService.demoteToStaffRole(agencyId, id, data?.roleId, requesterRole);
   }
 
   @Patch(':id/suspend')

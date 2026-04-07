@@ -71,7 +71,7 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
     // Group permissions by category
     const categories = [
         { label: "Agency", keywords: ["agency", "client", "project", "visitor"], icon: Shield },
-        { label: "Employee", keywords: ["personnel", "employee", "staff"], icon: Users },
+        { label: "Employee Management", keywords: ["personnel", "employee", "staff", "promote", "demote"], icon: Users },
         { label: "Operations", keywords: ["deployment", "incident", "shift", "dashboard"], icon: Activity },
         { label: "Leaves", keywords: ["leave", "attendance"], icon: ClipboardList },
         { label: "Finance", keywords: ["salary", "role", "permissions", "backup"], icon: Wallet }

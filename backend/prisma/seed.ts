@@ -3,6 +3,15 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+const getPermissionDescription = (action: string) => {
+    const descriptions: Record<string, string> = {
+        promote_employee: 'Can promote staff to a higher role',
+        demote_employee: 'Can demote staff to a lower role',
+    }
+
+    return descriptions[action] || `Permission: ${action}`
+}
+
 const DEFAULT_AGENCY_ROLE_TEMPLATES = [
     {
         name: 'HR',
@@ -10,6 +19,7 @@ const DEFAULT_AGENCY_ROLE_TEMPLATES = [
         permissions: [
             'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
             'manage_roles',
+            'promote_employee', 'demote_employee',
             'view_shifts', 'manage_shifts',
             'view_deployments', 'manage_deployments',
             'approve_leave', 'apply_leave', 'view_leaves',
@@ -26,6 +36,7 @@ const DEFAULT_AGENCY_ROLE_TEMPLATES = [
         name: 'Supervisor',
         description: 'Supervisor operations role',
         permissions: [
+            'promote_employee', 'demote_employee',
             'view_shifts', 'manage_shifts',
             'view_deployments', 'manage_deployments',
             'approve_leave', 'apply_leave', 'view_leaves',
@@ -94,6 +105,7 @@ async function main() {
         'view_projects', 'create_project', 'edit_project', 'delete_project',
         'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
         'manage_roles', // Create/Edit roles
+        'promote_employee', 'demote_employee',
         'assign_staff',
         'view_attendance', 'record_attendance',
         'approve_leave', 'apply_leave', 'view_leaves',
@@ -111,7 +123,7 @@ async function main() {
         await prisma.permission.upsert({
             where: { action },
             update: {},
-            create: { action },
+            create: { action, description: getPermissionDescription(action) },
         });
     }
 

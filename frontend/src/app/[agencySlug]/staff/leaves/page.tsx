@@ -45,7 +45,7 @@ const LEAVE_TYPE_OPTIONS: Array<{ label: string; value: LeaveType }> = [
 const EMPTY_BALANCE: LeaveBalanceResponse = {
 	CASUAL: { total: 12, used: 0, remaining: 12 },
 	SICK: { total: 7, used: 0, remaining: 7 },
-	EARNED: { total: 15, used: 0, remaining: 15 },
+	EARNED: { total: 12, used: 0, remaining: 12 },
 	LOSS_OF_PAY: { total: null, used: 0, remaining: null },
 }
 
@@ -83,7 +83,7 @@ const computeBalanceFromHistory = (history: LeaveHistoryItem[]): LeaveBalanceRes
 	const limits = {
 		CASUAL: 12,
 		SICK: 7,
-		EARNED: 15,
+		EARNED: 12,
 	}
 
 	const approved = history.filter((item) => normalizeStatus(item.status) === "APPROVED")

@@ -23,6 +23,7 @@ export class PermissionsSeedService implements OnModuleInit {
     'view_projects', 'create_project', 'edit_project', 'delete_project',
     'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
     'manage_roles',
+    'promote_employee', 'demote_employee',
     'assign_staff',
     'view_attendance', 'record_attendance',
     'view_leaves', 'apply_leave', 'approve_leave',
@@ -50,6 +51,7 @@ export class PermissionsSeedService implements OnModuleInit {
       permissions: [
         'view_employee', 'create_employee', 'edit_employee', 'delete_employee',
         'manage_roles',
+        'promote_employee', 'demote_employee',
         'view_shifts', 'manage_shifts',
         'view_deployments', 'manage_deployments',
         'approve_leave', 'apply_leave', 'view_leaves',
@@ -66,6 +68,7 @@ export class PermissionsSeedService implements OnModuleInit {
       name: 'Supervisor',
       description: 'Supervisor operations role',
       permissions: [
+        'promote_employee', 'demote_employee',
         'view_shifts', 'manage_shifts',
         'view_deployments', 'manage_deployments',
         'approve_leave', 'apply_leave', 'view_leaves',
@@ -89,6 +92,15 @@ export class PermissionsSeedService implements OnModuleInit {
       ],
     },
   ] as const;
+
+  private getPermissionDescription(action: string) {
+    const descriptions: Record<string, string> = {
+      promote_employee: 'Can promote staff to a higher role',
+      demote_employee: 'Can demote staff to a lower role',
+    };
+
+    return descriptions[action] || `Permission: ${action}`;
+  }
 
   constructor(private prisma: PrismaService) { }
 
@@ -174,7 +186,7 @@ export class PermissionsSeedService implements OnModuleInit {
       await this.prisma.permission.upsert({
         where: { action },
         update: {},
-        create: { action, description: `Permission: ${action}` },
+        create: { action, description: this.getPermissionDescription(action) },
       });
     }
 
@@ -197,7 +209,7 @@ export class PermissionsSeedService implements OnModuleInit {
       await db.permission.upsert({
         where: { action },
         update: {},
-        create: { action, description: `Permission: ${action}` },
+        create: { action, description: this.getPermissionDescription(action) },
       });
     }
 
