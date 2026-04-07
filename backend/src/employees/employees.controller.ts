@@ -111,7 +111,14 @@ export class EmployeesController {
       }
     }
 
-    return this.employeesService.demoteToStaffRole(agencyId, id, data?.roleId, requesterRole);
+    return this.employeesService.demoteToStaffRole(
+      agencyId,
+      id,
+      data?.roleId,
+      requesterRole,
+      req.user?.employeeId,
+      req.user?.userId || req.user?.sub,
+    );
   }
 
   @Patch(':id/suspend')

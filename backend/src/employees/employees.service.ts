@@ -546,7 +546,14 @@ export class EmployeesService {
     };
   }
 
-  async demoteToStaffRole(agencyId: string, employeeId: string, targetRoleId?: string, requesterRole?: string) {
+  async demoteToStaffRole(
+    agencyId: string,
+    employeeId: string,
+    targetRoleId?: string,
+    requesterRole?: string,
+    requesterEmployeeId?: string,
+    requesterUserId?: string,
+  ) {
     const { employee, user } = await this.getEmployeeWithLinkedUser(agencyId, employeeId);
 
     const currentRole = user.role;
@@ -601,9 +608,24 @@ export class EmployeesService {
       user: refreshedUser,
     };
 
+    const isSelfDemotion = Boolean(
+      (requesterEmployeeId && requesterEmployeeId === employee.id)
+      || (requesterUserId && requesterUserId === user.id),
+    );
+
+    if (isSelfDemotion) {
+      return {
+        ...updatedEmployee,
+        portalSwitch: switchingToStaffPortal,
+        selfDemotion: true,
+        message: 'You have been demoted to Staff. Please login through the Staff portal.',
+      };
+    }
+
     return {
       ...updatedEmployee,
       portalSwitch: switchingToStaffPortal,
+      selfDemotion: false,
       message: switchingToStaffPortal ? 'Demoted to Staff' : 'Role updated successfully',
     };
   }

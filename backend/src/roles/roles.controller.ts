@@ -27,7 +27,7 @@ export class RolesController {
   }
 
   @Get()
-  @Permissions('manage_roles')
+  @Permissions('manage_roles', 'promote_employee', 'demote_employee')
   async getRoles(@Request() req) {
     const agencyId = requireAgencyContext(req);
     return this.rolesService.findAllRoles(agencyId);
