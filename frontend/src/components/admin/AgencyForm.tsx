@@ -100,19 +100,42 @@ export function AgencyForm({ onSuccess, initialData }: { onSuccess: () => void, 
         setShowConfirmModal(true)
     }
 
+    function normalizeText(value: string | null | undefined) {
+        return (value || "").trim();
+    }
+
+    function normalizeEmail(value: string | null | undefined) {
+        return normalizeText(value).toLowerCase();
+    }
+
+    function normalizePhone(value: { countryCode?: string; phoneNumber?: string } | null | undefined) {
+        const countryCode = normalizeText(value?.countryCode);
+        const phoneNumber = normalizeText(value?.phoneNumber);
+        return `${countryCode}${phoneNumber}`;
+    }
+
     async function handleConfirmedSubmit() {
         if (!pendingValues) return
         setLoading(true)
         try {
             if (initialData) {
+                const initialAdminUser = initialData?.users?.[0]
                 const updateData: any = {
                     name: pendingValues.name,
                     slug: pendingValues.slug
                 }
-                if (pendingValues.adminName) updateData.adminName = pendingValues.adminName;
-                if (pendingValues.adminEmail) updateData.adminEmail = pendingValues.adminEmail;
+
+                const hasAdminNameChanged =
+                    normalizeText(pendingValues.adminName) !== normalizeText(initialAdminUser?.fullName)
+                const hasAdminEmailChanged =
+                    normalizeEmail(pendingValues.adminEmail) !== normalizeEmail(initialAdminUser?.email)
+                const hasAdminPhoneChanged =
+                    normalizePhone(pendingValues.adminPhone) !== normalizePhone(parsePhone(initialAdminUser?.phoneNumber || ""))
+
+                if (hasAdminNameChanged && pendingValues.adminName) updateData.adminName = normalizeText(pendingValues.adminName);
+                if (hasAdminEmailChanged && pendingValues.adminEmail) updateData.adminEmail = normalizeText(pendingValues.adminEmail);
                 if (pendingValues.adminPassword) updateData.adminPassword = pendingValues.adminPassword;
-                if (pendingValues.adminPhone?.phoneNumber) {
+                if (hasAdminPhoneChanged && pendingValues.adminPhone?.phoneNumber) {
                     updateData.adminPhone = pendingValues.adminPhone;
                 }
 

@@ -333,7 +333,7 @@ export class AgenciesService {
           const existingEmail = await tx.user.findUnique({
             where: { email: data.adminEmail },
           });
-          if (existingEmail)
+          if (existingEmail && existingEmail.id !== adminUser.id)
             throw new ConflictException('Admin email already in use');
         }
 

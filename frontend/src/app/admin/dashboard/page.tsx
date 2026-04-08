@@ -81,6 +81,8 @@ export default function AdminDashboard() {
     const [demoteRoles, setDemoteRoles] = useState<StaffRole[]>([])
     const [selectedDemoteRoleId, setSelectedDemoteRoleId] = useState("")
     const [addAdminOpen, setAddAdminOpen] = useState(false)
+    const [createAdminConfirmOpen, setCreateAdminConfirmOpen] = useState(false)
+    const [demoteConfirmOpen, setDemoteConfirmOpen] = useState(false)
     const [adminFormState, setAdminFormState] = useState<AdminFormState>(initialAdminFormState)
     const [isCreatingAdmin, setIsCreatingAdmin] = useState(false)
     const [showAdminPassword, setShowAdminPassword] = useState(false)
@@ -107,6 +109,11 @@ export default function AdminDashboard() {
             password === confirmPassword,
         )
     }, [adminFormState])
+
+    const selectedDemoteRoleName = useMemo(
+        () => demoteRoles.find((role) => role.id === selectedDemoteRoleId)?.name || "selected position",
+        [demoteRoles, selectedDemoteRoleId],
+    )
 
     const fetchAgencies = async () => {
         try {
@@ -218,6 +225,19 @@ export default function AdminDashboard() {
         }
     }
 
+    const requestDemoteAdminConfirmation = () => {
+        if (!viewAdminsModal.agencyId || !demoteModal.admin) {
+            return
+        }
+
+        if (!selectedDemoteRoleId) {
+            toast.error("Please select a position for demotion")
+            return
+        }
+
+        setDemoteConfirmOpen(true)
+    }
+
     const handleDemoteAdmin = async () => {
         if (!viewAdminsModal.agencyId || !demoteModal.admin) {
             return
@@ -234,6 +254,7 @@ export default function AdminDashboard() {
                 roleId: selectedDemoteRoleId,
             })
             toast.success("Agency Admin demoted successfully")
+            setDemoteConfirmOpen(false)
             setDemoteModal({ open: false, admin: null })
             await fetchAgencyAdmins(viewAdminsModal.agencyId)
         } catch (error: any) {
@@ -291,26 +312,42 @@ export default function AdminDashboard() {
         setShowAdminConfirmPassword(false)
     }
 
-    const handleCreateAdmin = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-
+    const validateCreateAdminForm = () => {
         if (!viewAdminsModal.agencyId) {
             toast.error("Agency id is missing")
-            return
+            return false
         }
 
         if (hasReachedAdminLimit) {
             toast.error("Maximum 2 agency admins are allowed")
-            return
+            return false
         }
 
         if (!adminFormState.name.trim() || !adminFormState.email.trim() || !adminFormState.password || !adminFormState.confirmPassword) {
             toast.error("All fields are required")
-            return
+            return false
         }
 
         if (adminFormState.password !== adminFormState.confirmPassword) {
             toast.error("Passwords do not match")
+            return false
+        }
+
+        return true
+    }
+
+    const openCreateAdminConfirmation = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+
+        if (!validateCreateAdminForm()) {
+            return
+        }
+
+        setCreateAdminConfirmOpen(true)
+    }
+
+    const handleCreateAdmin = async () => {
+        if (!validateCreateAdminForm()) {
             return
         }
 
@@ -322,6 +359,7 @@ export default function AdminDashboard() {
                 password: adminFormState.password,
             })
             toast.success("Agency Admin created successfully")
+            setCreateAdminConfirmOpen(false)
             setAddAdminOpen(false)
             resetAddAdminForm()
             await fetchAgencyAdmins(viewAdminsModal.agencyId)
@@ -337,6 +375,8 @@ export default function AdminDashboard() {
         setAgencyAdmins([])
         setIsAdminsLoading(false)
         setAddAdminOpen(false)
+        setCreateAdminConfirmOpen(false)
+        setDemoteConfirmOpen(false)
         resetAddAdminForm()
         setPromoteModal({ open: false, admin: null })
         setDemoteModal({ open: false, admin: null })
@@ -663,6 +703,7 @@ export default function AdminDashboard() {
                     }
                     setAddAdminOpen(nextOpen)
                     if (!nextOpen) {
+                        setCreateAdminConfirmOpen(false)
                         resetAddAdminForm()
                     }
                 }}
@@ -670,7 +711,7 @@ export default function AdminDashboard() {
                 description="Create a new Agency Admin account"
                 maxWidth={560}
             >
-                <form className="space-y-5" onSubmit={handleCreateAdmin}>
+                <form className="space-y-5" onSubmit={openCreateAdminConfirmation}>
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-[#0f172a]">Name <span className="text-[#06b6d4]">*</span></label>
                         <Input
@@ -760,6 +801,24 @@ export default function AdminDashboard() {
             </FormModal>
 
             <AlertModal
+                isOpen={createAdminConfirmOpen}
+                onClose={() => setCreateAdminConfirmOpen(false)}
+                onConfirm={handleCreateAdmin}
+                loading={isCreatingAdmin}
+                title="Create New Agency Admin?"
+                description={
+                    <div className="space-y-1 text-left">
+                        <p>This will create an admin account for this agency.</p>
+                        <p><span className="font-semibold text-slate-700">Name:</span> {adminFormState.name.trim()}</p>
+                        <p><span className="font-semibold text-slate-700">Email:</span> {adminFormState.email.trim()}</p>
+                    </div>
+                }
+                variant="primary"
+                confirmText="Confirm Create"
+                cancelText="Cancel"
+            />
+
+            <AlertModal
                 isOpen={promoteModal.open}
                 onClose={() => setPromoteModal({ open: false, admin: null })}
                 onConfirm={handlePromoteAdmin}
@@ -774,8 +833,8 @@ export default function AdminDashboard() {
             <AlertModal
                 isOpen={demoteModal.open}
                 onClose={() => setDemoteModal({ open: false, admin: null })}
-                onConfirm={handleDemoteAdmin}
-                loading={Boolean(actionLoadingId && demoteModal.admin?.id === actionLoadingId)}
+                onConfirm={requestDemoteAdminConfirmation}
+                loading={false}
                 title={`Demote ${demoteModal.admin?.name || demoteModal.admin?.fullName || "this user"} from Agency Admin?`}
                 description={
                     <div className="space-y-3 text-left">
@@ -796,8 +855,20 @@ export default function AdminDashboard() {
                     </div>
                 }
                 variant="danger"
-                confirmText="Confirm Demote"
+                confirmText="Continue"
                 cancelText="Cancel"
+            />
+
+            <AlertModal
+                isOpen={demoteConfirmOpen}
+                onClose={() => setDemoteConfirmOpen(false)}
+                onConfirm={handleDemoteAdmin}
+                loading={Boolean(actionLoadingId && demoteModal.admin?.id === actionLoadingId)}
+                title="Confirm Demotion?"
+                description={`This will remove admin access and assign ${demoteModal.admin?.name || demoteModal.admin?.fullName || "this user"} to ${selectedDemoteRoleName}.`}
+                variant="danger"
+                confirmText="Confirm Demote"
+                cancelText="Back"
             />
 
             <AlertModal
