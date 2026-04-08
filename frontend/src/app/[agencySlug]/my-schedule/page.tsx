@@ -85,6 +85,7 @@ export default function MySchedulePage() {
 
     const todayDeployments = getTodayDeployments()
     const upcomingDeployments = getUpcomingDeployments()
+    const hasVisibleSchedule = todayDeployments.length > 0 || upcomingDeployments.length > 0
 
     if (loading) {
         return (
@@ -246,14 +247,14 @@ export default function MySchedulePage() {
             )}
 
             {/* Empty State */}
-            {deployments.length === 0 && (
+            {!hasVisibleSchedule && (
                 <Card>
                     <CardContent className="pt-12 pb-12">
                         <div className="flex flex-col items-center justify-center text-center">
                             <AlertCircle className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                            <h3 className="text-lg font-semibold text-foreground mb-2">No Deployments Scheduled</h3>
+                            <h3 className="text-lg font-semibold text-foreground mb-2">No Schedule Available</h3>
                             <p className="text-sm text-muted-foreground max-w-md">
-                                You don't have any active or upcoming deployments at the moment. Check back later or contact your supervisor.
+                                You have no deployments scheduled for today or upcoming dates.
                             </p>
                         </div>
                     </CardContent>
