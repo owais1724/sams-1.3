@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { FormEvent, useEffect, useMemo, useState } from "react"
 import api from "@/lib/api"
 import {
     Table,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Building2, Shield, Users, Power, PowerOff, UserCog } from "lucide-react"
+import { Eye, EyeOff, Plus, Building2, Shield, Users, Power, PowerOff, UserCog } from "lucide-react"
 import { RowEditButton, RowDeleteButton, StatCard } from "@/components/ui/design-system"
 import { FormModal } from "@/components/common/FormModal"
 import { AgencyForm } from "@/components/admin/AgencyForm"
@@ -21,6 +21,7 @@ import { Card } from "@/components/ui/card"
 import { AlertModal } from "@/components/ui/alert-modal"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TableRowEmpty, TableRowLoading } from "@/components/ui/design-system"
+import { Input } from "@/components/ui/input"
 
 type AgencyAdmin = {
     id: string
@@ -34,6 +35,20 @@ type AgencyAdmin = {
 type StaffRole = {
     id: string
     name: string
+}
+
+type AdminFormState = {
+    name: string
+    email: string
+    password: string
+    confirmPassword: string
+}
+
+const initialAdminFormState: AdminFormState = {
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
 }
 
 export default function AdminDashboard() {
@@ -65,6 +80,33 @@ export default function AdminDashboard() {
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
     const [demoteRoles, setDemoteRoles] = useState<StaffRole[]>([])
     const [selectedDemoteRoleId, setSelectedDemoteRoleId] = useState("")
+    const [addAdminOpen, setAddAdminOpen] = useState(false)
+    const [adminFormState, setAdminFormState] = useState<AdminFormState>(initialAdminFormState)
+    const [isCreatingAdmin, setIsCreatingAdmin] = useState(false)
+    const [showAdminPassword, setShowAdminPassword] = useState(false)
+    const [showAdminConfirmPassword, setShowAdminConfirmPassword] = useState(false)
+
+    const agencyAdminCount = useMemo(
+        () => agencyAdmins.filter((admin) => (admin.roleName || "").toLowerCase().trim() === "agency admin").length,
+        [agencyAdmins],
+    )
+    const hasReachedAdminLimit = agencyAdminCount >= 2
+
+    const isCreateAdminFormValid = useMemo(() => {
+        const name = adminFormState.name.trim()
+        const email = adminFormState.email.trim()
+        const password = adminFormState.password
+        const confirmPassword = adminFormState.confirmPassword
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+        return Boolean(
+            name &&
+            emailPattern.test(email) &&
+            password &&
+            confirmPassword &&
+            password === confirmPassword,
+        )
+    }, [adminFormState])
 
     const fetchAgencies = async () => {
         try {
@@ -243,10 +285,59 @@ export default function AdminDashboard() {
         }
     }
 
+    const resetAddAdminForm = () => {
+        setAdminFormState(initialAdminFormState)
+        setShowAdminPassword(false)
+        setShowAdminConfirmPassword(false)
+    }
+
+    const handleCreateAdmin = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault()
+
+        if (!viewAdminsModal.agencyId) {
+            toast.error("Agency id is missing")
+            return
+        }
+
+        if (hasReachedAdminLimit) {
+            toast.error("Maximum 2 agency admins are allowed")
+            return
+        }
+
+        if (!adminFormState.name.trim() || !adminFormState.email.trim() || !adminFormState.password || !adminFormState.confirmPassword) {
+            toast.error("All fields are required")
+            return
+        }
+
+        if (adminFormState.password !== adminFormState.confirmPassword) {
+            toast.error("Passwords do not match")
+            return
+        }
+
+        setIsCreatingAdmin(true)
+        try {
+            await api.post(`/agencies/${viewAdminsModal.agencyId}/admins`, {
+                name: adminFormState.name.trim(),
+                email: adminFormState.email.trim(),
+                password: adminFormState.password,
+            })
+            toast.success("Agency Admin created successfully")
+            setAddAdminOpen(false)
+            resetAddAdminForm()
+            await fetchAgencyAdmins(viewAdminsModal.agencyId)
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || "Failed to create agency admin")
+        } finally {
+            setIsCreatingAdmin(false)
+        }
+    }
+
     const closeViewAdminsModal = () => {
         setViewAdminsModal({ open: false, agencyId: "", agencyName: "" })
         setAgencyAdmins([])
         setIsAdminsLoading(false)
+        setAddAdminOpen(false)
+        resetAddAdminForm()
         setPromoteModal({ open: false, admin: null })
         setDemoteModal({ open: false, admin: null })
         setAdminDeleteModal({ open: false, admin: null })
@@ -438,6 +529,25 @@ export default function AdminDashboard() {
                 description="View administrator accounts for this agency."
                 maxWidth={900}
             >
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        {agencyAdminCount}/2 Agency Admins Active
+                    </p>
+                    <div className="flex items-center gap-3">
+                        {hasReachedAdminLimit && (
+                            <p className="text-xs font-semibold text-amber-700">Maximum 2 admins reached</p>
+                        )}
+                        <Button
+                            size="sm"
+                            className="bg-[#06b6d4] hover:bg-[#0891b2] text-white"
+                            disabled={hasReachedAdminLimit || !viewAdminsModal.agencyId}
+                            onClick={() => setAddAdminOpen(true)}
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add New Admin
+                        </Button>
+                    </div>
+                </div>
                 <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
                     <Table>
                         <TableHeader className="bg-slate-50">
@@ -543,6 +653,110 @@ export default function AdminDashboard() {
                 <div className="pt-4 flex justify-end">
                     <Button variant="outline" onClick={closeViewAdminsModal}>Close</Button>
                 </div>
+            </FormModal>
+
+            <FormModal
+                open={addAdminOpen}
+                onOpenChange={(nextOpen) => {
+                    if (nextOpen && hasReachedAdminLimit) {
+                        return
+                    }
+                    setAddAdminOpen(nextOpen)
+                    if (!nextOpen) {
+                        resetAddAdminForm()
+                    }
+                }}
+                title={`Add Admin for ${viewAdminsModal.agencyName || "Agency"}`}
+                description="Create a new Agency Admin account"
+                maxWidth={560}
+            >
+                <form className="space-y-5" onSubmit={handleCreateAdmin}>
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-[#0f172a]">Name <span className="text-[#06b6d4]">*</span></label>
+                        <Input
+                            value={adminFormState.name}
+                            onChange={(e) => setAdminFormState((prev) => ({ ...prev, name: e.target.value }))}
+                            placeholder="Enter full name"
+                            required
+                            className="h-11"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-[#0f172a]">Email <span className="text-[#06b6d4]">*</span></label>
+                        <Input
+                            type="email"
+                            value={adminFormState.email}
+                            onChange={(e) => setAdminFormState((prev) => ({ ...prev, email: e.target.value }))}
+                            placeholder="admin@example.com"
+                            required
+                            className="h-11"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-[#0f172a]">Password <span className="text-[#06b6d4]">*</span></label>
+                        <div className="relative">
+                            <Input
+                                type={showAdminPassword ? "text" : "password"}
+                                value={adminFormState.password}
+                                onChange={(e) => setAdminFormState((prev) => ({ ...prev, password: e.target.value }))}
+                                placeholder="Enter password"
+                                required
+                                className="h-11 pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowAdminPassword((prev) => !prev)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#06b6d4]"
+                                aria-label={showAdminPassword ? "Hide password" : "Show password"}
+                            >
+                                {showAdminPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-semibold text-[#0f172a]">Confirm Password <span className="text-[#06b6d4]">*</span></label>
+                        <div className="relative">
+                            <Input
+                                type={showAdminConfirmPassword ? "text" : "password"}
+                                value={adminFormState.confirmPassword}
+                                onChange={(e) => setAdminFormState((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                                placeholder="Re-enter password"
+                                required
+                                className="h-11 pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowAdminConfirmPassword((prev) => !prev)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#06b6d4]"
+                                aria-label={showAdminConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                            >
+                                {showAdminConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="pt-2 flex justify-end gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="h-11 px-6"
+                            disabled={isCreatingAdmin}
+                            onClick={() => {
+                                setAddAdminOpen(false)
+                                resetAddAdminForm()
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            className="h-11 px-6 bg-[#06b6d4] hover:bg-[#0891b2] text-white"
+                            disabled={isCreatingAdmin || !isCreateAdminFormValid || hasReachedAdminLimit}
+                        >
+                            {isCreatingAdmin ? "Creating..." : "Create Admin"}
+                        </Button>
+                    </div>
+                </form>
             </FormModal>
 
             <AlertModal
