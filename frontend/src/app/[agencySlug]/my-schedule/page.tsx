@@ -68,10 +68,8 @@ export default function MySchedulePage() {
         today.setHours(0, 0, 0, 0)
         return deployments.filter(d => {
             const start = new Date(d.startDate)
-            const end = new Date(d.endDate)
             start.setHours(0, 0, 0, 0)
-            end.setHours(23, 59, 59, 999)
-            return today >= start && today <= end && d.status === 'active'
+            return start.getTime() === today.getTime() && d.status === 'active'
         })
     }
 
