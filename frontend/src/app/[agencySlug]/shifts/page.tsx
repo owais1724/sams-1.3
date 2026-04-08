@@ -772,15 +772,16 @@ export default function ShiftsPage() {
                             size="sm"
                             variant="ghost"
                             className={cn(
-                              "h-9 w-9 rounded-2xl",
+                              "h-9 px-3 rounded-xl text-[11px] font-bold",
                               shift.isActive
-                                ? "text-amber-500 hover:text-amber-700 hover:bg-amber-50"
-                                : "text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50"
+                                ? "text-amber-600 hover:bg-amber-50"
+                                : "text-emerald-600 hover:bg-emerald-50"
                             )}
                             onClick={() => setToggleShiftModal({ open: true, shift })}
                             title={shift.isActive ? "Deactivate" : "Activate"}
                           >
-                            <Power className="h-3.5 w-3.5" />
+                            <Power className="h-3.5 w-3.5 mr-1.5" />
+                            {shift.isActive ? "Deactivate" : "Activate"}
                           </Button>
                           <RowDeleteButton onClick={() => setDeleteShiftModal({ open: true, id: shift.id, name: shift.name })} />
                         </div>
