@@ -137,10 +137,11 @@ export default function AdminDashboard() {
                 const normalizedRoleName = role.name.trim().toLowerCase()
                 return allRoles.findIndex((candidate) => candidate.name.trim().toLowerCase() === normalizedRoleName) === index
             })
+            const demotableRoles = uniqueRoles.filter((role) => role.name.trim().toLowerCase() !== "staff")
 
-            setDemoteRoles(uniqueRoles)
-            if (!uniqueRoles.some((role) => role.id === selectedDemoteRoleId)) {
-                setSelectedDemoteRoleId(uniqueRoles[0]?.id || "")
+            setDemoteRoles(demotableRoles)
+            if (!demotableRoles.some((role) => role.id === selectedDemoteRoleId)) {
+                setSelectedDemoteRoleId(demotableRoles[0]?.id || "")
             }
         } catch {
             setDemoteRoles([])
