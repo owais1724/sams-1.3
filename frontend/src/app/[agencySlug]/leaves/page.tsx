@@ -102,6 +102,14 @@ type LeavePolicyValidationResult =
       }>
     }
 
+type LeavePolicyPayload = Array<{
+  roleId: string
+  workingDaysPerWeek: 5 | 6
+  casualLeaveDays: number
+  sickLeaveDays: number
+  earnedLeaveDays: number
+}>
+
 export default function LeavesPage() {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([])
   const { user } = useAuthStore()
@@ -111,6 +119,8 @@ export default function LeavesPage() {
   const [isPolicyExpanded, setIsPolicyExpanded] = useState(false)
   const [policyLoading, setPolicyLoading] = useState(false)
   const [savingPolicy, setSavingPolicy] = useState(false)
+  const [showPolicySaveConfirm, setShowPolicySaveConfirm] = useState(false)
+  const [pendingPolicyData, setPendingPolicyData] = useState<LeavePolicyPayload | null>(null)
   const [rolePolicies, setRolePolicies] = useState<RoleLeavePolicyFormState[]>([])
   const [formData, setFormData] = useState({
     leaveType: "",
@@ -224,7 +234,7 @@ export default function LeavesPage() {
     )
   }
 
-  const handlePolicySave = async () => {
+  const requestPolicySave = () => {
     const validation = validatePolicyForm()
 
     if ('error' in validation) {
@@ -232,10 +242,17 @@ export default function LeavesPage() {
       return
     }
 
+    setPendingPolicyData(validation.data)
+    setShowPolicySaveConfirm(true)
+  }
+
+  const handlePolicySave = async () => {
+    if (!pendingPolicyData) return
+
     setSavingPolicy(true)
 
     try {
-      const response = await api.put('/leaves/policy', validation.data)
+      const response = await api.put('/leaves/policy', pendingPolicyData)
       const policies = Array.isArray(response.data) ? response.data : []
 
       setRolePolicies(
@@ -249,6 +266,8 @@ export default function LeavesPage() {
         })),
       )
       toast.success('Leave policy updated')
+      setShowPolicySaveConfirm(false)
+      setPendingPolicyData(null)
       setIsPolicyExpanded(false)
     } catch (error: any) {
       toast.error(error?.message || 'Failed to update leave policy')
@@ -639,7 +658,7 @@ export default function LeavesPage() {
                   <div className="flex justify-end">
                     <Button
                       type="button"
-                      onClick={handlePolicySave}
+                      onClick={requestPolicySave}
                       disabled={policyLoading || savingPolicy || rolePolicies.length === 0}
                       className="rounded-[8px] bg-[#06b6d4] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0891b2] disabled:bg-[#06b6d4]/60"
                     >
@@ -869,6 +888,22 @@ export default function LeavesPage() {
       title="Submit Leave Request?"
       description={`Are you sure you want to submit this ${pendingSubmitData?.leaveType?.toLowerCase()?.replace(/_/g, ' ')} leave request from ${pendingSubmitData?.startDate} to ${pendingSubmitData?.endDate}?`}
       variant="primary"
+    />
+
+    {/* Leave Policy Update Confirmation Modal */}
+    <AlertModal
+      isOpen={showPolicySaveConfirm}
+      onClose={() => {
+        setShowPolicySaveConfirm(false)
+        setPendingPolicyData(null)
+      }}
+      onConfirm={handlePolicySave}
+      loading={savingPolicy}
+      title="Update Leave Policy?"
+      description="Are you sure you want to save these leave policy changes? This will update leave settings for all configured roles."
+      variant="primary"
+      confirmText="Save Policy"
+      cancelText="Cancel"
     />
     </div>
   )
