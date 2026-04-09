@@ -55,6 +55,28 @@ const EMPTY_LEAVE_BALANCE: LeaveBalanceResponse = {
   LOSS_OF_PAY: { total: null, used: 0, remaining: null },
 }
 
+const PERMISSION_ALIASES: Record<string, string[]> = {
+  approve_leave: ["approve_leaves"],
+  approve_leaves: ["approve_leave"],
+  view_leaves: ["view_leave"],
+  view_leave: ["view_leaves"],
+  apply_leave: ["apply_leaves"],
+  apply_leaves: ["apply_leave"],
+}
+
+const hasPermissionAction = (permissions: string[], permission: string) => {
+  const actions = new Set((permissions || []).map((value) => String(value || "").toLowerCase().trim()))
+  const normalized = String(permission || "").toLowerCase().trim()
+  if (!normalized) return false
+
+  if (actions.has(normalized)) {
+    return true
+  }
+
+  const aliases = PERMISSION_ALIASES[normalized] || []
+  return aliases.some((alias) => actions.has(alias))
+}
+
 const getDays = (start: string, end: string) => {
   if (!start || !end) return 0
   const startDate = new Date(start)
@@ -200,9 +222,10 @@ export default function StaffDashboard() {
       console.log('[Staff Dashboard] Permission check passed, loading dashboard data')
 
       // Check which data user can view based on permissions
-      const isAdmin = ['Agency Admin', 'Supervisor'].includes(user?.role)
-      const canApplyLeave = perms.includes('apply_leave')
-      const canViewAllLeaves = isAdmin || perms.includes('view_leaves') || perms.includes('approve_leave')
+      const normalizedRole = String(user?.role || "").toLowerCase().trim()
+      const isAdmin = normalizedRole.includes('agency admin') || normalizedRole.includes('supervisor')
+      const canApplyLeave = hasPermissionAction(perms, 'apply_leave')
+      const canViewAllLeaves = isAdmin || hasPermissionAction(perms, 'view_leaves') || hasPermissionAction(perms, 'approve_leave')
       
       const [empRes, attRes, projRes] = await Promise.allSettled([
         (isAdmin || perms.includes('view_employee')) ? api.get('/employees') : Promise.reject('No permission'),
@@ -311,9 +334,10 @@ export default function StaffDashboard() {
 
   const currentAgencySlug = Array.isArray(agencySlug) ? agencySlug[0] : agencySlug
   const permissions: string[] = userData?.permissions || []
-  const isPrivileged = ["Agency Admin", "Supervisor"].includes(userData?.role)
-  const hasPermission = (permission: string) => isPrivileged || permissions.includes(permission)
-  const leavesCenterHref = hasPermission("approve_leave") || hasPermission("view_leaves")
+  const normalizedRole = String(userData?.role || "").toLowerCase().trim()
+  const isPrivileged = normalizedRole.includes("agency admin") || normalizedRole.includes("supervisor")
+  const hasPermission = (permission: string) => isPrivileged || hasPermissionAction(permissions, permission)
+  const leavesCenterHref = hasPermission("approve_leave")
     ? `/${currentAgencySlug}/leaves`
     : `/${currentAgencySlug}/staff/leaves`
 

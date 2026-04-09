@@ -163,7 +163,7 @@ export default function StaffLeavesPage() {
 
 	const currentAgencySlug = Array.isArray(agencySlug) ? agencySlug[0] : agencySlug
 	const canApplyLeave = hasPermission("apply_leave")
-	const canReviewLeaves = hasPermission("approve_leave") || hasPermission("view_leaves")
+	const canReviewLeaves = hasPermission(["approve_leave", "approve_leaves"])
 
 	useEffect(() => {
 		if (canReviewLeaves) {

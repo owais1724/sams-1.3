@@ -41,6 +41,15 @@ const routeAccessRules: RouteAccessRule[] = [
     { pattern: /^\/leaves$/, anyPermissions: ["view_leaves", "apply_leave", "approve_leave"] },
 ]
 
+const PERMISSION_ALIASES: Record<string, string[]> = {
+    approve_leave: ["approve_leaves"],
+    approve_leaves: ["approve_leave"],
+    view_leaves: ["view_leave"],
+    view_leave: ["view_leaves"],
+    apply_leave: ["apply_leaves"],
+    apply_leaves: ["apply_leave"],
+}
+
 const STAFF_NAV_INTENT_TTL_MS = 5000
 
 function normalizeStaffPath(pathname: string | null | undefined, agencySlug: string) {
@@ -66,7 +75,19 @@ function getRouteRule(pathname: string | null | undefined, agencySlug: string) {
 
 function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
     if (!requiredPermissions.length) return true
-    return requiredPermissions.some((permission) => userData?.permissions?.includes(permission))
+
+    const actions = new Set(
+        (userData?.permissions || []).map((value: string) => String(value || "").toLowerCase().trim())
+    )
+
+    return requiredPermissions.some((permission) => {
+        const normalized = String(permission || "").toLowerCase().trim()
+        if (!normalized) return false
+        if (actions.has(normalized)) return true
+
+        const aliases = PERMISSION_ALIASES[normalized] || []
+        return aliases.some((alias) => actions.has(alias))
+    })
 }
 
 function getRecentStaffNavigationIntent() {

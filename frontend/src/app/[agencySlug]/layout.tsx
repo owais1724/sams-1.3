@@ -45,6 +45,31 @@ const routeAccessRules: RouteAccessRule[] = [
     { pattern: /^\/audit-logs$/, anyPermissions: ["view_reports"] },
 ]
 
+const PERMISSION_ALIASES: Record<string, string[]> = {
+    approve_leave: ["approve_leaves"],
+    approve_leaves: ["approve_leave"],
+    view_leaves: ["view_leave"],
+    view_leave: ["view_leaves"],
+    apply_leave: ["apply_leaves"],
+    apply_leaves: ["apply_leave"],
+}
+
+function hasPermissionAction(userData: any, permission: string) {
+    const actions = new Set(
+        (userData?.permissions || []).map((value: string) => String(value || "").toLowerCase().trim())
+    )
+
+    const normalized = String(permission || "").toLowerCase().trim()
+    if (!normalized) return false
+
+    if (actions.has(normalized)) {
+        return true
+    }
+
+    const aliases = PERMISSION_ALIASES[normalized] || []
+    return aliases.some((alias) => actions.has(alias))
+}
+
 function normalizeAgencyPath(pathname: string | null | undefined, agencySlug: string) {
     if (!pathname) return "/"
     const prefix = `/${agencySlug}`
@@ -66,9 +91,20 @@ function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
     
     if (isAgencyAdmin || isSuperAdmin) return true
 
-    return requiredPermissions.some((permission) =>
-        userData?.permissions?.includes(permission)
-    )
+    return requiredPermissions.some((permission) => hasPermissionAction(userData, permission))
+}
+
+function canStaffReviewLeavesInAgencyPortal(
+    userData: any,
+    pathname: string | null | undefined,
+    agencySlug: string,
+) {
+    if (!userData?.employeeId) return false
+
+    const normalizedPath = normalizeAgencyPath(pathname, agencySlug)
+    if (normalizedPath !== "/leaves") return false
+
+    return hasRoutePermission(userData, ["approve_leave"])
 }
 
 function getSafeRouteForUser(userData: any, agencySlug: string) {
@@ -261,13 +297,10 @@ export default function AgencyLayout({
                 // ✅ Block staff users (users with employeeId)
                 // Agency portal is ONLY for agency admins (users without employeeId)
                 // Skip this check for staff paths and login pages
-                if (isStaffUser && !isStaffPath && !isLoginPage) {
+                if (isStaffUser && !isStaffPath && !isLoginPage && !canStaffReviewLeavesInAgencyPortal(userData, pathname, currentAgencySlug)) {
                     console.warn(`[AgencyLayout] Staff user blocked - has employeeId: ${userData.employeeId}`)
-                    toast.error("Unauthorized access to Agency Admin portal.")
-                    isActive = false;
-                    if (!isLoginPage) {
-                        void forceLogout(`/${currentAgencySlug}/staff-login`);
-                    }
+                    toast.error("Access denied for this page.")
+                    window.location.href = getSafeRouteForUser(userData, currentAgencySlug)
                     return;
                 }
 
