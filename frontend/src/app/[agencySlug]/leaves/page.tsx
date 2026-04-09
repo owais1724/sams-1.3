@@ -362,48 +362,45 @@ export default function LeavesPage() {
     }
   }
 
+  const normalizedUserRole = (user?.role || '').toLowerCase().trim()
+  const hasApproveLeavePermission = hasPermission(['approve_leave', 'approve_leaves'])
+  const isAdminApprover = normalizedUserRole.includes('admin')
+  const isHRApprover = normalizedUserRole.includes('hr') || normalizedUserRole.includes('human resource')
+  const isSupervisorApprover = normalizedUserRole.includes('supervisor')
+    || (!isAdminApprover && !isHRApprover && hasApproveLeavePermission)
+
   const canApprove = (leave: LeaveRequest) => {
-    if (!user || !user.role) return false
+    if (!user) return false
 
     // Cannot approve your own leave
     // If user has employeeId, check if it matches the leave's employeeId
     if (user.employeeId && leave.employee.id === user.employeeId) return false
 
-    const role = user.role.toLowerCase();
     const status = leave.status;
-
-    const isHR = role.includes('hr');
-    const isSupervisor = role.includes('supervisor');
-    const isAdmin = role.includes('admin');
 
     if (status === 'REJECTED') return false
     if (status === 'AGENCY_APPROVED') return false
 
     // Administrator can approve anything not yet finalized
-    if (isAdmin) return true
+    if (isAdminApprover) return true
 
     // Only allow approval if it's actually pending with the user's role
     const pendingWith = leave.pendingWith?.toLowerCase() || '';
 
-    if (isHR && (pendingWith.includes('hr') || status === 'SUPERVISOR_APPROVED')) return true
-    if (isSupervisor && pendingWith.includes('supervisor') && status === 'PENDING') return true
+    if (isHRApprover && (pendingWith.includes('hr') || status === 'SUPERVISOR_APPROVED')) return true
+    if (isSupervisorApprover && pendingWith.includes('supervisor') && status === 'PENDING') return true
 
     return false
   }
 
-  const getNextStatus = (leave: LeaveRequest) => {
-    if (!user || !user.role) return null
-    const role = user.role.toLowerCase();
-
-    const isHR = role.includes('hr');
-    const isSupervisor = role.includes('supervisor');
-    const isAdmin = role.includes('admin');
+  const getNextStatus = (_leave: LeaveRequest) => {
+    if (!user) return null
 
     // HR or Admin approval results in Agency/Final approval
-    if (isHR || isAdmin) return 'AGENCY_APPROVED'
+    if (isHRApprover || isAdminApprover) return 'AGENCY_APPROVED'
 
     // Supervisor approval results in Supervisor Approved (next is HR)
-    if (isSupervisor) return 'SUPERVISOR_APPROVED'
+    if (isSupervisorApprover) return 'SUPERVISOR_APPROVED'
 
     return null
   }

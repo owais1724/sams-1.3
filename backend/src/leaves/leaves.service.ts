@@ -27,6 +27,15 @@ type LeavePolicyConfig = {
 export class LeavesService {
   constructor(private prisma: PrismaService) { }
 
+  private readonly PERMISSION_ALIASES: Record<string, string[]> = {
+    approve_leave: ['approve_leaves'],
+    approve_leaves: ['approve_leave'],
+    view_leaves: ['view_leave'],
+    view_leave: ['view_leaves'],
+    apply_leave: ['apply_leaves'],
+    apply_leaves: ['apply_leave'],
+  };
+
   private readonly DEFAULT_LEAVE_POLICY = {
     workingDaysPerWeek: 5,
     casualLeaveDays: 12,
@@ -193,6 +202,67 @@ export class LeavesService {
     if (normalized === 'cleaner') return 'cleaner';
 
     return normalized;
+  }
+
+  private hasPermissionAction(actions: Set<string>, permission: string) {
+    if (actions.has(permission)) {
+      return true;
+    }
+
+    const aliases = this.PERMISSION_ALIASES[permission] || [];
+    return aliases.some((alias) => actions.has(alias));
+  }
+
+  private async resolveLeaveActorContext(
+    agencyId: string,
+    userId: string,
+    fallbackRole?: string,
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        agencyId: true,
+        role: {
+          select: {
+            name: true,
+            permissions: {
+              select: {
+                action: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user || user.agencyId !== agencyId) {
+      throw new ForbiddenException('Invalid user context for this agency');
+    }
+
+    const roleName = user.role?.name || fallbackRole || '';
+    const normalizedRole = this.normalizeRoleName(roleName);
+    const permissionSet = new Set(
+      (user.role?.permissions || [])
+        .map((permission) => String(permission.action || '').toLowerCase().trim()),
+    );
+
+    const isAdmin = normalizedRole.includes('admin');
+    const isHR =
+      normalizedRole.includes('hr')
+      || normalizedRole.includes('human resource')
+      || normalizedRole.includes('human resources');
+    const isSupervisor =
+      normalizedRole.includes('supervisor')
+      || (!isAdmin && !isHR && this.hasPermissionAction(permissionSet, 'approve_leave'));
+
+    return {
+      roleName,
+      normalizedRole,
+      permissionSet,
+      isAdmin,
+      isHR,
+      isSupervisor,
+    };
   }
 
   private async getAgencyRolesForPolicy(agencyId: string) {
@@ -713,13 +783,8 @@ export class LeavesService {
     if (!agencyId) return [];
     let whereClause: any = { agencyId };
 
-    if (!userRole) return [];
-
-    // Normalize role for comparison
-    const role = userRole.toLowerCase();
-    const isHR = role.includes('hr');
-    const isSupervisor = role.includes('supervisor');
-    const isAdmin = role.includes('admin');
+    const actor = await this.resolveLeaveActorContext(agencyId, userId, userRole);
+    const { isHR, isSupervisor, isAdmin } = actor;
 
     if (isAdmin) {
       whereClause = { agencyId };
@@ -889,17 +954,19 @@ export class LeavesService {
       updateData.status = LeaveStatus.REJECTED;
       updateData.rejectionReason = approvalDto.rejectionReason;
     } else {
-      const role = userRole.toLowerCase();
-      const isHR = role.includes('hr');
-      const isSupervisor = role.includes('supervisor');
-      const isAdmin = role.includes('admin');
+      const actor = await this.resolveLeaveActorContext(agencyId, userId, userRole);
+      const { isHR, isSupervisor, isAdmin } = actor;
 
       const applicantRole = (
         leaveRequest.employee.user?.role?.name || 'Staff'
-      ).toLowerCase();
-      const isApplicantAdmin = applicantRole.includes('admin');
-      const isApplicantHR = applicantRole.includes('hr');
-      const isApplicantSupervisor = applicantRole.includes('supervisor');
+      );
+      const normalizedApplicantRole = this.normalizeRoleName(applicantRole);
+      const isApplicantAdmin = normalizedApplicantRole.includes('admin');
+      const isApplicantHR =
+        normalizedApplicantRole.includes('hr')
+        || normalizedApplicantRole.includes('human resource')
+        || normalizedApplicantRole.includes('human resources');
+      const isApplicantSupervisor = normalizedApplicantRole.includes('supervisor');
 
       const isEmergency = leaveRequest.leaveType === LeaveType.EMERGENCY;
 
