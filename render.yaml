@@ -28,7 +28,7 @@ services:
     plan: free
     rootDir: frontend
     buildCommand: bash render-build.sh
-    startCommand: npm run start
+    startCommand: bash render-start.sh
     envVars:
       - key: NEXT_PUBLIC_API_URL
         sync: false

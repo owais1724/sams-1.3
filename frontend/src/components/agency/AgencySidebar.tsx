@@ -48,6 +48,10 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
     const role = user?.role?.toLowerCase() || ""
     const isStaff = user?.employeeId ? true : !role.includes("admin")
     const isAdmin = role.includes("admin") && !user?.employeeId
+    const canReviewLeaves = Boolean(
+        user?.permissions?.includes("approve_leave") ||
+        user?.permissions?.includes("view_leaves")
+    )
 
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
     const [loggingOut, setLoggingOut] = useState(false)
@@ -119,7 +123,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
         },
         {
             name: "Leaves",
-            href: isStaff ? `/${agencySlug}/staff/leaves` : `/${agencySlug}/leaves`,
+            href: isStaff && !canReviewLeaves ? `/${agencySlug}/staff/leaves` : `/${agencySlug}/leaves`,
             icon: CalendarDays,
             permissions: ["view_leaves", "apply_leave", "approve_leave"],
         },

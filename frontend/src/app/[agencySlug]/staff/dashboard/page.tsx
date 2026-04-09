@@ -313,6 +313,9 @@ export default function StaffDashboard() {
   const permissions: string[] = userData?.permissions || []
   const isPrivileged = ["Agency Admin", "Supervisor"].includes(userData?.role)
   const hasPermission = (permission: string) => isPrivileged || permissions.includes(permission)
+  const leavesCenterHref = hasPermission("approve_leave") || hasPermission("view_leaves")
+    ? `/${currentAgencySlug}/leaves`
+    : `/${currentAgencySlug}/staff/leaves`
 
   const now = new Date()
   const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 18 ? "Good afternoon" : "Good evening"
@@ -377,7 +380,7 @@ export default function StaffDashboard() {
       key: "leave",
       label: "Apply for leave",
       icon: <CalendarDays className="h-4 w-4 text-[#06b6d4]" />,
-      href: `/${currentAgencySlug}/staff/leaves`,
+      href: leavesCenterHref,
       visible: hasPermission("apply_leave") || hasPermission("view_leaves"),
     },
     {
@@ -478,7 +481,7 @@ export default function StaffDashboard() {
               <h2 className="text-lg font-bold text-[#0f172a]">Leave balance</h2>
               <button
                 type="button"
-                onClick={() => router.push(`/${currentAgencySlug}/staff/leaves`)}
+                onClick={() => router.push(leavesCenterHref)}
                 className="text-sm font-semibold text-[#06b6d4] hover:text-cyan-700"
               >
                 Apply leave
