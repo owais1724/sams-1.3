@@ -31,6 +31,7 @@ export class UsersService {
         id: true,
         slug: true,
         name: true,
+        isActive: true,
       },
     },
   } as const;

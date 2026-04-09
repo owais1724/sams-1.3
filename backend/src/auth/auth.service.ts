@@ -43,9 +43,9 @@ export class AuthService {
       return null;
     }
 
-    // Block login if the agency is deactivated (Super Admins have no agency — always allowed)
+    // Block login if the agency is deactivated (Super Admins have no agency)
     const userWithAgency = user as any;
-    if (userWithAgency.agency && userWithAgency.agency.isActive === false) {
+    if (userWithAgency.agencyId && userWithAgency.agency?.isActive === false) {
       if (!isProd) {
         this.logger.warn(`Login blocked — agency is deactivated for: "${normalizedEmail}"`);
       }
@@ -74,6 +74,10 @@ export class AuthService {
 
     if (!userWithPermissions.isActive) {
       throw new ForbiddenException('Account suspended. Contact your administrator.');
+    }
+
+    if (userWithPermissions.agencyId && userWithPermissions.agency?.isActive === false) {
+      throw new ForbiddenException('Your agency has been deactivated. Please contact your system administrator.');
     }
 
     const payload = {
