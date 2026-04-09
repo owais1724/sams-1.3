@@ -83,6 +83,10 @@ function getRouteRule(pathname: string | null | undefined, agencySlug: string) {
     return routeAccessRules.find((rule) => rule.pattern.test(normalizedPath))
 }
 
+function isSharedReviewerLeavesRoute(pathname: string | null | undefined, agencySlug: string) {
+    return normalizeAgencyPath(pathname, agencySlug) === "/leaves"
+}
+
 function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
     if (!requiredPermissions.length) return true
 
@@ -205,8 +209,12 @@ export default function AgencyLayout({
         }
 
         // ── Per-tab Session Isolation ──
+        // Allow staff-portal reviewer access to the shared /leaves route.
+        const allowStaffReviewerLeavesRoute =
+            tabPortalType === 'staff' && isSharedReviewerLeavesRoute(pathname, currentAgencySlug)
+
         // Only check portal type if it's explicitly set (not null/undefined)
-        if (tabPortalType && tabPortalType !== 'agency') {
+        if (tabPortalType && tabPortalType !== 'agency' && !allowStaffReviewerLeavesRoute) {
             void forceLogout(getPortalLoginPath(pathname || "/", currentAgencySlug, tabPortalType));
             return;
         }
