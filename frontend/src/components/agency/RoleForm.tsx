@@ -74,7 +74,8 @@ export function RoleForm({ permissions, initialData, onSuccess }: {
         { label: "Employee Management", keywords: ["personnel", "employee", "staff", "promote", "demote"], icon: Users },
         { label: "Operations", keywords: ["deployment", "incident", "shift", "dashboard"], icon: Activity },
         { label: "Leaves", keywords: ["leave", "attendance"], icon: ClipboardList },
-        { label: "Finance", keywords: ["salary", "role", "permissions", "backup"], icon: Wallet }
+        { label: "Access Control", keywords: ["role", "permission", "backup"], icon: Shield },
+        { label: "Finance", keywords: ["salary", "payroll"], icon: Wallet }
     ]
 
     const getCategory = (action: string) => {
