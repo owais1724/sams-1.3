@@ -8,7 +8,6 @@ import {
   PageLoading,
   StatusBadge,
   TableRowEmpty,
-  StatCard,
   RowViewButton,
   SubmitButton,
   SectionHeading,
@@ -28,7 +27,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  FileText,
   User,
   ChevronDown,
   Settings2
@@ -718,7 +716,6 @@ export default function LeavesPage() {
         <section className="space-y-4">
           <div>
             <h2 className="text-xl font-black text-slate-900">My Leave Balance</h2>
-            <p className="text-sm text-[#64748b] mt-1">Casual, sick, earned, and loss of pay summary for this staff account.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -741,7 +738,9 @@ export default function LeavesPage() {
 
                     <div className="text-right text-xs font-semibold text-slate-500 space-y-1">
                       <p>Used: <span className="text-slate-800">{balance.used}</span></p>
-                      <p>Total: <span className="text-slate-800">{balance.total === null ? 'Unlimited' : balance.total}</span></p>
+                      {balance.total !== null && (
+                        <p>Total: <span className="text-slate-800">{balance.total}</span></p>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -750,23 +749,6 @@ export default function LeavesPage() {
           </div>
         </section>
       )}
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <StatCard
-          title="Review Required"
-          value={leaveRequests.filter(canApprove).length}
-          icon={<Clock />}
-          color="amber"
-        />
-        <StatCard
-          title="Approved"
-          value={leaveRequests.filter(r => ['SUPERVISOR_APPROVED', 'HR_APPROVED', 'AGENCY_APPROVED'].includes(r.status)).length}
-          icon={<CheckCircle2 />}
-          color="emerald"
-        />
-        <StatCard title="All Records" value={leaveRequests.length} icon={<FileText />} color="blue" />
-        <StatCard title="Rejected" value={leaveRequests.filter(r => r.status === 'REJECTED').length} icon={<XCircle />} color="rose" />
-      </div>
 
       <div className="space-y-6 pt-4">
         <SectionHeading title="Employee Leave Records" />
