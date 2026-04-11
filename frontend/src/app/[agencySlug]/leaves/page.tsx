@@ -90,6 +90,23 @@ interface RoleLeavePolicyFormState {
   earnedLeaveDays: string
 }
 
+type LeaveType = 'CASUAL' | 'SICK' | 'EARNED' | 'LOSS_OF_PAY'
+
+type LeaveBalanceItem = {
+  total: number | null
+  used: number
+  remaining: number | null
+}
+
+type LeaveBalanceResponse = Record<LeaveType, LeaveBalanceItem>
+
+const EMPTY_LEAVE_BALANCE: LeaveBalanceResponse = {
+  CASUAL: { total: 12, used: 0, remaining: 12 },
+  SICK: { total: 7, used: 0, remaining: 7 },
+  EARNED: { total: 12, used: 0, remaining: 12 },
+  LOSS_OF_PAY: { total: null, used: 0, remaining: null },
+}
+
 type LeavePolicyValidationResult =
   | { error: string }
   | {
@@ -115,6 +132,8 @@ export default function LeavesPage() {
   const { user } = useAuthStore()
   const { isAdmin, hasPermission } = usePermission()
   const canManageRolePolicies = isAdmin && hasPermission('manage_roles')
+  const canApplyLeave = hasPermission('apply_leave')
+  const showOwnLeaveBalance = Boolean(user?.employeeId) && canApplyLeave
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isPolicyExpanded, setIsPolicyExpanded] = useState(false)
   const [policyLoading, setPolicyLoading] = useState(false)
@@ -122,6 +141,7 @@ export default function LeavesPage() {
   const [showPolicySaveConfirm, setShowPolicySaveConfirm] = useState(false)
   const [pendingPolicyData, setPendingPolicyData] = useState<LeavePolicyPayload | null>(null)
   const [rolePolicies, setRolePolicies] = useState<RoleLeavePolicyFormState[]>([])
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalanceResponse>(EMPTY_LEAVE_BALANCE)
   const [formData, setFormData] = useState({
     leaveType: "",
     startDate: "",
@@ -149,10 +169,14 @@ export default function LeavesPage() {
 
     fetchLeaveRequests()
 
+    if (showOwnLeaveBalance) {
+      fetchLeaveBalance()
+    }
+
     if (canManageRolePolicies) {
       fetchLeavePolicy()
     }
-  }, [user, canManageRolePolicies])
+  }, [user, canManageRolePolicies, showOwnLeaveBalance])
 
   const fetchLeaveRequests = async () => {
     try {
@@ -186,6 +210,15 @@ export default function LeavesPage() {
       toast.error('Failed to load leave policy')
     } finally {
       setPolicyLoading(false)
+    }
+  }
+
+  const fetchLeaveBalance = async () => {
+    try {
+      const response = await api.get('/leaves/balance')
+      setLeaveBalance(response.data || EMPTY_LEAVE_BALANCE)
+    } catch {
+      toast.error('Failed to load your leave balance')
     }
   }
 
@@ -406,6 +439,18 @@ export default function LeavesPage() {
   }
 
   if (loading) return <PageLoading message="Synchronizing Leave Requests..." />
+
+  const balanceCards: Array<{
+    key: LeaveType
+    title: string
+    accentClass: string
+    valueClass: string
+  }> = [
+    { key: 'CASUAL', title: 'Casual Leave', accentClass: 'border-emerald-100 bg-emerald-50/80', valueClass: 'text-emerald-700' },
+    { key: 'SICK', title: 'Sick Leave', accentClass: 'border-blue-100 bg-blue-50/80', valueClass: 'text-blue-700' },
+    { key: 'EARNED', title: 'Earned Leave', accentClass: 'border-amber-100 bg-amber-50/80', valueClass: 'text-amber-700' },
+    { key: 'LOSS_OF_PAY', title: 'Loss Of Pay', accentClass: 'border-rose-100 bg-rose-50/80', valueClass: 'text-rose-700' },
+  ]
 
   return (
     <div className="space-y-12 pb-20">
@@ -667,6 +712,43 @@ export default function LeavesPage() {
             )}
           </AnimatePresence>
         </div>
+      )}
+
+      {showOwnLeaveBalance && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-black text-slate-900">My Leave Balance</h2>
+            <p className="text-sm text-[#64748b] mt-1">Casual, sick, earned, and loss of pay summary for this staff account.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+            {balanceCards.map((card) => {
+              const balance = leaveBalance[card.key]
+
+              return (
+                <article
+                  key={card.key}
+                  className={`rounded-[28px] border p-5 shadow-[0_12px_30px_rgba(15,23,42,0.06)] ${card.accentClass}`}
+                >
+                  <p className="text-sm font-bold text-slate-700">{card.title}</p>
+                  <div className="mt-4 flex items-end justify-between gap-4">
+                    <div>
+                      <p className={`text-4xl font-black leading-none ${card.valueClass}`}>
+                        {balance.remaining === null ? '-' : balance.remaining}
+                      </p>
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 mt-2">Remaining</p>
+                    </div>
+
+                    <div className="text-right text-xs font-semibold text-slate-500 space-y-1">
+                      <p>Used: <span className="text-slate-800">{balance.used}</span></p>
+                      <p>Total: <span className="text-slate-800">{balance.total === null ? 'Unlimited' : balance.total}</span></p>
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        </section>
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
