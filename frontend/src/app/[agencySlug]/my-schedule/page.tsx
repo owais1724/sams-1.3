@@ -4,24 +4,33 @@ import { useEffect, useState } from "react"
 import { useAuthStore } from "@/store/authStore"
 import { useRouter, useParams } from "next/navigation"
 import api from "@/lib/api"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, MapPin, Shield, AlertCircle } from "lucide-react"
 import { toast } from "@/components/ui/sonner"
 
 export default function MySchedulePage() {
-    const { user } = useAuthStore()
+    const { user, isAuthenticated, isLoading: authLoading } = useAuthStore()
     const router = useRouter()
     const { agencySlug } = useParams()
     const [deployments, setDeployments] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        if (authLoading) {
+            return
+        }
+
+        if (!isAuthenticated || !user) {
+            setLoading(false)
+            return
+        }
+
         // ✅ Dynamic RBAC: Any user with employeeId can access this page
         // No hardcoded role names - completely dynamic
         const isStaffUser = Boolean(user?.employeeId);
         
-        if (user && !isStaffUser) {
+        if (!isStaffUser) {
             console.warn(`[My Schedule] Access denied - no employeeId for user: ${user.email}`)
             toast.error("Unauthorized access. You have been logged out.")
             api.post('/auth/logout').catch(() => {})
@@ -29,8 +38,8 @@ export default function MySchedulePage() {
             return
         }
         
-        fetchMySchedule()
-    }, [user, router, agencySlug])
+        void fetchMySchedule()
+    }, [authLoading, isAuthenticated, user, router, agencySlug])
 
     const fetchMySchedule = async () => {
         try {

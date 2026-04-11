@@ -4,7 +4,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,7 +32,6 @@ const formSchema = z.object({
 })
 
 export default function StaffLogin() {
-    const router = useRouter()
     const { agencySlug } = useParams()
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
@@ -90,12 +89,13 @@ export default function StaffLogin() {
             
             toast.success("Ready for duty. Welcome back.")
             
-            // If user is a guard/operator without dashboard permission, land on schedule
-            if (!user.permissions?.includes('view_dashboard')) {
-                router.push(`/${agencySlug}/staff/my-schedule`)
-            } else {
-                router.push(`/${agencySlug}/staff/dashboard`)
-            }
+            const redirectPath = !user.permissions?.includes('view_dashboard')
+                ? `/${agencySlug}/staff/my-schedule`
+                : `/${agencySlug}/staff/dashboard`
+
+            // Force a document navigation so auth cookies are visible to
+            // middleware and protected layouts on the first post-login load.
+            window.location.replace(redirectPath)
         } catch (error: any) {
             console.error('[Staff Login Error]', error)
             
