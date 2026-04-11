@@ -4,7 +4,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,7 +32,6 @@ const formSchema = z.object({
 })
 
 export default function StaffLogin() {
-    const router = useRouter()
     const { agencySlug } = useParams()
     const [loading, setLoading] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
@@ -119,7 +118,9 @@ export default function StaffLogin() {
             
             console.log('[Staff Login] Redirecting to:', redirectPath)
             
-            router.replace(redirectPath)
+            // Force a document navigation so auth cookies are visible to
+            // middleware and protected layouts on the first post-login load.
+            window.location.replace(redirectPath)
         } catch (error: any) {
             console.group("[StaffLogin] Authentication Error");
             console.error("Message:", error.message);
