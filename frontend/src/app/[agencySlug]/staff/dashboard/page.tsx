@@ -48,6 +48,21 @@ type LeaveHistoryItem = {
   }
 }
 
+type StaffDeployment = {
+  id: string
+  status: string
+  startDate: string
+  endDate: string
+  client?: {
+    name?: string
+  }
+  shift?: {
+    name?: string
+    startTime?: string
+    endTime?: string
+  }
+}
+
 const EMPTY_LEAVE_BALANCE: LeaveBalanceResponse = {
   CASUAL: { total: 12, used: 0, remaining: 12 },
   SICK: { total: 7, used: 0, remaining: 7 },
@@ -174,6 +189,27 @@ const isActiveLeaveToday = (item: LeaveHistoryItem) => {
   return now >= start && now <= end
 }
 
+const isDeploymentScheduledToday = (deployment: StaffDeployment) => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const start = new Date(deployment.startDate)
+  const end = new Date(deployment.endDate)
+
+  start.setHours(0, 0, 0, 0)
+  end.setHours(23, 59, 59, 999)
+
+  return today >= start && today <= end
+}
+
+const getDeploymentPriority = (status: string) => {
+  const normalized = String(status || "").toLowerCase().trim()
+  if (normalized === "active") return 3
+  if (normalized === "planned") return 2
+  if (normalized === "completed") return 1
+  return 0
+}
+
 export default function StaffDashboard() {
   const router = useRouter()
   const { agencySlug } = useParams()
@@ -191,6 +227,7 @@ export default function StaffDashboard() {
   const [topPerformers, setTopPerformers] = useState([])
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState<any>(null)
+  const [todayShift, setTodayShift] = useState<StaffDeployment | null>(null)
   const [isClockedIn, setIsClockedIn] = useState(false)
   const { login } = useAuthStore()
 
@@ -227,15 +264,19 @@ export default function StaffDashboard() {
       const canApplyLeave = hasPermissionAction(perms, 'apply_leave')
       const canViewAllLeaves = isAdmin || hasPermissionAction(perms, 'view_leaves') || hasPermissionAction(perms, 'approve_leave')
       
-      const [empRes, attRes, projRes] = await Promise.allSettled([
+      const [empRes, attRes, projRes, myScheduleRes] = await Promise.allSettled([
         (isAdmin || perms.includes('view_employee')) ? api.get('/employees') : Promise.reject('No permission'),
         (isAdmin || perms.includes('view_attendance')) ? api.get('/attendance?today=true') : api.get('/attendance?today=true&self=true'),
         (isAdmin || perms.includes('view_projects')) ? api.get('/projects') : Promise.reject('No permission'),
+        api.get('/deployments/my-schedule'),
       ])
 
       const employees = empRes.status === 'fulfilled' ? empRes.value.data : []
       const attendance = attRes.status === 'fulfilled' ? attRes.value.data : []
       const projects = projRes.status === 'fulfilled' ? projRes.value.data : []
+      const mySchedule = myScheduleRes.status === 'fulfilled' && Array.isArray(myScheduleRes.value.data)
+        ? myScheduleRes.value.data as StaffDeployment[]
+        : []
 
       let leaves: LeaveHistoryItem[] = []
       let resolvedLeaveBalance: LeaveBalanceResponse = EMPTY_LEAVE_BALANCE
@@ -305,6 +346,10 @@ export default function StaffDashboard() {
       })
       setLeaveBalance(resolvedLeaveBalance)
       setPendingLeavesCount(pendingCount)
+      const todayShiftData = mySchedule
+        .filter(isDeploymentScheduledToday)
+        .sort((a, b) => getDeploymentPriority(b.status) - getDeploymentPriority(a.status))[0] || null
+      setTodayShift(todayShiftData)
 
       setRecentActivities(attendance.slice(0, 5).map((record: any) => ({
         type: record.status === 'PRESENT' ? 'checkin' : 'absent',
@@ -473,7 +518,16 @@ export default function StaffDashboard() {
           <article className="rounded-[12px] border-[0.5px] border-[#e2e8f0] bg-white p-5">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-[#0f172a]">Today's shift</h2>
-              <Badge className="bg-green-50 text-green-700 border border-green-200">Scheduled</Badge>
+              <Badge className={cn(
+                "border",
+                todayShift?.status?.toLowerCase() === "active"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : todayShift?.status?.toLowerCase() === "planned"
+                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                    : "bg-slate-50 text-slate-700 border-slate-200"
+              )}>
+                {todayShift ? (todayShift.status || "Scheduled") : "No shift"}
+              </Badge>
             </div>
 
             <div className="rounded-lg bg-[#f8fafc] border-[0.5px] border-[#e2e8f0] p-4 flex items-center gap-3">
@@ -481,15 +535,23 @@ export default function StaffDashboard() {
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#0f172a]">Morning Security Shift</p>
-                <p className="text-xs text-[#64748b]">08:00 AM - 04:00 PM</p>
+                <p className="text-sm font-bold text-[#0f172a]">
+                  {todayShift?.shift?.name || "No shift assigned for today"}
+                </p>
+                <p className="text-xs text-[#64748b]">
+                  {todayShift?.shift?.startTime && todayShift?.shift?.endTime
+                    ? `${todayShift.shift.startTime} - ${todayShift.shift.endTime}`
+                    : "No timing available"}
+                </p>
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-[#f8fafc] border-[0.5px] border-[#e2e8f0] p-3">
                 <p className="text-[11px] text-[#64748b] mb-1 flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Site</p>
-                <p className="text-sm font-semibold text-[#0f172a] truncate">{userData?.agencyName || "Main Site"}</p>
+                <p className="text-sm font-semibold text-[#0f172a] truncate">
+                  {todayShift?.client?.name || userData?.agencyName || "Main Site"}
+                </p>
               </div>
               <div className="rounded-lg bg-[#f8fafc] border-[0.5px] border-[#e2e8f0] p-3">
                 <p className="text-[11px] text-[#64748b] mb-1 flex items-center gap-1.5"><Shield className="h-3.5 w-3.5" /> Role</p>
