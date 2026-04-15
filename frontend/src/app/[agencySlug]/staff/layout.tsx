@@ -50,8 +50,6 @@ const PERMISSION_ALIASES: Record<string, string[]> = {
     apply_leaves: ["apply_leave"],
 }
 
-const STAFF_NAV_INTENT_TTL_MS = 5000
-
 function normalizeStaffPath(pathname: string | null | undefined, agencySlug: string) {
     if (!pathname) return "/"
 
@@ -88,101 +86,6 @@ function hasRoutePermission(userData: any, requiredPermissions: string[] = []) {
         const aliases = PERMISSION_ALIASES[normalized] || []
         return aliases.some((alias) => actions.has(alias))
     })
-}
-
-function getRecentStaffNavigationIntent() {
-    if (typeof window === "undefined") {
-        return null
-    }
-
-    const rawIntent = sessionStorage.getItem(STAFF_NAV_INTENT_KEY)
-    if (!rawIntent) {
-        return null
-    }
-
-    try {
-        const parsedIntent = JSON.parse(rawIntent) as { path?: string; at?: number }
-        const isFreshIntent =
-            typeof parsedIntent?.at === "number" &&
-            Date.now() - parsedIntent.at <= STAFF_NAV_INTENT_TTL_MS
-
-        if (!isFreshIntent) {
-            sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
-            return null
-        }
-
-        return parsedIntent
-    } catch {
-        sessionStorage.removeItem(STAFF_NAV_INTENT_KEY)
-        return null
-    }
-}
-
-function rememberStaffNavigationIntent(urlValue: string | URL | null | undefined, agencySlug: string) {
-    if (typeof window === "undefined" || !urlValue || !agencySlug) {
-        return
-    }
-
-    try {
-        const url = typeof urlValue === "string"
-            ? new URL(urlValue, window.location.origin)
-            : new URL(urlValue.toString(), window.location.origin)
-
-        if (url.origin !== window.location.origin) {
-            return
-        }
-
-        const staffPrefix = `/${agencySlug}/staff`
-        if (!url.pathname.startsWith(staffPrefix)) {
-            return
-        }
-
-        sessionStorage.setItem(
-            STAFF_NAV_INTENT_KEY,
-            JSON.stringify({
-                path: normalizeStaffPath(url.pathname, agencySlug),
-                at: Date.now(),
-            }),
-        )
-    } catch {
-        // Ignore malformed URLs and keep the current tab session intact.
-    }
-}
-
-function hasTrustedStaffReferrer(agencySlug: string) {
-    if (typeof window === "undefined" || !agencySlug || !document.referrer) {
-        return false
-    }
-
-    try {
-        const referrerUrl = new URL(document.referrer, window.location.origin)
-        return (
-            referrerUrl.origin === window.location.origin &&
-            referrerUrl.pathname.startsWith(`/${agencySlug}/staff`)
-        )
-    } catch {
-        return false
-    }
-}
-
-function isManualProtectedStaffDeepLink(pathname: string | null | undefined, agencySlug: string) {
-    if (typeof window === "undefined" || !agencySlug) {
-        return false
-    }
-
-    const normalizedCurrentPath = normalizeStaffPath(pathname, agencySlug)
-    const verifiedStaffPath = sessionStorage.getItem(STAFF_VERIFIED_PATH_KEY)
-    const navIntent = getRecentStaffNavigationIntent()
-    const navIntentPath = navIntent?.path || null
-    const trustedReferrer = hasTrustedStaffReferrer(agencySlug)
-
-    return (
-        Boolean(verifiedStaffPath) &&
-        verifiedStaffPath !== normalizedCurrentPath &&
-        navIntentPath !== normalizedCurrentPath &&
-        !navIntent &&
-        !trustedReferrer
-    )
 }
 
 export default function StaffLayout({
@@ -249,14 +152,6 @@ export default function StaffLayout({
         
         try {
             const normalizedCurrentPath = normalizeStaffPath(pathname, currentAgencySlug)
-            const isManualProtectedDeepLink = isManualProtectedStaffDeepLink(pathname, currentAgencySlug)
-
-            if (isManualProtectedDeepLink) {
-                console.warn(`[StaffLayout] Manual protected URL detected for ${pathname}`)
-                toast.error("Copied or pasted protected staff URLs are not allowed. Please sign in again.")
-                void forceLogout()
-                return
-            }
 
             const response = await api.get("/auth/me")
             const userData = response.data
@@ -339,52 +234,6 @@ export default function StaffLayout({
     }, [initialize])
 
     useEffect(() => {
-        if (typeof window === "undefined" || isLoginPage || !currentAgencySlug) {
-            return
-        }
-
-        const handleDocumentClick = (event: MouseEvent) => {
-            const target = event.target
-            if (!(target instanceof Element)) {
-                return
-            }
-
-            const link = target.closest("a")
-            if (!link) {
-                return
-            }
-
-            const href = link.getAttribute("href")
-            if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) {
-                return
-            }
-
-            rememberStaffNavigationIntent(href, currentAgencySlug)
-        }
-
-        const originalPushState = window.history.pushState.bind(window.history)
-        const originalReplaceState = window.history.replaceState.bind(window.history)
-
-        window.history.pushState = function pushState(state, unused, url) {
-            rememberStaffNavigationIntent(url, currentAgencySlug)
-            return originalPushState(state, unused, url)
-        }
-
-        window.history.replaceState = function replaceState(state, unused, url) {
-            rememberStaffNavigationIntent(url, currentAgencySlug)
-            return originalReplaceState(state, unused, url)
-        }
-
-        document.addEventListener("click", handleDocumentClick, true)
-
-        return () => {
-            document.removeEventListener("click", handleDocumentClick, true)
-            window.history.pushState = originalPushState
-            window.history.replaceState = originalReplaceState
-        }
-    }, [currentAgencySlug, isLoginPage])
-
-    useEffect(() => {
         if (authLoading) {
             return
         }
@@ -404,14 +253,6 @@ export default function StaffLayout({
         if (!isAuthenticated) {
             verifyStaffAccess()
         } else {
-            const isManualProtectedDeepLink = isManualProtectedStaffDeepLink(pathname, currentAgencySlug)
-            if (isManualProtectedDeepLink) {
-                console.warn(`[StaffLayout] Manual protected URL detected for ${pathname}`)
-                toast.error("Copied or pasted protected staff URLs are not allowed. Please sign in again.")
-                void forceLogout()
-                return
-            }
-
             // On subsequent navigations, just check tab user key locally (no API call)
             const tabUserKey = getTabSessionUserKey()
             const currentUserKey = buildSessionUserKey(user)

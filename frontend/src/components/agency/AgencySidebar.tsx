@@ -50,7 +50,7 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
     const isAdmin = role.includes("admin") && !user?.employeeId
     const canReviewLeaves = Boolean(
         user?.permissions?.includes("approve_leave") ||
-        user?.permissions?.includes("view_leaves")
+        user?.permissions?.includes("approve_leaves")
     )
 
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
@@ -229,4 +229,3 @@ export function AgencySidebar({ onItemClick, collapsed = false, onToggleCollapse
         </aside>
     )
 }
-
