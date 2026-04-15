@@ -186,21 +186,30 @@ export default function StaffLeavesPage() {
 				safeGetJson("/leaves/my-leaves"),
 			])
 
-			if (balanceData && myLeavesData) {
+			if (balanceData) {
 				setLeaveBalance(balanceData)
+			}
+
+			if (Array.isArray(myLeavesData)) {
 				setHistory(myLeavesData)
+				if (!balanceData) {
+					setLeaveBalance(computeBalanceFromHistory(myLeavesData))
+				}
 				return
 			}
 
-			// Compatibility fallback if backend is still running old leaves routes.
-			const legacyRes = await api.get("/leaves")
-			const allHistory: LeaveHistoryItem[] = legacyRes.data || []
+			// Compatibility fallback for older backends. Use plain fetch so an
+			// unavailable legacy route cannot clear an otherwise valid staff session.
+			const legacyHistory = await safeGetJson("/leaves")
+			const allHistory: LeaveHistoryItem[] = Array.isArray(legacyHistory) ? legacyHistory : []
 			const myHistory = user?.employeeId
 				? allHistory.filter((item: any) => item?.employee?.id === user.employeeId || item?.employeeId === user.employeeId)
 				: allHistory
 
 			setHistory(myHistory)
-			setLeaveBalance(computeBalanceFromHistory(myHistory))
+			if (!balanceData) {
+				setLeaveBalance(computeBalanceFromHistory(myHistory))
+			}
 		} catch (error: any) {
 			toast.error(error?.response?.data?.message || "Failed to load leave details")
 		} finally {

@@ -250,8 +250,8 @@ export default function StaffDashboard() {
       }
 
       if (canViewAllLeaves) {
-        const allLeaves = await api.get('/leaves').then((res) => res.data).catch(() => [])
-        leaves = Array.isArray(allLeaves) ? allLeaves : []
+        const allLeavesData = await safeGetJson('/leaves')
+        leaves = Array.isArray(allLeavesData) ? allLeavesData as LeaveHistoryItem[] : []
       } else if (canApplyLeave) {
         const myLeavesData = await safeGetJson('/leaves/my-leaves')
 
@@ -259,7 +259,7 @@ export default function StaffDashboard() {
           leaves = myLeavesData as LeaveHistoryItem[]
         } else {
           // Compatibility fallback for environments still on old leave routes.
-          const legacyLeaves = await api.get('/leaves').then((res) => res.data).catch(() => [])
+          const legacyLeaves = await safeGetJson('/leaves')
           const scopedLegacy = Array.isArray(legacyLeaves)
             ? legacyLeaves.filter((item: LeaveHistoryItem) =>
               user?.employeeId
